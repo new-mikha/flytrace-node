@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    container_name: flytrace-pg
+    environment:
+      POSTGRES_USER: flytrace
+      POSTGRES_PASSWORD: flytrace
+      POSTGRES_DB: flytrace_dev
+    ports:
+      - "5433:5432"   # 5433 so it does not clash with a local Postgres.app on 5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:

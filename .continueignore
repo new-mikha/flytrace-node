@@ -1,0 +1,6 @@
+# Keep secrets and production personal data away from AI tools (gitignore syntax).
+# Patterns must not assume the repo root: during the upgrade this file is also copied into the parent workspace folder.
+.env
+.env.*
+!.env.example
+**/db/legacy/dump/

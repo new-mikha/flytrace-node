@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+# Production data: emails and password hashes. Never commit.
+db/legacy/dump/
+.DS_Store

@@ -1,0 +1,35 @@
+# FlyTrace (Node + Postgres rewrite)
+
+Rewrite of https://www.flytrace.com/tracker (ASP.NET WebForms) on TypeScript, Fastify and Postgres.
+
+**Milestone 1 (current):** organised legacy data migration plus a bare skeleton proving authentication
+(migrated users keep their passwords) and role-based authorisation (anonymous / user / `Admins`).
+No tracker polling or map yet.
+
+## Setup
+
+```sh
+cp .env.example .env            # then set SESSION_SECRET
+npm install
+docker compose up -d            # Postgres 16 on localhost:5433
+npm run db:reset                # dev only: drop, create, migrate (DB name must contain "_dev")
+npm run db:import-legacy -- db/legacy/dump/<timestamp>   # see db/legacy/README.md
+npm run dev                     # http://127.0.0.1:3000
+```
+
+Without a dump: `npm run user:create -- alice secret Admins`.
+
+## Layout
+
+- `server/src/` Fastify app: `auth/` (legacy + argon2 password verification, Postgres-backed sessions, `requireLogin` / `requireRole` guards, `/api/login|logout|me`), `routes/pages.ts` (bare HTML pages `/`, `/login`, `/groups`, `/admin`, `/403`).
+- `db/migrations/*.sql` schema, applied by `npm run db:migrate` (tracked in `schema_migrations`).
+- `db/legacy/` migration from the original MSSQL database; `db/legacy/dump/` is gitignored (personal data).
+- `server/test/` vitest: unit tests for password hashing and an end-to-end auth flow against the dev DB.
+
+`npm test`, `npm run typecheck`.
+
+## Legacy system reference
+
+`docs/legacy-system.md` describes the original ASP.NET application in detail (data model, stored procedures, auth,
+every page and feature, the map client, the SPOT/inReach feed clients, the polling scheduler and the incremental-update
+protocol), plus the current migration status and the remaining work. Read it before porting any feature.
