@@ -1,0 +1,197 @@
+/* FlyTrace look on top of Bootstrap 5. Colours and sizes are CSS variables so the theme can be changed in one place. */
+
+:root {
+  --ff-ink: #1f2a37;
+  --ff-navy: #0f172a;
+  --ff-navy-2: #1e3a5f;
+  --ff-sky: #0ea5e9;
+  --ff-teal: #14b8a6;
+  --ff-coral: #fb7185;
+  --ff-sun: #fde68a;
+  --ff-panel: rgba(255, 255, 255, 0.94);
+  --ff-radius: 0.5rem;
+  --ff-frame-width: 1200px;
+}
+
+body {
+  color: var(--ff-ink);
+  background: #dbeafe; /* shown until the picture below has loaded */
+}
+
+/* Background picture around the content panel. */
+.ff-bg {
+  min-height: 100vh;
+  background: #dbeafe url("/assets/img/background.jpg") center / cover fixed;
+  padding-bottom: 2rem;
+}
+
+.ff-frame {
+  max-width: var(--ff-frame-width);
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .ff-frame { padding-top: 2rem; }
+}
+
+/* ---- loading bar at the very top (driven by public/js/app.js) ---- */
+
+.ff-progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  z-index: 2000;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.ff-progress-bar {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--ff-sky), var(--ff-teal), var(--ff-sun));
+  box-shadow: 0 0 6px rgba(14, 165, 233, 0.7);
+}
+
+.ff-progress.active { opacity: 1; }
+.ff-progress.active .ff-progress-bar { animation: ff-progress 10s cubic-bezier(0.1, 0.6, 0.2, 1) forwards; }
+
+/* Finishing: jump to the end, then fade out. */
+.ff-progress.active.done { opacity: 0; transition: opacity 0.3s ease 0.1s; }
+.ff-progress.active.done .ff-progress-bar { animation: none; width: 100%; transition: width 0.2s ease; }
+
+@keyframes ff-progress {
+  from { width: 0; }
+  to   { width: 92%; }
+}
+
+/* A control that is busy (link or button): dimmed and not clickable again. */
+a.disabled { pointer-events: none; opacity: 0.65; }
+.ff-spinner { margin-left: 0.15rem; }
+
+/* ---- navigation bar ---- */
+
+.ff-navbar {
+  background: linear-gradient(90deg, var(--ff-navy), var(--ff-navy-2));
+  padding: 0.6rem 1rem;
+  /* Stays at the top of the screen while the page scrolls (above page content, below the loading bar). */
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+}
+
+/* On phones the opened menu can be taller than the screen: let it scroll inside the sticky bar. */
+@media (max-width: 991.98px) {
+  .ff-navbar .navbar-collapse {
+    max-height: calc(100vh - 4.5rem);
+    max-height: calc(100dvh - 4.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Scrolling to the list (the "show only the latest week" link) must not tuck it under the sticky bar. */
+#public-maps { scroll-margin-top: 4.5rem; }
+
+@media (min-width: 768px) {
+  .ff-navbar { border-radius: var(--ff-radius) var(--ff-radius) 0 0; }
+}
+
+.ff-brand-icon { color: var(--ff-coral); margin-right: 0.35rem; }
+
+.ff-toggler { border-color: rgba(255, 255, 255, 0.4); }
+
+.ff-login-form { align-items: stretch; }
+@media (min-width: 992px) {
+  .ff-login-form { max-width: 40rem; } /* inline in the bar; in the phone menu it spans the full width */
+  .ff-login-form .btn { width: auto; }
+}
+@media (max-width: 991.98px) {
+  .ff-login-form .btn { width: 100%; }
+}
+
+/* Phone menu entries: brighter than Bootstrap's default dimmed nav links. */
+.ff-more-inline .nav-link { color: rgba(255, 255, 255, 0.85); }
+.ff-more-inline .nav-link:hover { color: #fff; }
+
+/* Drop-down and collapse open with a short slide and fade. */
+.dropdown-menu.show { animation: ff-drop 0.18s ease-out; transform-origin: top; }
+
+@keyframes ff-drop {
+  from { opacity: 0; transform: translateY(-0.5rem) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---- content panel ("jumbotron") ---- */
+
+.ff-jumbotron {
+  background: var(--ff-panel);
+  padding: 1.5rem;
+  min-height: 12rem;
+}
+
+@media (min-width: 768px) {
+  .ff-jumbotron { border-radius: 0 0 var(--ff-radius) var(--ff-radius); }
+}
+
+@media (max-width: 575.98px) {
+  .ff-jumbotron { padding: 1rem 0.75rem; }
+}
+
+.ff-heading-icon { color: var(--ff-sky); margin-right: 0.35rem; }
+
+.ff-accordion .accordion-button:not(.collapsed) {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+/* ---- public maps table ---- */
+
+.ff-table-wrap {
+  background: #fff;
+  border: 1px solid #bae6fd;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.12);
+}
+
+.ff-table {
+  --bs-table-striped-bg: #effaff;
+  --bs-table-hover-bg: #fff4d1;
+  --bs-table-hover-color: var(--ff-ink);
+  font-size: 0.95rem;
+}
+
+.ff-table thead tr { background: linear-gradient(90deg, var(--ff-sky), var(--ff-teal)); } /* one gradient across the row */
+
+.ff-table thead th {
+  background-color: transparent;
+  color: #fff;
+  font-weight: 600;
+  border: 0;
+  padding: 0.7rem 0.9rem;
+  white-space: nowrap;
+}
+
+.ff-table td { padding: 0.55rem 0.9rem; }
+
+.ff-wrap { overflow-wrap: anywhere; } /* very long group or owner names wrap instead of widening the table */
+
+.ff-group-link { color: #0369a1; text-decoration: none; }
+.ff-group-link:hover { text-decoration: underline; }
+
+.ff-pilots { background: var(--ff-sun); color: #7c2d12; min-width: 2rem; }
+
+.ff-age {
+  display: inline-block;
+  margin-top: 0.1rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-menu.show { animation: none; }
+}

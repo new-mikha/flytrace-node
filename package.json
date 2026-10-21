@@ -22,12 +22,17 @@
     "@fastify/formbody": "^9.0.1",
     "@fastify/rate-limit": "^11.2.1",
     "@fastify/session": "^11.1.4",
+    "@fastify/static": "^10.1.7",
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "argon2": "^0.45.1",
+    "bootstrap": "^5.3.8",
     "connect-pg-simple": "^10.0.0",
     "dotenv": "^18.0.8",
     "fastify": "^5.12.7",
     "pg": "^8.23.1",
     "pg-copy-streams": "^7.0.0",
+    "preact": "^11.0.1",
+    "preact-render-to-string": "^6.8.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {

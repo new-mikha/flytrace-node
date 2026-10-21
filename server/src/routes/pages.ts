@@ -11,20 +11,6 @@ function safeReturnUrl(value: unknown): string {
 }
 
 export async function pageRoutes(app: FastifyInstance, pool: Pool): Promise<void> {
-  app.get('/', async (request, reply) => {
-    const { rows } = await pool.query<{ users: string; groups: string; trackers: string }>(
-      `SELECT (SELECT count(*) FROM users) AS users,
-              (SELECT count(*) FROM groups) AS groups,
-              (SELECT count(*) FROM group_trackers) AS trackers`,
-    );
-    const s = rows[0];
-    return reply.type('text/html').send(page('FlyTrace', `
-      <p>Milestone 1 skeleton: authentication and role-based authorisation on top of the migrated data.</p>
-      <ul><li>${esc(s?.users)} users</li><li>${esc(s?.groups)} groups</li><li>${esc(s?.trackers)} trackers</li></ul>
-      <p>Pages: <a href="/groups">/groups</a> needs a login; <a href="/admin">/admin</a> needs the Admins role.</p>`,
-      request.user));
-  });
-
   app.get<{ Querystring: { returnUrl?: string; error?: string } }>('/login', async (request, reply) => {
     if (request.user) return reply.redirect(safeReturnUrl(request.query.returnUrl), 302);
     const error = request.query.error ? '<p class="err">Invalid username or password.</p>' : '';
@@ -34,7 +20,7 @@ export async function pageRoutes(app: FastifyInstance, pool: Pool): Promise<void
         <p><label>Username or email <input name="username" autocomplete="username" required autofocus></label></p>
         <p><label>Password <input name="password" type="password" autocomplete="current-password" required></label></p>
         <p><button>Log in</button></p>
-      </form>`, null));
+      </form>`, null, '/login'));
   });
 
   app.post<{ Body: { username?: string; password?: string; returnUrl?: string } }>(

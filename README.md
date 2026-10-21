@@ -22,6 +22,7 @@ Without a dump: `npm run user:create -- alice secret Admins`.
 ## Layout
 
 - `server/src/` Fastify app: `auth/` (legacy + argon2 password verification, Postgres-backed sessions, `requireLogin` / `requireRole` guards, `/api/login|logout|me`), `routes/pages.ts` (bare HTML pages `/`, `/login`, `/groups`, `/admin`, `/403`).
+- `server/src/views/` Preact (JSX) pages and components, rendered to HTML on the server; `server/src/repo/` SQL queries; `public/` our own CSS, JS and images (served at `/assets/`). Bootstrap and Font Awesome come from `node_modules` (served at `/vendor/`).
 - `db/migrations/*.sql` schema, applied by `npm run db:migrate` (tracked in `schema_migrations`).
 - `db/legacy/` migration from the original MSSQL database; `db/legacy/dump/` is gitignored (personal data).
 - `server/test/` vitest: unit tests for password hashing and an end-to-end auth flow against the dev DB.

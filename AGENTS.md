@@ -13,6 +13,8 @@ from a parent workspace folder.
   is fine. If work is ready to commit, say so and stop.
 - Go slow: milestone 1 is the migration plus bare auth/role skeleton pages. Do not add map, tracker polling,
   registration or group management unless asked.
+- The owner usually has `npm run dev` (watch mode) running on port 3000. Never stop it: start your own test server
+  on another port (`PORT=3100 npm run dev`) and kill only the process you started, never by port or process name.
 - Keep numeric group, event and tracker IDs unchanged (nginx will later redirect the old `.aspx` URLs).
 - `db/legacy/dump/` holds production personal data (emails, password hashes) and is gitignored. Never print
   its contents or copy it elsewhere.
@@ -34,6 +36,12 @@ TypeScript (ESM, strict), Fastify 5, plain `pg` SQL (no ORM), vitest, Postgres 1
 - `npm run db:reset`: dev only, drops and recreates the DB (refuses unless the name contains `_dev`), then migrates.
 - `npm run db:import-legacy -- db/legacy/dump/<timestamp>`: staging, transform and verify in one transaction.
 - `npm run user:create -- <name> <password> [role]`: dev user. `npm run dev`, `npm test`, `npm run typecheck`.
+
+UI: pages are server-rendered with Preact JSX (`server/src/views/*.tsx`, `preact-render-to-string`; Preact escapes
+text and attributes by default, so avoid `dangerouslySetInnerHTML` for user data), styled with Bootstrap 5 CSS and
+Font Awesome Free, both served straight from `node_modules` under `/vendor/`. Our own CSS, JS and images live in
+`public/` (served under `/assets/`). Small enhancements go in `public/js/app.js`; heavier interactive parts
+(map, waypoint editor) will be separate client-side "islands" later.
 
 The schema is not deployed yet, so `db/migrations/0001_schema.sql` is edited in place; once deployed, add new
 numbered migrations instead.

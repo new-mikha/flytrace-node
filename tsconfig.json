@@ -3,7 +3,9 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "types": ["node"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -13,5 +15,5 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["server/**/*.ts", "db/**/*.ts"]
+  "include": ["server/**/*.ts", "server/**/*.tsx", "db/**/*.ts"]
 }
