@@ -109,7 +109,7 @@ export function CheckEmailPage({ email, emailSent, ...c }: Common & { email: str
       <p>Thank you for registering! We sent a confirmation link to <strong>{email}</strong>.
         Open it to activate your account, then log in.</p>
       {!emailSent && <p class="text-muted">This server has no outgoing email set up, so nothing was sent. The administrator can find the link in the server log.</p>}
-      <p class="mb-0">Nothing arrived? Check the spam folder, or <a href="/resend-confirmation">send it again</a>.</p>
+      <p class="mb-0">Nothing arrived? Check the spam folder or <a href="/resend-confirmation">send it again</a>.</p>
     </Shell>
   );
 }
@@ -117,7 +117,7 @@ export function CheckEmailPage({ email, emailSent, ...c }: Common & { email: str
 // ---- one-time links ----
 
 /**
- * What a emailed link opens: a page with a button, so that mail scanners following the link do not use it up.
+ * What an emailed link opens: a page with a button, so that mail scanners following the link do not use it up.
  * The token is only spent when the button (a POST) is pressed.
  */
 export function LinkPage({ title, icon, action, token, valid, intro, button, ...c }: Common & {
@@ -135,7 +135,7 @@ export function LinkPage({ title, icon, action, token, valid, intro, button, ...
         </>
       ) : (
         <>
-          <Alert flash={{ kind: 'danger', text: 'This link is not valid any more. It may have expired or been used already.' }} />
+          <Alert flash={{ kind: 'danger', text: 'This link is no longer valid. It may have expired or been used already.' }} />
           <p class="mb-0"><a href="/login">Log in</a>, or <a href="/forgot-password">get a new password link</a>.</p>
         </>
       )}
@@ -179,7 +179,7 @@ export function ResetPasswordPage({ token, valid, errors, forbidden = [], ...c }
         </form>
       ) : (
         <>
-          <Alert flash={{ kind: 'danger', text: 'This link is not valid any more. It may have expired or been used already.' }} />
+          <Alert flash={{ kind: 'danger', text: 'This link is no longer valid. It may have expired or been used already.' }} />
           <p class="mb-0"><a href="/forgot-password">Get a new link</a></p>
         </>
       )}

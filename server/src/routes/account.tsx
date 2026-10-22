@@ -52,7 +52,7 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
     } else {
       const result = await mail.sendTest(to);
       const detail = request.user!.roles.includes('Admins') && result.error ? ` (${result.error})` : '';
-      if (result.ok) setFlash(request, 'success', `Test email sent to ${to.email}. Check your inbox, and the spam folder.`);
+      if (result.ok) setFlash(request, 'success', `Test email sent to ${to.email}. Check your inbox and the spam folder.`);
       else setFlash(request, 'danger', `The test email could not be sent${detail}. The error is in the server log.`);
     }
     return reply.redirect('/account', 302);
@@ -104,7 +104,7 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
     audit(request, 'password.changed', 'Password changed; other sessions ended');
     const to = recipientOf(account);
     if (to) mail.queue(() => mail.sendPasswordChanged(to));
-    setFlash(request, 'success', 'Your password is changed.');
+    setFlash(request, 'success', 'Your password has been changed.');
     return reply.redirect('/account/password', 302);
   });
 

@@ -196,7 +196,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     if (!info) return reply.redirect(`/confirm-email?token=${encodeURIComponent(token)}`, 302);
     await confirmEmail(pool, info.userId);
     audit(request, 'email.confirmed', 'Email address confirmed', { userId: info.userId });
-    setFlash(request, 'success', 'Thank you, your email is confirmed.');
+    setFlash(request, 'success', 'Thank you! Your email is confirmed.');
     return reply.redirect(request.user ? '/account' : '/login', 302);
   });
 
@@ -219,7 +219,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
       </MessagePage>, 409);
     }
     audit(request, 'email.changed', `Email address changed to ${maskEmail(info.data)}`, { userId: info.userId });
-    setFlash(request, 'success', 'Your email address is changed.');
+    setFlash(request, 'success', 'Your email address has been changed.');
     return reply.redirect(request.user ? '/account' : '/login', 302);
   });
 
@@ -290,7 +290,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
       mail.queue(() => mail.sendPasswordChanged(recipient));
     }
     await request.session.regenerate(); // the visitor who used the link is not logged in as a side effect
-    setFlash(request, 'success', 'Your password is changed. You can log in now.');
+    setFlash(request, 'success', 'Your password has been changed. You can log in now.');
     return reply.redirect('/login', 302);
   });
 }

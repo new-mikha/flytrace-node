@@ -113,10 +113,10 @@ export function HomePage({ user, path, groups, total, showAll, now }: HomePagePr
                 <div class="col-12 col-lg-6"><Screenshot n="03" alt="A pilot's message and coordinates in a map popup" /></div>
                 <div class="col-12 col-lg-6">
                   <p class="mb-2"><small class="fw-bold text-uppercase">Real maps are listed below</small></p>
-                  <p class="mb-1">Here you can (all is free):</p>
+                  <p class="mb-1">Here you can (everything is free):</p>
                   <ul>
-                    <li>Watch group pages created by others. You can do it without registration, e.g. see some of the
-                      others' groups in the list below.</li>
+                    <li>Watch group pages created by others. You can do it without registration; for example, open
+                      any of the groups in the list below.</li>
                     <li>Create your own groups and add as many trackers as you like once you register and log in
                       &ndash; and then share your link anywhere you want.</li>
                     <li>Map pages are designed to work fast on mobile devices with a poor internet connection.</li>
@@ -129,7 +129,7 @@ export function HomePage({ user, path, groups, total, showAll, now }: HomePagePr
                 the word "<u>Pilot</u>" on almost every page on this site.
               </p>
               <p class="mb-0">
-                It also can be used with any other activity where several trackers need to be displayed on a single page.
+                It can also be used with any other activity where several trackers need to be displayed on a single page.
               </p>
             </div>
           </div>
