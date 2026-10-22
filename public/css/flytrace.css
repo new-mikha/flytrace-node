@@ -140,6 +140,16 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 .ft-heading-icon { color: var(--ft-sky); margin-right: 0.35rem; }
 
+.ft-accordion {
+  --bs-accordion-border-color: #38bdf8;
+  --bs-accordion-border-width: 2px;
+  --bs-accordion-border-radius: var(--ft-radius);
+  --bs-accordion-inner-border-radius: calc(var(--ft-radius) - 2px);
+  --bs-accordion-btn-bg: #f0f9ff;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.18);
+  border-radius: var(--ft-radius);
+}
+.ft-accordion .accordion-button:hover { background: #e0f2fe; }
 .ft-accordion .accordion-button:not(.collapsed) {
   background: #e0f2fe;
   color: #075985;
@@ -207,18 +217,19 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-account-nav .list-group-item.active { background: var(--ft-navy-2); border-color: var(--ft-navy-2); }
 .ft-menu-heading { color: rgba(255, 255, 255, .6); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; padding: .5rem 0 .1rem; }
 
-/* Sign-in family of pages: a small card floating on the map instead of a full-width panel. */
-.ft-jumbotron-card {
-  max-width: 32rem;
-  min-height: 0;
-  margin: 1.5rem auto 0;
-  border-radius: var(--ft-radius);
-  border-top: 4px solid var(--ft-sky);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, .22);
-}
-.ft-frame:has(.ft-jumbotron-card) .ft-navbar { border-radius: var(--ft-radius); }
-@media (max-width: 767.98px) {
-  .ft-jumbotron-card { margin: 1rem .75rem 0; }
+/* Cards: the page content floats on the map as a card with a shadow. Small ("sign-in" pages) or as wide as the
+   menu bar (home page). On phones the card merges into the full-width panel, like a plain page. */
+@media (min-width: 768px) {
+  .ft-jumbotron-card {
+    max-width: 32rem;
+    min-height: 0;
+    margin: 1.5rem auto 0;
+    border-radius: var(--ft-radius);
+    border-top: 4px solid var(--ft-sky);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, .22);
+  }
+  .ft-jumbotron-card.ft-jumbotron-wide { max-width: none; }
+  .ft-frame:has(.ft-jumbotron-card) .ft-navbar { border-radius: var(--ft-radius); }
 }
 
 /* ---- page transitions ----
@@ -239,3 +250,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .dropdown-menu form .dropdown-item { cursor: pointer; }
 /* A username is shown as typed, not in capitals. */
 .ft-menu-user { text-transform: none; letter-spacing: 0; font-size: .95rem; }
+
+/* Menu button with words (logged-out visitors on small screens). */
+.ft-toggler-text { color: rgba(255, 255, 255, .9); font-size: 1.1rem; padding: .35rem .75rem; }
+.ft-toggler-text:hover { color: #fff; }
+@media (max-width: 359.98px) { .ft-nano-hide { display: none; } }

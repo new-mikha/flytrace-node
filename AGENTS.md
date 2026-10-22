@@ -11,8 +11,9 @@ from a parent workspace folder.
 - **Never run git commands that change the repository** (commit, add/stage, reset, checkout, stash, merge, rebase,
   push, tag, branch changes). The owner handles all git writes. Read-only git (`status`, `diff`, `log`, `show`)
   is fine. If work is ready to commit, say so and stop.
-- Go slow: milestone 1 is the migration plus bare auth/role skeleton pages. Do not add map, tracker polling,
-  registration or group management unless asked.
+- Go slow: do not add map, tracker polling or group management unless asked, and do not add features nobody
+  asked for (the owner prefers less: e.g. no "Remember me").
+- "Revert" means undo only the most recent change; if it could mean more than that, ask which.
 - The owner usually has `npm run dev` (watch mode) running on port 3000. Never stop it: start your own test server
   on another port (`PORT=3100 npm run dev`) and kill only the process you started, never by port or process name.
 - Keep numeric group, event and tracker IDs unchanged (nginx will later redirect the old `.aspx` URLs).
@@ -43,8 +44,34 @@ Font Awesome Free, both served straight from `node_modules` under `/vendor/`. Ou
 `public/` (served under `/assets/`). Small enhancements go in `public/js/app.js`; heavier interactive parts
 (map, waypoint editor) will be separate client-side "islands" later.
 
-The schema is not deployed yet, so `db/migrations/0001_schema.sql` is edited in place; once deployed, add new
-numbered migrations instead.
+The schema is not deployed yet, so `db/migrations/0001_schema.sql` is edited in place (the owner wants a single
+migration during the dev phase: do not add `0002_...`); once deployed, add new numbered migrations instead. After
+editing it, tell the owner how to rebuild the dev DB: `npm run db:reset`, then `npm run db:import-legacy -- ...`
+(the imported dump already contains an admin, so `user:create` is not needed). Do not reset it yourself.
+
+Tests run against the dev database and share one rate limiter per client IP, so tests that log in or post give each
+simulated client its own `remoteAddress`.
+
+## UI conventions
+
+- Our CSS classes and ids use the `ft-` prefix (FlyTrace). Never use `ff-` (that was flockfix) and do not mention
+  flockfix in code or comments.
+- Pages are "cards": `Layout` with `card` (small, for sign-in pages) or `card="wide"` (home, My account): a shadowed
+  card on the faded map background with a gap under the menu. Below 768 px the card merges into the plain full-width
+  panel. Pages using the older `legacyPage` template are still plain panels.
+- The menu bar is sticky. Logged-out visitors get a text toggle "Log in, Register, etc" on small screens, logged-in
+  users the burger icon and a drop-down named after their username (account pages and Log out).
+- `public/js/app.js` shows a spinner and disables only `.btn` elements (never plain links), plus the loading bar at
+  the top; a new click cancels the pending navigation, a form POST is never cancelled.
+- Page changes cross-fade through CSS view transitions (`@view-transition`, duration in `flytrace.css`).
+- Check layout changes at phone (about 380 px), tablet and desktop widths, and clean up any temporary test page.
+
+## Decisions (do not re-propose)
+
+- The authenticator (TOTP) secret stays stored unencrypted in `users.two_factor_secret`.
+- No JSON login API, no "Remember me", no stored procedures or triggers.
+- Legacy rows whose names are the literal text `${output}` (broken client tool, many users) are kept as they are.
+  The import renames duplicate names (`X (2)`, ...) and prints each rename.
 
 ## Auth model
 

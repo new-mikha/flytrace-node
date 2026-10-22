@@ -12,7 +12,7 @@ type Errors = Record<string, string | undefined>;
 /** The signed-in "My account" area: a list of sections on the left, the section on the right. */
 function AccountShell({ title, user, path, flash, children }: Common & { title: string; children: ComponentChildren }) {
   return (
-    <Layout title={title} user={user} path={path}>
+    <Layout title={title} user={user} path={path} card="wide">
       <h1 class="h3 mb-3"><i class="fa-regular fa-circle-user text-primary" aria-hidden="true"></i> My account</h1>
       <div class="row g-4">
         <nav class="col-md-4 col-lg-3" aria-label="Account sections">

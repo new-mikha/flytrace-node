@@ -16,12 +16,17 @@ function Brand() {
   );
 }
 
-/** The classic "burger" button that opens the menu on small screens. */
-function Toggler() {
+/**
+ * The button that opens the menu on small screens. Logged-out visitors get words ("Log in, Register, etc") so it is
+ * clear that the log-in form is inside; logged-in users get the classic "burger" icon.
+ */
+function Toggler({ withText }: { withText?: boolean }) {
   return (
-    <button class="navbar-toggler ft-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain"
-            aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
+    <button class={`navbar-toggler ft-toggler${withText ? ' ft-toggler-text' : ''}`} type="button" data-bs-toggle="collapse"
+            data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
+      {withText
+        ? <>Log in, Register<span class="ft-nano-hide">, etc</span> <i class="fa-solid fa-caret-down" aria-hidden="true"></i></>
+        : <span class="navbar-toggler-icon"></span>}
     </button>
   );
 }
@@ -101,7 +106,7 @@ function AnonymousNav({ path }: { path: string }) {
     <nav class="navbar navbar-expand-lg navbar-dark ft-navbar">
       <div class="container-fluid">
         <Brand />
-        <Toggler />
+        <Toggler withText />
         <div class="collapse navbar-collapse" id="navMain">
           {!onLoginPage && (
             <form class="ft-login-form d-lg-flex flex-grow-1 gap-2 mt-3 mt-lg-0 ms-lg-4" method="post" action="/login">

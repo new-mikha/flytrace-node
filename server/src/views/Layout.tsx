@@ -6,8 +6,8 @@ interface LayoutProps {
   title: string;
   user: CurrentUser | null;
   path: string;
-  /** Small floating card instead of the full-width panel (sign-in family of pages). */
-  card?: boolean;
+  /** Floating card (with shadow) instead of the plain panel: small, or 'wide' = as wide as the menu bar. Phones show a plain panel. */
+  card?: boolean | 'wide';
   children: ComponentChildren;
 }
 
@@ -28,7 +28,7 @@ export function Layout({ title, user, path, card, children }: LayoutProps) {
         <div class="ft-bg">
           <div class="ft-frame">
             <Nav user={user} path={path} />
-            <main class={card ? 'ft-jumbotron ft-jumbotron-card' : 'ft-jumbotron'}>{children}</main>
+            <main class={card ? `ft-jumbotron ft-jumbotron-card${card === 'wide' ? ' ft-jumbotron-wide' : ''}` : 'ft-jumbotron'}>{children}</main>
           </div>
         </div>
         <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>
