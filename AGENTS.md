@@ -8,9 +8,6 @@ from a parent workspace folder.
 
 ## Rules
 
-- **Never run git commands that change the repository** (commit, add/stage, reset, checkout, stash, merge, rebase,
-  push, tag, branch changes). The owner handles all git writes. Read-only git (`status`, `diff`, `log`, `show`)
-  is fine. If work is ready to commit, say so and stop.
 - Go slow: do not add map, tracker polling or group management unless asked, and do not add features nobody
   asked for (the owner prefers less: e.g. no "Remember me").
 - "Revert" means undo only the most recent change; if it could mean more than that, ask which.
