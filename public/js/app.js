@@ -81,7 +81,7 @@
   function navigates(link) {
     const href = link.getAttribute('href') ?? '';
     return !(link.target === '_blank' || link.hasAttribute('download') || link.hasAttribute('data-bs-toggle')
-      || href.startsWith('#') || /^(javascript|mailto|tel):/i.test(href));
+      || link.hasAttribute('data-theme-toggle') || href.startsWith('#') || /^(javascript|mailto|tel):/i.test(href));
   }
 
   function startNavigation(link) {
@@ -145,6 +145,17 @@
     if (current?.kind === 'post') { event.preventDefault(); return; } // already being sent
     const button = event.submitter ?? form.querySelector('button[type="submit"], button:not([type])');
     if (button) begin('post', button, null);
+  });
+
+  // Day / night theme: switch in place and remember it in the cookie that the server reads for the next page. Without
+  // this script the same link goes to /theme, which does it with a redirect.
+  document.addEventListener('click', (event) => {
+    const link = event.target instanceof Element ? event.target.closest('[data-theme-toggle]') : null;
+    if (!link) return;
+    event.preventDefault();
+    const dark = document.documentElement.getAttribute('data-bs-theme') !== 'dark';
+    document.cookie = `ft-theme=${dark ? 'dark' : 'light'}; path=/; max-age=31536000; SameSite=Lax`;
+    document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
   });
 
   // Show / hide password: the eye buttons next to password fields are rendered hidden and only work with this script.

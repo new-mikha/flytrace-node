@@ -259,5 +259,47 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-hints li { padding: .05rem 0; color: var(--bs-danger); font-weight: 500; }
 
 /* The eye button inside the dark menu bar: part of the white password field. */
-.ft-login-form .ft-pw-toggle { color: #6c757d; background: #fff; border-color: var(--bs-border-color); }
-.ft-login-form .ft-pw-toggle:hover { color: #1f2a37; background: #f1f5f9; }
+.ft-login-form .ft-pw-toggle { color: var(--bs-secondary-color); background: var(--bs-body-bg); border-color: var(--bs-border-color); }
+.ft-login-form .ft-pw-toggle:hover { color: var(--bs-body-color); background: var(--bs-tertiary-bg); }
+
+/* ---- day / night theme ----
+   The <html> element carries Bootstrap's data-bs-theme="light|dark" (set by the server from the ft-theme cookie, day by
+   default). Bootstrap's own components follow it; below are our own colours for the night theme. */
+
+/* The menu entry shows the theme you would switch to. */
+/* Text symbols (sun, moon) rather than icons, in a box of fixed width so the label does not jump when it flips. */
+.ft-sym { display: inline-block; width: 1.25em; text-align: center; }
+
+[data-bs-theme="light"] .ft-theme-to-light,
+[data-bs-theme="dark"] .ft-theme-to-dark { display: none; }
+
+[data-bs-theme="dark"] {
+  --ft-ink: #e5e7eb;
+  --ft-panel: rgba(17, 24, 39, 0.94);
+}
+[data-bs-theme="dark"] body { background: #0b1220; }
+[data-bs-theme="dark"] .ft-bg {
+  /* the faded map picture, darkened */
+  background: linear-gradient(rgba(8, 13, 26, 0.82), rgba(8, 13, 26, 0.82)),
+              #0b1220 url("/assets/img/background.jpg") center / cover fixed;
+}
+[data-bs-theme="dark"] .ft-jumbotron-card { box-shadow: 0 12px 32px rgba(0, 0, 0, .55); }
+
+[data-bs-theme="dark"] .ft-accordion {
+  --bs-accordion-border-color: #0284c7;
+  --bs-accordion-btn-bg: #0f2438;
+  --bs-accordion-btn-color: #e5e7eb;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+}
+[data-bs-theme="dark"] .ft-accordion .accordion-button:hover,
+[data-bs-theme="dark"] .ft-accordion .accordion-button:not(.collapsed) { background: #12304a; color: #7dd3fc; }
+
+[data-bs-theme="dark"] .ft-table-wrap { background: #111827; border-color: #0c4a6e; box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.5); }
+[data-bs-theme="dark"] .ft-table {
+  --bs-table-striped-bg: #0f1d33;
+  --bs-table-hover-bg: #3a2f0a;
+  --bs-table-hover-color: var(--ft-ink);
+}
+[data-bs-theme="dark"] .ft-group-link { color: #7dd3fc; }
+[data-bs-theme="dark"] .ft-age { background: #14532d; color: #bbf7d0; }
+[data-bs-theme="dark"] .ft-hints li { color: #f87171; }

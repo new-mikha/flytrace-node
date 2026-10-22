@@ -60,6 +60,10 @@ simulated client its own `remoteAddress`.
   users the burger icon and a drop-down named after their username (account pages and Log out).
 - `public/js/app.js` shows a spinner and disables only `.btn` elements (never plain links), plus the loading bar at
   the top; a new click cancels the pending navigation, a form POST is never cancelled.
+- Day / night theme: the `ft-theme` cookie (`dark`, anything else means day; day is the default whatever the browser
+  prefers). The server puts Bootstrap's `data-bs-theme` on `<html>` (an `onSend` hook in `app.ts`), `app.js` switches it
+  in place, `/theme` does it without JavaScript. Our own colours get a `[data-bs-theme="dark"]` variant in `flytrace.css`:
+  do the same for any new hard-coded colour.
 - Page changes cross-fade through CSS view transitions (`@view-transition`, duration in `flytrace.css`).
 - Check layout changes at phone (about 380 px), tablet and desktop widths, and clean up any temporary test page.
 

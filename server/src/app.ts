@@ -13,6 +13,7 @@ import { accountRoutes } from './routes/account.tsx';
 import { homeRoutes } from './routes/home.tsx';
 import { identityRoutes } from './routes/identity.tsx';
 import { pageRoutes } from './routes/pages.ts';
+import { themeOf, themeRoutes } from './routes/theme.ts';
 
 /**
  * `mailer` can be replaced (tests capture the messages); by default it comes from the SMTP_* settings.
@@ -33,6 +34,15 @@ export async function buildApp(config: Config, pool: Pool, mailer?: Mailer, logS
     // Fastify's own two lines per request are replaced by the one line per page request below.
     logController: new LogController({ disableRequestLogging: true }),
     trustProxy: config.NODE_ENV === 'production', // behind nginx in production
+  });
+
+  // Every HTML page gets the visitor's theme (Bootstrap's `data-bs-theme`) on <html>, so the right colours are there from
+  // the first paint. Done here, once, instead of in every page.
+  app.addHook('onSend', async (request, reply, payload) => {
+    if (typeof payload === 'string' && String(reply.getHeader('content-type') ?? '').startsWith('text/html')) {
+      return payload.replace('<html lang="en">', `<html lang="en" data-bs-theme="${themeOf(request.cookies)}">`);
+    }
+    return payload;
   });
 
   // One line per page request: "GET /register 200 14ms". Static files (CSS, JS, fonts, images) are skipped, and the
@@ -59,6 +69,7 @@ export async function buildApp(config: Config, pool: Pool, mailer?: Mailer, logS
   app.decorate('mail', mail);
   await identityRoutes(app, pool, config, mail);
   await accountRoutes(app, pool, config, mail);
+  await themeRoutes(app);
   await homeRoutes(app, pool);
   await pageRoutes(app, pool);
 

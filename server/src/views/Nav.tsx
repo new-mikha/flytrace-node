@@ -58,6 +58,35 @@ const MORE_ITEMS: (MoreLink | null)[] = [
   { href: '/contact', label: 'Contact us', icon: 'fa-regular fa-envelope' },
 ];
 
+/**
+ * Both labels are in the page; the stylesheet shows the one for the other theme (public/css/flytrace.css), so the
+ * label is right without knowing the theme here, and it flips at once when public/js/app.js switches the theme.
+ */
+function ThemeLabel() {
+  return (
+    <>
+      <span class="ft-theme-to-dark"><span class="ft-sym" aria-hidden="true">&#9790;</span> Night mode</span>
+      <span class="ft-theme-to-light"><span class="ft-sym" aria-hidden="true">&#9788;</span> Day mode</span>
+    </>
+  );
+}
+
+/** Wide screens: the day / night switch with words, in the bar next to the user name (or "Register, etc"). */
+function ThemeButton({ path }: { path: string }) {
+  return (
+    <ul class="navbar-nav d-none d-lg-flex">
+      <li class="nav-item">
+        <a class="nav-link" href={themeHref(path)} data-theme-toggle><ThemeLabel /></a>
+      </li>
+    </ul>
+  );
+}
+
+/** Without JavaScript the link goes to /theme, which flips the cookie and returns to this page. */
+function themeHref(path: string): string {
+  return `/theme?returnUrl=${encodeURIComponent(path)}`;
+}
+
 function LinkContent({ item }: { item: MoreLink }) {
   return (
     <>
@@ -87,7 +116,7 @@ function MoreDropdown({ alignEnd }: { alignEnd: boolean }) {
 }
 
 /** Phones: the same entries listed right in the opened menu, no second tap needed. */
-function MoreInline() {
+function MoreInline({ path }: { path: string }) {
   return (
     <div class="navbar-nav d-lg-none ft-more-inline">
       {MORE_ITEMS.map((item) => item
@@ -95,6 +124,8 @@ function MoreInline() {
           ? <a class="btn btn-outline-light w-100 my-3" href={item.href}><LinkContent item={item} /></a>
           : <a class="nav-link py-2" href={item.href}><LinkContent item={item} /></a>
         : <hr class="border-light opacity-25 my-2" />)}
+      <hr class="border-light opacity-25 my-2" />
+      <a class="nav-link py-2" href={themeHref(path)} data-theme-toggle><ThemeLabel /></a>
     </div>
   );
 }
@@ -127,7 +158,8 @@ function AnonymousNav({ path }: { path: string }) {
             </form>
           )}
           <MoreDropdown alignEnd={onLoginPage} />
-          <MoreInline />
+          <ThemeButton path={path} />
+          <MoreInline path={path} />
         </div>
       </div>
     </nav>
@@ -147,6 +179,7 @@ function UserMenu({ user, path }: { user: CurrentUser; path: string }) {
   const here = path === '/account' || path.startsWith('/account/');
   return (
     <>
+      <ThemeButton path={path} />
       <ul class="navbar-nav d-none d-lg-flex">
         <li class="nav-item dropdown">
           <a class={`nav-link dropdown-toggle${here ? ' active' : ''}`} href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -164,6 +197,10 @@ function UserMenu({ user, path }: { user: CurrentUser; path: string }) {
         </li>
       </ul>
       <div class="d-lg-none ft-more-inline">
+        <hr class="border-light opacity-25 my-2" />
+        <div class="navbar-nav">
+          <a class="nav-link py-2" href={themeHref(path)} data-theme-toggle><ThemeLabel /></a>
+        </div>
         <hr class="border-light opacity-25 my-2" />
         <div class="ft-menu-heading ft-menu-user"><i class="fa-regular fa-user" aria-hidden="true"></i> {user.username}</div>
         <div class="navbar-nav">
