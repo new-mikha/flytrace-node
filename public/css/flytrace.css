@@ -158,6 +158,10 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 /* ---- public maps table ---- */
 
 .ft-table-wrap {
+  /* Bootstrap's .table-responsive has overflow-x: auto, which makes the other axis auto as well. The table is often a
+     fraction of a pixel taller than the box, which turned the wrapper into a second vertical scroll container that
+     caught trackpad scrolling before the page did. Only sideways scrolling is wanted here. */
+  overflow-y: hidden;
   background: #fff;
   border: 1px solid #bae6fd;
   border-radius: 0.75rem;
