@@ -6,8 +6,8 @@ interface LayoutProps {
   title: string;
   user: CurrentUser | null;
   path: string;
-  /** Floating card (with shadow) instead of the plain panel: small, or 'wide' = as wide as the menu bar. Phones show a plain panel. */
-  card?: boolean | 'wide';
+  /** Floating card (with shadow) instead of the plain panel: small, 'medium' (account pages), or 'wide' = as wide as the menu bar. Phones show a plain panel. */
+  card?: boolean | 'medium' | 'wide';
   /** Extra scripts (paths under /assets/js/) for this page only. */
   scripts?: string[];
   children: ComponentChildren;
@@ -30,7 +30,7 @@ export function Layout({ title, user, path, card, scripts, children }: LayoutPro
         <div class="ft-bg">
           <div class="ft-frame">
             <Nav user={user} path={path} />
-            <main class={card ? `ft-jumbotron ft-jumbotron-card${card === 'wide' ? ' ft-jumbotron-wide' : ''}` : 'ft-jumbotron'}>{children}</main>
+            <main class={card ? `ft-jumbotron ft-jumbotron-card${card === 'wide' ? ' ft-jumbotron-wide' : card === 'medium' ? ' ft-jumbotron-medium' : ''}` : 'ft-jumbotron'}>{children}</main>
           </div>
         </div>
         <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>

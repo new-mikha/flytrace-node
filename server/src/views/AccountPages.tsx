@@ -1,7 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import { MIN_PASSWORD_LENGTH, type Account } from '../auth/accounts.ts';
 import type { CurrentUser } from '../auth/service.ts';
-import { ACCOUNT_SECTIONS } from './accountSections.ts';
 import { formatTimestamp } from './format.ts';
 import { Layout } from './Layout.tsx';
 import { Alert, ConfirmPasswordHints, EmailHints, Field, PasswordHints, Submit, type Flash } from './forms.tsx';
@@ -9,28 +8,17 @@ import { Alert, ConfirmPasswordHints, EmailHints, Field, PasswordHints, Submit, 
 interface Common { user: CurrentUser; path: string; flash?: Flash | null }
 type Errors = Record<string, string | undefined>;
 
-/** The signed-in "My account" area: a list of sections on the left, the section on the right. */
-function AccountShell({ title, user, path, flash, children, scripts }: Common & { title: string; children: ComponentChildren; scripts?: string[] }) {
+/** The signed-in "My account" pages. They are reached from the username menu in the top bar, so there is no list of sections here. */
+/** `narrow`: a single short form, which looks lost in a wide card. */
+function AccountShell({ title, user, path, flash, children, scripts, narrow }: Common & { title: string; children: ComponentChildren; scripts?: string[]; narrow?: boolean }) {
   return (
-    <Layout title={title} user={user} path={path} card="wide" scripts={scripts}>
-      <h1 class="h3 mb-3"><i class="fa-regular fa-circle-user text-primary" aria-hidden="true"></i> My account</h1>
-      <div class="row g-4">
-        <nav class="col-md-4 col-lg-3" aria-label="Account sections">
-          <div class="list-group ft-account-nav">
-            {ACCOUNT_SECTIONS.map((s) => (
-              <a href={s.href} class={`list-group-item list-group-item-action${path === s.href ? ' active' : ''}`}
-                 aria-current={path === s.href ? 'page' : undefined}>
-                <i class={`${s.icon} fa-fw`} aria-hidden="true"></i> {s.label}
-              </a>
-            ))}
-          </div>
-        </nav>
-        <div class="col-md-8 col-lg-9">
-          <h2 class="h4 mb-3">{title}</h2>
-          <Alert flash={flash} />
-          {children}
-        </div>
-      </div>
+    <Layout title={title} user={user} path={path} card={narrow ? true : 'medium'} scripts={scripts}>
+      <h1 class="h3 mb-3">
+        <i class="fa-regular fa-circle-user text-primary" aria-hidden="true"></i> My account
+        <small class="text-muted fw-normal"> &middot; {title}</small>
+      </h1>
+      <Alert flash={flash} />
+      {children}
     </Layout>
   );
 }
@@ -85,7 +73,7 @@ export function ProfilePage({ account, mailKind, ...c }: Common & { account: Acc
 
 export function EmailPage({ account, errors, value, ...c }: Common & { account: Account; errors: Errors; value?: string }) {
   return (
-    <AccountShell title="Email" scripts={['live-hints.js']} {...c}>
+    <AccountShell title="Email" scripts={['live-hints.js']} narrow {...c}>
       <p>Current address: <strong>{account.email ?? 'none'}</strong> <EmailStatus account={account} /></p>
       <form method="post" action="/account/email" class="ft-form" data-live-validate data-current-email={account.email ?? ''} novalidate>
         <Field name="email" label="New email" type="email" value={value ?? account.email ?? undefined} error={errors.email} autocomplete="email"
@@ -102,7 +90,7 @@ export function EmailPage({ account, errors, value, ...c }: Common & { account: 
 
 export function PasswordPage({ account, errors, ...c }: Common & { account: Account; errors: Errors }) {
   return (
-    <AccountShell title="Change password" scripts={['live-hints.js']} {...c}>
+    <AccountShell title="Change password" scripts={['live-hints.js']} narrow {...c}>
       <form method="post" action="/account/password" class="ft-form" data-live-validate data-min-password={MIN_PASSWORD_LENGTH}
             data-forbidden={[account.username, account.email ?? ''].filter(Boolean).join(',')} novalidate>
         <PasswordConfirm error={errors.currentPassword} />
@@ -164,7 +152,7 @@ export function TwoFactorPage({ account, recoveryLeft, errors, ...c }: Common & 
 export function TwoFactorSetupPage({ secret, qrSvg, error, ...c }: Common & { secret: string; qrSvg: string; error?: string }) {
   const spaced = secret.match(/.{1,4}/g)?.join(' ') ?? secret;
   return (
-    <AccountShell title="Set up authenticator app" {...c}>
+    <AccountShell title="Set up authenticator app" narrow {...c}>
       <ol>
         <li>Install an authenticator app on your phone, if you do not have one yet.</li>
         <li>Scan this QR code with it, or type the key in by hand.</li>
@@ -184,7 +172,7 @@ export function TwoFactorSetupPage({ secret, qrSvg, error, ...c }: Common & { se
 
 export function RecoveryCodesPage({ codes, firstTime, ...c }: Common & { codes: string[]; firstTime: boolean }) {
   return (
-    <AccountShell title="Recovery codes" {...c}>
+    <AccountShell title="Recovery codes" narrow {...c}>
       {firstTime && <Alert flash={{ kind: 'success', text: 'Two-factor login is on.' }} />}
       <p>Keep these codes somewhere safe, such as a password manager or a printout. Each one works once if you
         cannot use your authenticator app. <strong>They are shown only now.</strong></p>

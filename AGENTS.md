@@ -56,7 +56,7 @@ simulated client its own `remoteAddress`.
 
 - Our CSS classes and ids use the `ft-` prefix (Flytrace). Never use `ff-` (that was flockfix) and do not mention
   flockfix in code or comments.
-- Pages are "cards": `Layout` with `card` (small, for sign-in pages) or `card="wide"` (home, My account): a shadowed
+- Pages are "cards": `Layout` with `card` (small, for sign-in pages), `card="medium"` (My account) or `card="wide"` (home): a shadowed
   card on the faded map background with a gap under the menu. Below 768 px the card merges into the plain full-width
   panel. Pages using the older `legacyPage` template are still plain panels.
 - The menu bar is sticky. Logged-out visitors get a text toggle "Log in, Register, etc" on small screens, logged-in

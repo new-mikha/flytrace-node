@@ -1,4 +1,4 @@
-/** The pages of the signed-in "My account" area, shared by its side list and the Settings menu. */
+/** The pages of the signed-in "My account" area, listed in the username menu of the top bar. */
 export const ACCOUNT_SECTIONS = [
   { href: '/account', label: 'Profile', icon: 'fa-regular fa-id-card' },
   { href: '/account/email', label: 'Email', icon: 'fa-regular fa-envelope' },

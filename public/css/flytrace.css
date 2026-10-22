@@ -209,15 +209,13 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 /* ---- identity pages ---- */
 .ft-card { max-width: 30rem; }
 .ft-card-wide { max-width: 44rem; }
-.ft-form { max-width: 26rem; }
 .ft-qr { width: 12rem; max-width: 100%; background: #fff; border: 1px solid var(--bs-border-color); border-radius: .5rem; padding: .25rem; }
 .ft-qr svg { display: block; width: 100%; height: auto; }
 .ft-codes { columns: 2; max-width: 20rem; font-size: 1.05rem; }
 .ft-codes li { padding: .15rem 0; }
-.ft-account-nav .list-group-item.active { background: var(--ft-navy-2); border-color: var(--ft-navy-2); }
 .ft-menu-heading { color: rgba(255, 255, 255, .6); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; padding: .5rem 0 .1rem; }
 
-/* Cards: the page content floats on the map as a card with a shadow. Small ("sign-in" pages) or as wide as the
+/* Cards: the page content floats on the map as a card with a shadow. Small ("sign-in" pages), medium (account pages) or as wide as the
    menu bar (home page). On phones the card merges into the full-width panel, like a plain page. */
 @media (min-width: 768px) {
   .ft-jumbotron-card {
@@ -228,6 +226,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
     border-top: 4px solid var(--ft-sky);
     box-shadow: 0 12px 32px rgba(15, 23, 42, .22);
   }
+  .ft-jumbotron-card.ft-jumbotron-medium { max-width: 34rem; }
   .ft-jumbotron-card.ft-jumbotron-wide { max-width: none; }
   .ft-frame:has(.ft-jumbotron-card) .ft-navbar { border-radius: var(--ft-radius); }
 }
