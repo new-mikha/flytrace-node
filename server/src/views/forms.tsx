@@ -35,11 +35,12 @@ interface FieldProps {
 export function Field(p: FieldProps) {
   const id = `f-${p.name}`;
   const type = p.type ?? 'text';
+  const maxlength = p.maxlength ?? (type === 'password' ? 128 : undefined);
   const input = (
     <input id={id} name={p.name} type={type as 'text'} class={`form-control${p.error ? ' is-invalid' : ''}`}
            value={type === 'password' ? undefined : p.value} autocomplete={p.autocomplete}
            required={p.required ?? true} autofocus={p.autofocus} inputmode={p.inputmode} pattern={p.pattern}
-           maxlength={p.maxlength} aria-describedby={p.error ? `${id}-err` : p.help ? `${id}-help` : undefined} />
+           maxlength={maxlength} aria-describedby={p.error ? `${id}-err` : p.help ? `${id}-help` : undefined} />
   );
   return (
     <div class="mb-3">
@@ -59,8 +60,8 @@ export function Field(p: FieldProps) {
           {p.error && <div id={`${id}-err`} class="invalid-feedback">{p.error}</div>}
         </>
       )}
-      {p.help && !p.error && <div id={`${id}-help`} class="form-text">{p.help}</div>}
       {p.hints}
+      {p.help && !p.error && <div id={`${id}-help`} class="form-text">{p.help}</div>}
     </div>
   );
 }
@@ -87,20 +88,18 @@ export interface HintRule {
   /** Name of the rule, matched by public/js/live-hints.js. */
   rule: string;
   text: string;
-  /** Text shown instead when the rule fails after the person has typed (e.g. "This username is taken"). */
-  bad?: string;
 }
 
 /**
- * Checklist of what a field needs. Without JavaScript it is just a list of requirements; public/js/live-hints.js
- * ticks the items off while the person types.
+ * Tips under a field, one per rule. All start hidden; public/js/live-hints.js shows a tip only while its rule is
+ * broken and the person has left the field. Without JavaScript there are no tips (the server still checks).
  */
 export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
   return (
     <ul class="ft-hints list-unstyled small mb-0 mt-1" data-hints={field}>
       {rules.map((r) => (
-        <li data-rule={r.rule} data-text={r.text} data-bad={r.bad}>
-          <i class="fa-regular fa-circle fa-fw text-muted" aria-hidden="true"></i> <span class="ft-hint-text">{r.text}</span>
+        <li data-rule={r.rule} hidden>
+          <i class="fa-solid fa-circle-xmark fa-fw" aria-hidden="true"></i> <span class="ft-hint-text">{r.text}</span>
         </li>
       ))}
     </ul>
@@ -111,20 +110,20 @@ export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
 
 export function PasswordHints() {
   return <Hints field="password" rules={[
-    { rule: 'len', text: `At least ${MIN_PASSWORD_LENGTH} characters` },
-    { rule: 'differs', text: 'Different from your username and email' },
+    { rule: 'len', text: `The password must be at least ${MIN_PASSWORD_LENGTH} characters long` },
+    { rule: 'differs', text: 'The password must not be the same as your username or email' },
   ]} />;
 }
 
 export function ConfirmPasswordHints() {
-  return <Hints field="confirmPassword" rules={[{ rule: 'match', text: 'Same as the password' }]} />;
+  return <Hints field="confirmPassword" rules={[{ rule: 'match', text: 'The passwords do not match' }]} />;
 }
 
 /** `different`: the form is for changing an address, so it must differ from the current one. */
 export function EmailHints({ different }: { different?: boolean }) {
   return <Hints field="email" rules={[
-    { rule: 'format', text: 'Looks like an email address, e.g. name@example.com' },
-    ...(different ? [{ rule: 'different', text: 'Different from your current email' }] : []),
-    { rule: 'free', text: 'Not registered yet', bad: 'This email address is already registered' },
+    { rule: 'format', text: 'Enter a valid email address, like name@example.com' },
+    ...(different ? [{ rule: 'different', text: 'This is your current email address: enter a new one' }] : []),
+    { rule: 'free', text: 'This email address is already registered' },
   ]} />;
 }

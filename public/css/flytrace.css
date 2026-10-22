@@ -256,10 +256,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-toggler-text:hover { color: #fff; }
 @media (max-width: 359.98px) { .ft-nano-hide { display: none; } }
 
-/* Live checklist under the fields of the register, email and password pages (public/js/live-hints.js). */
-.ft-hints li { padding: .05rem 0; color: var(--bs-secondary-color); }
-.ft-hints li[data-state="ok"] { color: var(--bs-success-text-emphasis); }
-.ft-hints li[data-state="bad"] { color: var(--bs-danger-text-emphasis); }
+/* Live tips under the fields of the register, email and password pages (public/js/live-hints.js). */
+.ft-hints li { padding: .05rem 0; color: var(--bs-danger); font-weight: 500; }
 
 /* The eye button inside the dark menu bar: part of the white password field. */
 .ft-login-form .ft-pw-toggle { color: #6c757d; background: #fff; border-color: var(--bs-border-color); }

@@ -398,8 +398,8 @@ describe('register page helpers', () => {
   it('lists the rules under each field, for the live hints', async () => {
     const page = await new Browser(app).get('/register');
     expect(page.body).toContain('data-hints="username"');
-    expect(page.body).toContain('At least 3 characters');
-    expect(page.body).toContain('At least 6 characters');
+    expect(page.body).toContain('at least 3 characters');
+    expect(page.body).toContain('at least 6 characters');
     expect(page.body).toContain('/assets/js/live-hints.js');
   });
 

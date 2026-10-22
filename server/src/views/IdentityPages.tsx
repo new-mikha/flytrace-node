@@ -82,11 +82,11 @@ export function RegisterPage({ values, errors, ...c }: Common & { values: Regist
   return (
     <Shell title="Register" icon="fa-solid fa-user-plus" scripts={['live-hints.js']} {...c}>
       <form method="post" action="/register" data-live-validate data-min-password={MIN_PASSWORD_LENGTH} novalidate>
-        <Field name="username" label="Username" value={values.username} error={errors.username} autocomplete="username" autofocus
+        <Field name="username" label="Username" value={values.username} error={errors.username} autocomplete="username" autofocus maxlength={64}
                hints={<Hints field="username" rules={[
-                 { rule: 'len', text: 'At least 3 characters' },
-                 { rule: 'chars', text: 'Only letters, digits, dots, dashes and underscores' },
-                 { rule: 'free', text: 'Not taken yet', bad: 'This username is taken' },
+                 { rule: 'len', text: 'The username must be at least 3 characters long' },
+                 { rule: 'chars', text: 'Use only letters, digits, dots, dashes and underscores' },
+                 { rule: 'free', text: 'This username is taken' },
                ]} />} />
         <Field name="email" label="Email" type="email" value={values.email} error={errors.email} autocomplete="email"
                help="We send a confirmation link here. You can also log in with it."
