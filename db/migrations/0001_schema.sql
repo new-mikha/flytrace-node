@@ -1,4 +1,4 @@
--- FlyTrace schema, milestone 1.
+-- Flytrace schema, milestone 1.
 -- Column semantics follow the original MSSQL DDL in db/legacy/orig-mssql-db-script.sql.
 -- All legacy datetime values were stored as UTC, hence timestamptz throughout.
 

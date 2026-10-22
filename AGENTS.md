@@ -1,4 +1,4 @@
-# FlyTrace (Node + Postgres rewrite): agent instructions
+# Flytrace (Node + Postgres rewrite): agent instructions
 
 Rewrite of the legacy ASP.NET site https://www.flytrace.com/tracker. Read `README.md` for setup and
 `docs/legacy-system.md` (how the old system works) before porting any feature.
@@ -54,7 +54,7 @@ simulated client its own `remoteAddress`.
 
 ## UI conventions
 
-- Our CSS classes and ids use the `ft-` prefix (FlyTrace). Never use `ff-` (that was flockfix) and do not mention
+- Our CSS classes and ids use the `ft-` prefix (Flytrace). Never use `ff-` (that was flockfix) and do not mention
   flockfix in code or comments.
 - Pages are "cards": `Layout` with `card` (small, for sign-in pages) or `card="wide"` (home, My account): a shadowed
   card on the faded map background with a gap under the menu. Below 768 px the card merges into the plain full-width

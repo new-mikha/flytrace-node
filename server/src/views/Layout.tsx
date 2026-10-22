@@ -18,7 +18,7 @@ export function Layout({ title, user, path, card, children }: LayoutProps) {
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{title === 'FlyTrace' ? title : `${title} - FlyTrace`}</title>
+        <title>{title === 'Flytrace' ? title : `${title} - Flytrace`}</title>
         <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css" />
         <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" />
         <link rel="stylesheet" href="/assets/css/flytrace.css" />

@@ -18,7 +18,7 @@ export class MailService {
     readonly mailer: Mailer,
     private readonly log: Log,
   ) {
-    this.ctx = { siteName: 'FlyTrace', siteUrl: baseUrl(config), contactAddress: config.MAIL_CONTACT_ADDRESS };
+    this.ctx = { siteName: 'Flytrace', siteUrl: baseUrl(config), contactAddress: config.MAIL_CONTACT_ADDRESS };
   }
 
   get canDeliver(): boolean { return this.mailer.kind === 'smtp'; }

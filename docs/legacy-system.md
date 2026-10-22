@@ -1,6 +1,6 @@
-# FlyTrace legacy system: how it works
+# Flytrace legacy system: how it works
 
-Hand-over document for whoever continues the migration of FlyTrace from ASP.NET WebForms to Node + Postgres.
+Hand-over document for whoever continues the migration of Flytrace from ASP.NET WebForms to Node + Postgres.
 It describes the **existing production system** (https://www.flytrace.com/tracker, source in
 `/Users/michael/dev-top/flytrace-upgrade/flytrace`) feature by feature and down to implementation details,
 then maps it onto what already exists in this repo (`flytrace-node`) and what is still to be built.
@@ -21,7 +21,7 @@ Everything here was taken from reading the legacy source; where something could 
 | `/Users/michael/dev-top/flytrace-upgrade/flytrace4`, `.../flytrace4-dotnet-upgrade` | Stale copies of early Flytrace4. Ignore. |
 | `/Users/michael/dev-top/flytrace-upgrade/flytrace-node` | **This repo.** The Node/Postgres rewrite. Milestone 1 done (schema, legacy import, auth + roles skeleton). |
 
-### 1.2 What FlyTrace does, in one paragraph
+### 1.2 What Flytrace does, in one paragraph
 
 A group owner creates a *group* of *trackers* (SPOT satellite messengers and Garmin inReach devices, identified by
 their public share-page / KML-feed IDs) and shares a link `map.aspx?group=N`. Anyone opening that link sees all
@@ -376,7 +376,7 @@ service group-def cache (altitude units are part of `GroupDef`).
   + age, error, access/create/refresh times, revision; sortable; plus the call-statistics DataSet tables
   (`ServiceFacade.GetAdminCallStatistics`).
 - `LogConfig.aspx` + `LogConfigControl.ascx`: edit log4net config.
-- `TestControl.aspx` (namespace `FlyTrace.Service.Test`): drives the TEST source (§7.5): auto-update flag,
+- `TestControl.aspx` (namespace `Flytrace.Service.Test`): drives the TEST source (§7.5): auto-update flag,
   position number (reset / +1 / +10 / set) and `ResetTrackersCache`.
 
 ### 4.6 Help pages (`Tracker/help/`)
@@ -388,7 +388,7 @@ Help/SOS; caveat that SOS is not well tested), `usermessageshelp.aspx` (owner-de
 
 ## 5. Public API consumed by the browser
 
-### 5.1 `Service/TrackerService.asmx` (ASMX `[ScriptService]`, namespace `http://flytrace.com/`, JSON via ScriptManager proxy `FlyTrace.Service.TrackerService.*`)
+### 5.1 `Service/TrackerService.asmx` (ASMX `[ScriptService]`, namespace `http://flytrace.com/`, JSON via ScriptManager proxy `Flytrace.Service.TrackerService.*`)
 
 `GetCoordinates(int group, string srcSeed, DateTime scrTime) → GroupData`
 `GetTracks(int group, TrackRequest trackRequest, DateTime scriptCurrTime) → List<TrackResponseItem>`
@@ -605,7 +605,7 @@ messages and "Send log to site admin" / automatic sends (10 s and 30 s after pre
 ### 7.5 TEST source (`LocationLib/TestSource.cs`, `ForeignAccess/Test/*`, `App_Data/test/`)
 Group **1** is a synthetic group: one tracker per `App_Data/test/<Name>.xml` (shipped: `Anna`, `Maria`; files starting
 with `_` are excluded; `_empty.xml` is a SPOT "No Messages to display" response). Tracker ids are
-`FlyTraceTestId_<Name>`, type TEST, `ShowUserMessages=true`, altitude `ft`. `TestSource.PositionNumber` (admin
+`FlytraceTestId_<Name>`, type TEST, `ShowUserMessages=true`, altitude `ft`. `TestSource.PositionNumber` (admin
 `TestControl.aspx`) controls how many messages from the files are revealed, round-robin across sources, so an admin can
 replay a flight step by step. Useful to port as a dev fixture mechanism.
 
@@ -703,7 +703,7 @@ restarts from 0 **and every `Group.Version` is incremented** so all client seeds
 
 | Setting | Default | Used for |
 |---|---|---|
-| `FlyTrace.Properties.Settings.AdminEmail` | admin@flytrace.com | sender of system emails |
+| `Flytrace.Properties.Settings.AdminEmail` | admin@flytrace.com | sender of system emails |
 | `InfoEmail` | info@flytrace.com | contact link, error messages |
 | `DisableCreatedUsers` | False | email verification on registration |
 | `LocationLib: SPOT_MaxCallsInPack` | 10 | scheduler |

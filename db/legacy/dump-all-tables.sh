@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pulls a fresh CSV dump of every table from the old FlyTrace site.
+# Pulls a fresh CSV dump of every table from the old Flytrace site.
 #   FLYTRACE_DUMP_API_KEY=... db/legacy/dump-all-tables.sh [output-dir]
 # Default output dir: db/legacy/dump/<timestamp> (gitignored: the dump holds emails and password hashes).
 

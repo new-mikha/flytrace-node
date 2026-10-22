@@ -1,4 +1,4 @@
-// Imports a CSV dump of the original FlyTrace (MSSQL) database into the new schema.
+// Imports a CSV dump of the original Flytrace (MSSQL) database into the new schema.
 //
 //   npm run db:import-legacy -- db/legacy/dump/20251101_181031
 //

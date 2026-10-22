@@ -108,7 +108,7 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
   async function setupPage(request: FastifyRequest, reply: Parameters<typeof sendHtml>[0], error?: string) {
     const account = await accountOf(request);
     const secret = (request.session.pendingTotpSecret ??= newSecret());
-    const svg = await qrSvg(provisioningUri(secret, 'FlyTrace', account.email ?? account.username));
+    const svg = await qrSvg(provisioningUri(secret, 'Flytrace', account.email ?? account.username));
     return sendHtml(reply, <TwoFactorSetupPage {...common(request)} secret={secret} qrSvg={svg} error={error} />, error ? 422 : 200);
   }
 

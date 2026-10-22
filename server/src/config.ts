@@ -29,7 +29,7 @@ const schema = z.object({
   SMTP_USER: optional(z.string()),
   SMTP_PASSWORD: optional(z.string()),
   MAIL_FROM_ADDRESS: optional(z.email()),
-  MAIL_FROM_NAME: z.string().default('FlyTrace'),
+  MAIL_FROM_NAME: z.string().default('Flytrace'),
   // Shown in emails as the address to write to with questions.
   MAIL_CONTACT_ADDRESS: optional(z.email()),
 });

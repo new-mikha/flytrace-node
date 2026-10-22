@@ -197,7 +197,7 @@ export function RecoveryCodesPage({ codes, firstTime, ...c }: Common & { codes: 
 export function PersonalDataPage({ errors, ...c }: Common & { errors: Errors }) {
   return (
     <AccountShell title="Personal data" {...c}>
-      <p>Download everything FlyTrace holds about your account (profile, events, groups and their trackers) as a JSON file.</p>
+      <p>Download everything Flytrace holds about your account (profile, events, groups and their trackers) as a JSON file.</p>
       <p><a class="btn btn-outline-primary" href="/account/personal-data/download" download="flytrace-data.json">
         <i class="fa-solid fa-download fa-fw" aria-hidden="true"></i> Download my data</a></p>
 

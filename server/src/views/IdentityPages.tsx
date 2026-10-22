@@ -45,7 +45,7 @@ export function LoginPage({ returnUrl, error, ...c }: Common & { returnUrl: stri
 export function TwoFactorLoginPage({ error, ...c }: Common & { error?: boolean }) {
   return (
     <Shell title="Two-factor login" icon="fa-solid fa-shield-halved" {...c}>
-      <p>Open your authenticator app and enter the 6-digit code for FlyTrace.</p>
+      <p>Open your authenticator app and enter the 6-digit code for Flytrace.</p>
       <form method="post" action="/login/2fa">
         <Field name="code" label="Authenticator code" autocomplete="one-time-code" inputmode="numeric" maxlength={9}
                autofocus error={error ? 'That code is not right. Try the current one.' : undefined} />

@@ -1,6 +1,6 @@
 # Legacy data migration
 
-Moves the original FlyTrace database (ASP.NET membership + app tables on MSSQL) into the new Postgres schema.
+Moves the original Flytrace database (ASP.NET membership + app tables on MSSQL) into the new Postgres schema.
 
 ## Files
 

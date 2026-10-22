@@ -41,7 +41,7 @@ export function normalizeCode(input: string): string {
 export function checkCode(secret: string, code: string, now = Date.now()): number | null {
   const digits = normalizeCode(code);
   if (!/^\d{6}$/.test(digits)) return null;
-  const delta = totp(secret, 'FlyTrace', 'check').validate({ token: digits, timestamp: now, window: 1 });
+  const delta = totp(secret, 'Flytrace', 'check').validate({ token: digits, timestamp: now, window: 1 });
   if (delta === null) return null;
   return Math.floor(now / 1000 / STEP_SECONDS) + delta;
 }

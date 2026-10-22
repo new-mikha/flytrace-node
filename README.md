@@ -1,4 +1,4 @@
-# FlyTrace (Node + Postgres rewrite)
+# Flytrace (Node + Postgres rewrite)
 
 Rewrite of https://www.flytrace.com/tracker (ASP.NET WebForms) on TypeScript, Fastify and Postgres.
 
