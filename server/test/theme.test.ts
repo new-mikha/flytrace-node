@@ -52,11 +52,12 @@ describe('theme', () => {
     expect((await get('/theme?returnUrl=%2F%2Fevil.example')).headers.location).toBe('/');
   });
 
-  it('has the switch in the menu, with a label for each theme and a link that returns to the page', async () => {
+  it('has the switch in the menu: moon, track with knob, sun, no words, and a link that returns to the page', async () => {
     const page = await get('/register');
+    expect(page.body).toContain('ft-switch-knob');
     expect(page.body).toContain('data-theme-toggle');
-    expect(page.body).toContain('Night mode');
-    expect(page.body).toContain('Day mode');
     expect(page.body).toContain('href="/theme?returnUrl=%2Fregister"');
+    expect(page.body).not.toContain('Night mode</span>');
+    expect(page.body).not.toContain('Day mode');
   });
 });

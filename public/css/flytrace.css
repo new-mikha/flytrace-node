@@ -271,11 +271,25 @@ a.disabled { pointer-events: none; opacity: 0.65; }
    default). Bootstrap's own components follow it; below are our own colours for the night theme. */
 
 /* The menu entry shows the theme you would switch to. */
-/* Text symbols (sun, moon) rather than icons, in a box of fixed width so the label does not jump when it flips. */
-.ft-sym { display: inline-block; width: 1.25em; text-align: center; }
-
-[data-bs-theme="light"] .ft-theme-to-light,
-[data-bs-theme="dark"] .ft-theme-to-dark { display: none; }
+/* The day / night switch: moon, oval track with a round knob, sun. The knob sits next to the active mode. */
+.ft-switch { display: inline-flex; align-items: center; gap: .4rem; text-decoration: none; color: rgba(255, 255, 255, .85); }
+.ft-switch:hover { color: #fff; }
+.ft-switch:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 3px; border-radius: 999px; }
+.ft-sym { display: inline-block; line-height: 1; font-size: 1.15rem; opacity: .45; transition: opacity .2s; }
+.ft-switch-track {
+  position: relative; display: inline-block; width: 2.5rem; height: 1.35rem; border-radius: 999px;
+  background: #f5b82e; /* day: sun yellow */
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); transition: background-color .2s;
+}
+.ft-switch-knob {
+  position: absolute; top: .15rem; left: .15rem; width: 1.05rem; height: 1.05rem; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .45); transition: transform .2s;
+  transform: translateX(1.15rem); /* day: towards the sun */
+}
+[data-bs-theme="light"] .ft-sym-sun, [data-bs-theme="dark"] .ft-sym-moon { opacity: 1; }
+[data-bs-theme="dark"] .ft-switch-track { background: #475a78; }
+[data-bs-theme="dark"] .ft-switch-knob { transform: translateX(0); }
+@media (prefers-reduced-motion: reduce) { .ft-sym, .ft-switch-track, .ft-switch-knob { transition: none; } }
 
 [data-bs-theme="dark"] {
   --ft-ink: #e5e7eb;

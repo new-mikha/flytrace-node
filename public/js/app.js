@@ -147,6 +147,19 @@
     if (button) begin('post', button, null);
   });
 
+  // The switch is a link (it works without this script); here it also becomes a proper switch for assistive technology:
+  // role and state (checked = night), updated whenever the theme changes, and Space toggles it like any switch.
+  const themeLinks = document.querySelectorAll('[data-theme-toggle]');
+  function syncThemeSwitches() {
+    const night = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    for (const link of themeLinks) { link.setAttribute('role', 'switch'); link.setAttribute('aria-checked', String(night)); }
+  }
+  syncThemeSwitches();
+  document.addEventListener('keydown', (event) => {
+    const link = event.target instanceof Element ? event.target.closest('[data-theme-toggle]') : null;
+    if (link && event.key === ' ') { event.preventDefault(); link.click(); }
+  });
+
   // Day / night theme: switch in place and remember it in the cookie that the server reads for the next page. Without
   // this script the same link goes to /theme, which does it with a redirect.
   document.addEventListener('click', (event) => {
@@ -156,6 +169,7 @@
     const dark = document.documentElement.getAttribute('data-bs-theme') !== 'dark';
     document.cookie = `ft-theme=${dark ? 'dark' : 'light'}; path=/; max-age=31536000; SameSite=Lax`;
     document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+    syncThemeSwitches();
   });
 
   // Show / hide password: the eye buttons next to password fields are rendered hidden and only work with this script.

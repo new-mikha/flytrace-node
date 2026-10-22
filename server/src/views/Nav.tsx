@@ -59,24 +59,27 @@ const MORE_ITEMS: (MoreLink | null)[] = [
 ];
 
 /**
- * Both labels are in the page; the stylesheet shows the one for the other theme (public/css/flytrace.css), so the
- * label is right without knowing the theme here, and it flips at once when public/js/app.js switches the theme.
+ * The day / night switch, no words: moon, an oval track with a round knob, sun. The knob sits next to the active mode
+ * (the stylesheet moves it from the theme on <html>, so it is right without knowing the theme here and moves at once
+ * when public/js/app.js switches). It is a link, so that it also works without JavaScript: /theme flips the cookie and
+ * returns to this page. app.js gives it role="switch" and aria-checked (checked = night) when it runs.
  */
-function ThemeLabel() {
+function ThemeSwitch({ path, className }: { path: string; className?: string }) {
   return (
-    <>
-      <span class="ft-theme-to-dark"><span class="ft-sym" aria-hidden="true">&#9790;</span> Night mode</span>
-      <span class="ft-theme-to-light"><span class="ft-sym" aria-hidden="true">&#9788;</span> Day mode</span>
-    </>
+    <a class={`ft-switch ${className ?? ''}`} href={themeHref(path)} data-theme-toggle aria-label="Night mode" title="Day / night mode">
+      <span class="ft-sym ft-sym-moon" aria-hidden="true">&#9790;</span>
+      <span class="ft-switch-track" aria-hidden="true"><span class="ft-switch-knob"></span></span>
+      <span class="ft-sym ft-sym-sun" aria-hidden="true">&#9788;</span>
+    </a>
   );
 }
 
-/** Wide screens: the day / night switch with words, in the bar next to the user name (or "Register, etc"). */
+/** Wide screens: the switch in the bar next to the user name (or "Register, etc"). */
 function ThemeButton({ path }: { path: string }) {
   return (
     <ul class="navbar-nav d-none d-lg-flex">
-      <li class="nav-item">
-        <a class="nav-link" href={themeHref(path)} data-theme-toggle><ThemeLabel /></a>
+      <li class="nav-item d-flex align-items-center px-2">
+        <ThemeSwitch path={path} />
       </li>
     </ul>
   );
@@ -125,7 +128,7 @@ function MoreInline({ path }: { path: string }) {
           : <a class="nav-link py-2" href={item.href}><LinkContent item={item} /></a>
         : <hr class="border-light opacity-25 my-2" />)}
       <hr class="border-light opacity-25 my-2" />
-      <a class="nav-link py-2" href={themeHref(path)} data-theme-toggle><ThemeLabel /></a>
+      <div class="nav-link py-2"><ThemeSwitch path={path} /></div>
     </div>
   );
 }
@@ -199,7 +202,7 @@ function UserMenu({ user, path }: { user: CurrentUser; path: string }) {
       <div class="d-lg-none ft-more-inline">
         <hr class="border-light opacity-25 my-2" />
         <div class="navbar-nav">
-          <a class="nav-link py-2" href={themeHref(path)} data-theme-toggle><ThemeLabel /></a>
+          <div class="nav-link py-2"><ThemeSwitch path={path} /></div>
         </div>
         <hr class="border-light opacity-25 my-2" />
         <div class="ft-menu-heading ft-menu-user"><i class="fa-regular fa-user" aria-hidden="true"></i> {user.username}</div>
