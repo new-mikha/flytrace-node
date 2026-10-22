@@ -1,7 +1,7 @@
 import fastifyFormbody from '@fastify/formbody';
 import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { LogController, type FastifyInstance } from 'fastify';
 import { join } from 'node:path';
 import { registerSession } from './auth/session.ts';
 import type { Config } from './config.ts';
@@ -17,8 +17,21 @@ import { pageRoutes } from './routes/pages.ts';
 /** `mailer` can be replaced (tests capture the messages); by default it comes from the SMTP_* settings. */
 export async function buildApp(config: Config, pool: Pool, mailer?: Mailer): Promise<FastifyInstance> {
   const app = Fastify({
-    logger: config.NODE_ENV !== 'test',
+    // JSON lines in production (for log tools), readable lines in development, nothing in tests.
+    logger: config.NODE_ENV === 'test' ? false
+      : config.NODE_ENV === 'production' ? true
+      : { transport: { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss', ignore: 'pid,hostname,reqId' } } },
+    // Fastify's own two lines per request are replaced by the one line per page request below.
+    logController: new LogController({ disableRequestLogging: true }),
     trustProxy: config.NODE_ENV === 'production', // behind nginx in production
+  });
+
+  // One line per page request: "GET /register 200 14ms". Static files (CSS, JS, fonts, images) are skipped, and the
+  // query string is left out because it can hold one-time tokens (emailed links) and typed usernames or emails.
+  app.addHook('onResponse', async (request, reply) => {
+    const path = request.url.split('?')[0]!;
+    if (path.startsWith('/assets/') || path.startsWith('/vendor/')) return;
+    request.log.info(`${request.method} ${path} ${reply.statusCode} ${Math.round(reply.elapsedTime)}ms`);
   });
 
   // Static files first: routes registered before the session plugin do not run its per-request user lookup.
