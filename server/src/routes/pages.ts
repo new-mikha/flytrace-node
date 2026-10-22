@@ -1,39 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import { requireLogin, requireRole } from '../auth/guards.ts';
-import { credentialsSchema, loginRateLimit } from '../auth/routes.ts';
-import { authenticate } from '../auth/service.ts';
 import type { Pool } from '../db.ts';
 import { esc, page } from './html.ts';
 
-function safeReturnUrl(value: unknown): string {
-  // Only same-site absolute paths, so the login form cannot be used as an open redirect.
-  return typeof value === 'string' && /^\/(?!\/)/.test(value) ? value : '/';
-}
-
 export async function pageRoutes(app: FastifyInstance, pool: Pool): Promise<void> {
-  app.get<{ Querystring: { returnUrl?: string; error?: string } }>('/login', async (request, reply) => {
-    if (request.user) return reply.redirect(safeReturnUrl(request.query.returnUrl), 302);
-    const error = request.query.error ? '<p class="err">Invalid username or password.</p>' : '';
-    return reply.type('text/html').send(page('Log in', `${error}
-      <form method="post" action="/login">
-        <input type="hidden" name="returnUrl" value="${esc(safeReturnUrl(request.query.returnUrl))}">
-        <p><label>Username or email <input name="username" autocomplete="username" required autofocus></label></p>
-        <p><label>Password <input name="password" type="password" autocomplete="current-password" required></label></p>
-        <p><button>Log in</button></p>
-      </form>`, null, '/login'));
-  });
-
-  app.post<{ Body: { username?: string; password?: string; returnUrl?: string } }>(
-    '/login', { config: loginRateLimit }, async (request, reply) => {
-      const returnUrl = safeReturnUrl(request.body?.returnUrl);
-      const parsed = credentialsSchema.safeParse(request.body);
-      const user = parsed.success ? await authenticate(pool, parsed.data.username, parsed.data.password) : null;
-      if (!user) return reply.redirect(`/login?error=1&returnUrl=${encodeURIComponent(returnUrl)}`, 302);
-      await request.session.regenerate();
-      request.session.userId = user.id;
-      return reply.redirect(returnUrl, 302);
-    });
-
   app.post('/logout', async (request, reply) => {
     await request.session.destroy();
     return reply.redirect('/', 302);

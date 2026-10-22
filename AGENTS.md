@@ -51,5 +51,13 @@ numbered migrations instead.
 - Server-side sessions (not JWT): cookie `flytrace.sid` = signed session id; data in the Postgres `sessions` table.
 - Login accepts username or email (both unique, case-insensitive). Legacy hashes `flytrace1|...` are verified
   and upgraded to argon2id on first login. Roles come from `user_roles`, loaded from the DB on every request.
-- Registration (later) must reject a username equal to another user's email.
-- Code: `server/src/auth/` (`password.ts`, `service.ts`, `session.ts`, `guards.ts`, `routes.ts`).
+- Registration rejects a username equal to another user's email (usernames cannot contain `@`, and a new email
+  must not equal any username). Emailed links (confirm email, reset password, change email) are one-time tokens
+  stored hashed in `user_tokens`; the link only shows a button, the token is spent by the POST.
+- `REQUIRE_CONFIRMED_EMAIL` (.env) makes confirmation mandatory for login. SMTP is configured by `SMTP_*` in .env;
+  without `SMTP_HOST` emails are written to the server log instead. Placeholders live in `.env.example`.
+- Optional two-factor login with an authenticator app (TOTP, `otpauth`) plus single-use recovery codes. The login
+  has a second step (`/login/2fa`, `/login/recovery`). There is no JSON login API; pages use the session cookie.
+- Code: `server/src/auth/` (`password.ts`, `service.ts`, `accounts.ts`, `tokens.ts`, `totp.ts`, `session.ts`,
+  `guards.ts`), `server/src/mail/`, pages in `server/src/routes/identity.tsx` (signed out) and
+  `account.tsx` (My account), views in `server/src/views/IdentityPages.tsx` and `AccountPages.tsx`.

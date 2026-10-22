@@ -27,7 +27,7 @@ describe('home page (anonymous)', () => {
   });
 
   it('has the loading bar that app.js drives', () => {
-    expect(html).toContain('id="ff-progress"');
+    expect(html).toContain('id="ft-progress"');
   });
 
   it('has the login form and the "Register, etc" menu in the bar', () => {
@@ -42,7 +42,7 @@ describe('home page (anonymous)', () => {
     expect(html.match(/href="\/register"/g)).toHaveLength(2);
     expect(html.match(/href="\/contact"/g)).toHaveLength(2);
     expect(html).toContain('d-none d-lg-flex'); // the drop-down is hidden on phones
-    expect(html).toContain('d-lg-none ff-more-inline'); // the inline list is hidden on wide screens
+    expect(html).toContain('d-lg-none ft-more-inline'); // the inline list is hidden on wide screens
   });
 
   it('lists every given public group in a responsive table, linking to the map', () => {
@@ -57,7 +57,7 @@ describe('home page (anonymous)', () => {
   it('highlights the age only for positions less than a day old', () => {
     expect(html).toContain('30 min ago');
     expect(html).not.toContain('4 d 2 hr');
-    expect(html.match(/ff-age/g)).toHaveLength(1);
+    expect(html.match(/ft-age/g)).toHaveLength(1);
   });
 
   it('escapes group names', () => {

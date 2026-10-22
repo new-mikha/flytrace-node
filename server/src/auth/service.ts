@@ -8,7 +8,17 @@ export interface CurrentUser { id: string; username: string; roles: string[] }
 
 interface UserRow {
   id: string; username: string; password_hash: string; is_approved: boolean; is_locked_out: boolean;
+  email: string | null; email_confirmed: boolean; two_factor_enabled: boolean;
 }
+
+/** Outcome of checking a login name and password. */
+export type LoginResult =
+  | { kind: 'ok'; user: CurrentUser }
+  /** Password is right, but a second step (authenticator code) is still needed. */
+  | { kind: 'two-factor'; userId: string }
+  /** Password is right, but the email address has not been confirmed and the site requires that. */
+  | { kind: 'email-unconfirmed'; userId: string }
+  | { kind: 'invalid' };
 
 export async function loadUser(pool: Pool, id: string): Promise<CurrentUser | null> {
   const { rows } = await pool.query<{ id: string; username: string; roles: string[] }>(
@@ -26,11 +36,13 @@ export async function loadUser(pool: Pool, id: string): Promise<CurrentUser | nu
 
 /**
  * `login` is a username or an email address (both are unique and case-insensitive); a username match wins.
- * Returns the user on success, null for any failure (unknown user, wrong password, not approved, locked out).
+ * 'invalid' covers every other failure (unknown user, wrong password, not approved, locked out), so callers cannot
+ * tell them apart. This only checks the password: for 'two-factor' the caller asks for the code and then calls
+ * `completeLogin`.
  */
-export async function authenticate(pool: Pool, login: string, password: string): Promise<CurrentUser | null> {
+export async function checkPassword(pool: Pool, login: string, password: string, requireConfirmedEmail = false): Promise<LoginResult> {
   const { rows } = await pool.query<UserRow>(
-    `SELECT id, username, password_hash, is_approved, is_locked_out FROM users
+    `SELECT id, username, password_hash, is_approved, is_locked_out, email, email_confirmed, two_factor_enabled FROM users
      WHERE username = $1 OR email = $1
      ORDER BY (username = $1) DESC LIMIT 1`,
     [login],
@@ -42,18 +54,30 @@ export async function authenticate(pool: Pool, login: string, password: string):
     // gap would reveal which usernames and emails exist. Legacy SHA1 accounts remain fast until their first
     // login upgrades them to argon2id.
     await verifyPassword(await (dummyHash ??= hashPassword('dummy password')), password);
-    return null;
+    return { kind: 'invalid' };
   }
 
   const { ok, needsRehash } = await verifyPassword(user.password_hash, password);
-  if (!ok || !user.is_approved || user.is_locked_out) return null;
+  if (!ok || !user.is_approved || user.is_locked_out) return { kind: 'invalid' };
 
   if (needsRehash) {
     // Upgrade the legacy ASP.NET hash now that we have the plain password in hand.
-    await pool.query('UPDATE users SET password_hash = $2, last_login_at = now() WHERE id = $1',
-      [user.id, await hashPassword(password)]);
-  } else {
-    await pool.query('UPDATE users SET last_login_at = now() WHERE id = $1', [user.id]);
+    await pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [user.id, await hashPassword(password)]);
   }
-  return loadUser(pool, user.id);
+  if (requireConfirmedEmail && !user.email_confirmed) return { kind: 'email-unconfirmed', userId: user.id };
+  if (user.two_factor_enabled) return { kind: 'two-factor', userId: user.id };
+  return completeLogin(pool, user.id);
+}
+
+/** Final step of a login (password, and the code if needed, are already checked): stamps the login time. */
+export async function completeLogin(pool: Pool, userId: string): Promise<LoginResult> {
+  await pool.query('UPDATE users SET last_login_at = now() WHERE id = $1', [userId]);
+  const user = await loadUser(pool, userId);
+  return user ? { kind: 'ok', user } : { kind: 'invalid' };
+}
+
+/** Password-only check for callers that cannot do a second step: accounts with two-factor login never pass. */
+export async function authenticate(pool: Pool, login: string, password: string): Promise<CurrentUser | null> {
+  const result = await checkPassword(pool, login, password);
+  return result.kind === 'ok' ? result.user : null;
 }

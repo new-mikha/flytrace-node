@@ -15,7 +15,14 @@ CREATE TABLE users (
   is_locked_out           boolean NOT NULL DEFAULT false,
   created_at              timestamptz NOT NULL DEFAULT now(),
   last_login_at           timestamptz,
-  legacy_last_activity_at timestamptz
+  legacy_last_activity_at timestamptz,
+  -- Accounts that exist already (imported from the old site, or made by the CLI) count as confirmed;
+  -- registration sets it to false explicitly.
+  email_confirmed           boolean NOT NULL DEFAULT true,
+  two_factor_enabled        boolean NOT NULL DEFAULT false,
+  two_factor_secret         text,    -- base32 TOTP secret, set while two_factor_enabled
+  two_factor_last_used_step bigint,  -- last accepted 30 s time step, so a code works only once
+  CONSTRAINT users_two_factor_secret_chk CHECK (NOT two_factor_enabled OR two_factor_secret IS NOT NULL)
 );
 
 CREATE TABLE roles (
@@ -112,5 +119,27 @@ CREATE TABLE sessions (
   expire timestamp(6) NOT NULL
 );
 CREATE INDEX sessions_expire_idx ON sessions (expire);
+
+-- One-time links sent by email. Only the SHA-256 of the token is stored, so a database leak does not
+-- give out working links.
+CREATE TABLE user_tokens (
+  id         bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  user_id    uuid NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  purpose    text NOT NULL CHECK (purpose IN ('confirm_email', 'reset_password', 'change_email')),
+  token_hash text NOT NULL UNIQUE,
+  data       text,                       -- change_email: the new address
+  created_at timestamptz NOT NULL DEFAULT now(),
+  expires_at timestamptz NOT NULL,
+  used_at    timestamptz
+);
+CREATE INDEX user_tokens_user_id_idx ON user_tokens (user_id);
+
+-- Single-use backup codes for when the authenticator app is not at hand (SHA-256 of the code).
+CREATE TABLE recovery_codes (
+  user_id   uuid NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  code_hash text NOT NULL,
+  used_at   timestamptz,
+  PRIMARY KEY (user_id, code_hash)
+);
 
 INSERT INTO roles (name) VALUES ('Admins'), ('SpotIdReaders');

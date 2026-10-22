@@ -10,7 +10,15 @@ declare module 'fastify' {
   interface FastifyRequest { user: CurrentUser | null }
 }
 declare module '@fastify/session' {
-  interface FastifySessionObject { userId?: string }
+  interface FastifySessionObject {
+    userId?: string;
+    /** Password was right but the authenticator code is still to come (login step 2). */
+    pendingLogin?: { userId: string; returnUrl: string; attempts: number; expires: number };
+    /** Authenticator secret being set up, not saved to the user until a code from the app is confirmed. */
+    pendingTotpSecret?: string;
+    /** One-time message shown on the next page. */
+    flash?: { kind: 'success' | 'info' | 'danger'; text: string };
+  }
 }
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000; // same as the old site's forms-auth timeout

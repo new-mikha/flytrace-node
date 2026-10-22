@@ -31,6 +31,19 @@ async function copyCsv(client: Client, table: string, csvPath: string): Promise<
   return stream.rowCount ?? 0;
 }
 
+/** Lists the rows whose name was changed because the old data had duplicates (see transform.sql). */
+async function reportRenames(client: Client): Promise<void> {
+  const { rows } = await client.query<{ entity: string; id: number; context: string; old_name: string; new_name: string }>(
+    'SELECT entity, id, context, old_name, new_name FROM legacy_renames ORDER BY entity, id');
+  const counts = new Map<string, number>();
+  for (const r of rows) counts.set(r.entity, (counts.get(r.entity) ?? 0) + 1);
+  const summary = [...counts].map(([entity, n]) => `${n} ${entity}${n === 1 ? '' : 's'}`).join(', ');
+  console.log(`\nRenamed ${rows.length} duplicate name${rows.length === 1 ? '' : 's'}${summary ? ` (${summary})` : ''}:`);
+  for (const r of rows) {
+    console.log(`  ${r.entity.padEnd(8)} ${String(r.id).padStart(6)} (${r.context}): ${JSON.stringify(r.old_name)} -> ${JSON.stringify(r.new_name)}`);
+  }
+}
+
 async function main(): Promise<void> {
   const dumpArg = process.argv[2];
   if (!dumpArg) {
@@ -60,6 +73,7 @@ async function main(): Promise<void> {
         console.log(`staged ${t.padEnd(22)} ${String(n).padStart(6)} rows`);
       }
       await client.query(await readFile(join(here, 'transform.sql'), 'utf8'));
+      await reportRenames(client);
       const { rows } = await client.query<Check>(await readFile(join(here, 'verify.sql'), 'utf8'));
 
       console.log('\nVerification:');

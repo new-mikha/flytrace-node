@@ -1,4 +1,5 @@
 import type { CurrentUser } from '../auth/service.ts';
+import { ACCOUNT_SECTIONS } from './accountSections.ts';
 
 interface NavProps {
   user: CurrentUser | null;
@@ -9,7 +10,7 @@ interface NavProps {
 function Brand() {
   return (
     <a class="navbar-brand" href="/">
-      <i class="fa-solid fa-location-dot ff-brand-icon" aria-hidden="true"></i>
+      <i class="fa-solid fa-location-dot ft-brand-icon" aria-hidden="true"></i>
       FlyTrace
     </a>
   );
@@ -18,7 +19,7 @@ function Brand() {
 /** The classic "burger" button that opens the menu on small screens. */
 function Toggler() {
   return (
-    <button class="navbar-toggler ff-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain"
+    <button class="navbar-toggler ft-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain"
             aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -83,7 +84,7 @@ function MoreDropdown({ alignEnd }: { alignEnd: boolean }) {
 /** Phones: the same entries listed right in the opened menu, no second tap needed. */
 function MoreInline() {
   return (
-    <div class="navbar-nav d-lg-none ff-more-inline">
+    <div class="navbar-nav d-lg-none ft-more-inline">
       {MORE_ITEMS.map((item) => item
         ? item.button
           ? <a class="btn btn-outline-light w-100 my-3" href={item.href}><LinkContent item={item} /></a>
@@ -97,21 +98,21 @@ function MoreInline() {
 function AnonymousNav({ path }: { path: string }) {
   const onLoginPage = path.split('?')[0] === '/login';
   return (
-    <nav class="navbar navbar-expand-lg navbar-dark ff-navbar">
+    <nav class="navbar navbar-expand-lg navbar-dark ft-navbar">
       <div class="container-fluid">
         <Brand />
         <Toggler />
         <div class="collapse navbar-collapse" id="navMain">
           {!onLoginPage && (
-            <form class="ff-login-form d-lg-flex flex-grow-1 gap-2 mt-3 mt-lg-0 ms-lg-4" method="post" action="/login">
+            <form class="ft-login-form d-lg-flex flex-grow-1 gap-2 mt-3 mt-lg-0 ms-lg-4" method="post" action="/login">
               <input type="hidden" name="returnUrl" value={path} />
               <input class="form-control mb-2 mb-lg-0" name="username" placeholder="User name or email" type="text"
                      autocomplete="username" aria-label="User name or email" required />
               <input class="form-control mb-2 mb-lg-0" name="password" placeholder="Password" type="password"
                      autocomplete="current-password" aria-label="Password" required />
               <button class="btn btn-primary text-nowrap" type="submit">
-                <span class="ff-label">Log in</span>
-                <span class="ff-busy d-none">Logging in&hellip; <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i></span>
+                <span class="ft-label">Log in</span>
+                <span class="ft-busy d-none">Logging in&hellip; <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i></span>
               </button>
             </form>
           )}
@@ -123,9 +124,54 @@ function AnonymousNav({ path }: { path: string }) {
   );
 }
 
+function LogoutForm({ className, buttonClass }: { className?: string; buttonClass: string }) {
+  return (
+    <form class={className} method="post" action="/logout">
+      <button class={buttonClass} type="submit"><i class="fa-solid fa-right-from-bracket fa-fw" aria-hidden="true"></i> Log out</button>
+    </form>
+  );
+}
+
+/** "<username> v": the account pages and Log out. A drop-down on wide screens, listed in the opened menu on phones. */
+function UserMenu({ user, path }: { user: CurrentUser; path: string }) {
+  const here = path === '/account' || path.startsWith('/account/');
+  return (
+    <>
+      <ul class="navbar-nav d-none d-lg-flex">
+        <li class="nav-item dropdown">
+          <a class={`nav-link dropdown-toggle${here ? ' active' : ''}`} href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-regular fa-user" aria-hidden="true"></i> {user.username}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            {ACCOUNT_SECTIONS.map((s) => (
+              <li><a class={`dropdown-item${path === s.href ? ' active' : ''}`} href={s.href}>
+                <i class={`${s.icon} fa-fw`} aria-hidden="true"></i> {s.label}
+              </a></li>
+            ))}
+            <li><hr class="dropdown-divider" /></li>
+            <li><LogoutForm buttonClass="dropdown-item" /></li>
+          </ul>
+        </li>
+      </ul>
+      <div class="d-lg-none ft-more-inline">
+        <hr class="border-light opacity-25 my-2" />
+        <div class="ft-menu-heading ft-menu-user"><i class="fa-regular fa-user" aria-hidden="true"></i> {user.username}</div>
+        <div class="navbar-nav">
+          {ACCOUNT_SECTIONS.map((s) => (
+            <a {...navLink(path, s.href)} class={`nav-link py-2 ps-3${path === s.href ? ' active' : ''}`} href={s.href}>
+              <i class={`${s.icon} fa-fw`} aria-hidden="true"></i> {s.label}
+            </a>
+          ))}
+        </div>
+        <LogoutForm className="mt-2 mb-1" buttonClass="btn btn-outline-light btn-sm" />
+      </div>
+    </>
+  );
+}
+
 function UserNav({ user, path }: { user: CurrentUser; path: string }) {
   return (
-    <nav class="navbar navbar-expand-lg navbar-dark ff-navbar">
+    <nav class="navbar navbar-expand-lg navbar-dark ft-navbar">
       <div class="container-fluid">
         <Brand />
         <Toggler />
@@ -137,10 +183,7 @@ function UserNav({ user, path }: { user: CurrentUser; path: string }) {
               <li class="nav-item"><a {...navLink(path, '/admin')} href="/admin">Admin</a></li>
             )}
           </ul>
-          <form class="d-flex align-items-center gap-3 mt-3 mt-lg-0" method="post" action="/logout">
-            <span class="navbar-text text-nowrap"><i class="fa-regular fa-user" aria-hidden="true"></i> {user.username}</span>
-            <button class="btn btn-outline-light btn-sm text-nowrap" type="submit">Log out</button>
-          </form>
+          <UserMenu user={user} path={path} />
         </div>
       </div>
     </nav>

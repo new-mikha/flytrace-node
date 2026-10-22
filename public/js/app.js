@@ -3,9 +3,9 @@
 // One "current action" at a time: a link navigation, an in-place swap ("Show all") or a form post. Starting a new
 // action cancels the pending one and restores its button; the exception is a form post, which is never cancelled
 // (the server may already have handled it), so other clicks are ignored while one is in flight.
-// A thin bar at the top of the page (#ff-progress) shows that something is loading.
+// A thin bar at the top of the page (#ft-progress) shows that something is loading.
 (() => {
-  const bar = document.getElementById('ff-progress');
+  const bar = document.getElementById('ft-progress');
   let current = null; // { kind: 'nav' | 'swap' | 'post', restore(), cancel() }
 
   // ---- progress bar ----
@@ -24,8 +24,11 @@
 
   // ---- busy state of the pressed control: disabled, with a spinner ----
   function showBusy(el) {
-    const label = el.querySelector('.ff-label');
-    const busy = el.querySelector('.ff-busy');
+    // Only things that look like buttons get a spinner; plain links (brand, menu items, text links) just
+    // show the loading bar at the top.
+    if (!el.classList.contains('btn')) return () => {};
+    const label = el.querySelector('.ft-label');
+    const busy = el.querySelector('.ft-busy');
     const isButton = el instanceof HTMLButtonElement;
     el.classList.add('disabled');
     el.setAttribute('aria-busy', 'true');
@@ -39,7 +42,7 @@
     } else {
       gap = document.createTextNode(' ');
       spinner = document.createElement('i');
-      spinner.className = 'fa-solid fa-spinner fa-spin ff-spinner';
+      spinner.className = 'fa-solid fa-spinner fa-spin ft-spinner';
       spinner.setAttribute('aria-hidden', 'true');
       el.append(gap, spinner);
     }
@@ -104,8 +107,14 @@
       })
       .then((html) => {
         if (controller.signal.aborted) return;
-        target.innerHTML = html;
-        if (link.hasAttribute('data-swap-scroll')) target.scrollIntoView({ block: 'start' });
+        const apply = () => {
+          target.innerHTML = html;
+          if (link.hasAttribute('data-swap-scroll')) target.scrollIntoView({ block: 'start' });
+        };
+        // Same quick cross-fade as between pages, where the browser supports it.
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (document.startViewTransition && !reduceMotion) document.startViewTransition(apply);
+        else apply();
         finish(action);
       })
       .catch(() => {

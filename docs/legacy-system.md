@@ -762,7 +762,7 @@ Deployment: IIS, `Site update scripts/*.ps1|cmd` zip the site and apply updates;
   `README.md` documents the CSV contract). Production dump `20251101_181031` imported locally: 1375 users (zawad20
   excluded), 1300 groups, 3386 trackers, 1110 events, 1258 profiles, 10393 waypoints, 2139 task rows.
 - `server/src/auth/`: legacy SHA1 hash verification + argon2id upgrade, Postgres-backed sessions (7-day rolling,
-  cookie `flytrace.sid`), `requireLogin` / `requireRole('Admins')`, login rate limit, `POST /api/login|logout`, `GET /api/me`.
+  cookie `flytrace.sid`), `requireLogin` / `requireRole('Admins')`, login rate limit (no JSON login API; account pages, email confirmation and two-factor login came later, see AGENTS.md).
 - Bare server-rendered pages `/`, `/login`, `/groups` (own groups), `/admin` (users + roles), `/403`. Tests in `server/test/`.
 - Dev CLI `npm run user:create -- <name> <password> [role]`.
 

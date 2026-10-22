@@ -15,7 +15,7 @@ interface HomePageProps {
   now: Date;
 }
 
-/** Three sizes of each screenshot, picked by viewport width (same breakpoints as the FlockFix landing page). */
+/** Three sizes of each screenshot, picked by viewport width. */
 function Screenshot({ n, alt }: { n: '01' | '02' | '03'; alt: string }) {
   const base = `/assets/img/screenshots/${n}-size`;
   return (
@@ -70,7 +70,7 @@ interface PublicMapsProps {
 export function PublicMaps({ groups, total, showAll, now }: PublicMapsProps) {
   return (
     <>
-      <h5 class="mb-3"><i class="fa-solid fa-earth-europe ff-heading-icon" aria-hidden="true"></i> Public maps</h5>
+      <h5 class="mb-3"><i class="fa-solid fa-earth-europe ft-heading-icon" aria-hidden="true"></i> Public maps</h5>
       <PublicGroupsTable groups={groups} total={total} now={now} />
       <MoreMaps showAll={showAll} total={total} shown={groups.length} />
     </>
@@ -90,7 +90,7 @@ export function HomePage({ user, path, groups, total, showAll, now }: HomePagePr
         mobile-friendly map. <b>It's free.</b>
       </p>
 
-      <div class="accordion ff-accordion mb-4" id="gettingStarted">
+      <div class="accordion ft-accordion mb-4" id="gettingStarted">
         <div class="accordion-item">
           <h2 class="accordion-header">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"

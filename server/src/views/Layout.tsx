@@ -6,11 +6,13 @@ interface LayoutProps {
   title: string;
   user: CurrentUser | null;
   path: string;
+  /** Small floating card instead of the full-width panel (sign-in family of pages). */
+  card?: boolean;
   children: ComponentChildren;
 }
 
 /** Page frame shared by every page: background, navigation bar and the "jumbotron" content panel. */
-export function Layout({ title, user, path, children }: LayoutProps) {
+export function Layout({ title, user, path, card, children }: LayoutProps) {
   return (
     <html lang="en">
       <head>
@@ -22,11 +24,11 @@ export function Layout({ title, user, path, children }: LayoutProps) {
         <link rel="stylesheet" href="/assets/css/flytrace.css" />
       </head>
       <body>
-        <div class="ff-progress" id="ff-progress" aria-hidden="true"><div class="ff-progress-bar"></div></div>
-        <div class="ff-bg">
-          <div class="ff-frame">
+        <div class="ft-progress" id="ft-progress" aria-hidden="true"><div class="ft-progress-bar"></div></div>
+        <div class="ft-bg">
+          <div class="ft-frame">
             <Nav user={user} path={path} />
-            <main class="ff-jumbotron">{children}</main>
+            <main class={card ? 'ft-jumbotron ft-jumbotron-card' : 'ft-jumbotron'}>{children}</main>
           </div>
         </div>
         <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>

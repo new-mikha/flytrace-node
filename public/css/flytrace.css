@@ -1,42 +1,42 @@
 /* FlyTrace look on top of Bootstrap 5. Colours and sizes are CSS variables so the theme can be changed in one place. */
 
 :root {
-  --ff-ink: #1f2a37;
-  --ff-navy: #0f172a;
-  --ff-navy-2: #1e3a5f;
-  --ff-sky: #0ea5e9;
-  --ff-teal: #14b8a6;
-  --ff-coral: #fb7185;
-  --ff-sun: #fde68a;
-  --ff-panel: rgba(255, 255, 255, 0.94);
-  --ff-radius: 0.5rem;
-  --ff-frame-width: 1200px;
+  --ft-ink: #1f2a37;
+  --ft-navy: #0f172a;
+  --ft-navy-2: #1e3a5f;
+  --ft-sky: #0ea5e9;
+  --ft-teal: #14b8a6;
+  --ft-coral: #fb7185;
+  --ft-sun: #fde68a;
+  --ft-panel: rgba(255, 255, 255, 0.94);
+  --ft-radius: 0.5rem;
+  --ft-frame-width: 1200px;
 }
 
 body {
-  color: var(--ff-ink);
+  color: var(--ft-ink);
   background: #dbeafe; /* shown until the picture below has loaded */
 }
 
 /* Background picture around the content panel. */
-.ff-bg {
+.ft-bg {
   min-height: 100vh;
   background: #dbeafe url("/assets/img/background.jpg") center / cover fixed;
   padding-bottom: 2rem;
 }
 
-.ff-frame {
-  max-width: var(--ff-frame-width);
+.ft-frame {
+  max-width: var(--ft-frame-width);
   margin: 0 auto;
 }
 
 @media (min-width: 768px) {
-  .ff-frame { padding-top: 2rem; }
+  .ft-frame { padding-top: 2rem; }
 }
 
 /* ---- loading bar at the very top (driven by public/js/app.js) ---- */
 
-.ff-progress {
+.ft-progress {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 3px;
@@ -45,33 +45,33 @@ body {
   opacity: 0;
 }
 
-.ff-progress-bar {
+.ft-progress-bar {
   height: 100%;
   width: 0;
-  background: linear-gradient(90deg, var(--ff-sky), var(--ff-teal), var(--ff-sun));
+  background: linear-gradient(90deg, var(--ft-sky), var(--ft-teal), var(--ft-sun));
   box-shadow: 0 0 6px rgba(14, 165, 233, 0.7);
 }
 
-.ff-progress.active { opacity: 1; }
-.ff-progress.active .ff-progress-bar { animation: ff-progress 10s cubic-bezier(0.1, 0.6, 0.2, 1) forwards; }
+.ft-progress.active { opacity: 1; }
+.ft-progress.active .ft-progress-bar { animation: ft-progress 10s cubic-bezier(0.1, 0.6, 0.2, 1) forwards; }
 
 /* Finishing: jump to the end, then fade out. */
-.ff-progress.active.done { opacity: 0; transition: opacity 0.3s ease 0.1s; }
-.ff-progress.active.done .ff-progress-bar { animation: none; width: 100%; transition: width 0.2s ease; }
+.ft-progress.active.done { opacity: 0; transition: opacity 0.3s ease 0.1s; }
+.ft-progress.active.done .ft-progress-bar { animation: none; width: 100%; transition: width 0.2s ease; }
 
-@keyframes ff-progress {
+@keyframes ft-progress {
   from { width: 0; }
   to   { width: 92%; }
 }
 
 /* A control that is busy (link or button): dimmed and not clickable again. */
 a.disabled { pointer-events: none; opacity: 0.65; }
-.ff-spinner { margin-left: 0.15rem; }
+.ft-spinner { margin-left: 0.15rem; }
 
 /* ---- navigation bar ---- */
 
-.ff-navbar {
-  background: linear-gradient(90deg, var(--ff-navy), var(--ff-navy-2));
+.ft-navbar {
+  background: linear-gradient(90deg, var(--ft-navy), var(--ft-navy-2));
   padding: 0.6rem 1rem;
   /* Stays at the top of the screen while the page scrolls (above page content, below the loading bar). */
   position: sticky;
@@ -82,7 +82,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 /* On phones the opened menu can be taller than the screen: let it scroll inside the sticky bar. */
 @media (max-width: 991.98px) {
-  .ff-navbar .navbar-collapse {
+  .ft-navbar .navbar-collapse {
     max-height: calc(100vh - 4.5rem);
     max-height: calc(100dvh - 4.5rem);
     overflow-y: auto;
@@ -94,76 +94,76 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 #public-maps { scroll-margin-top: 4.5rem; }
 
 @media (min-width: 768px) {
-  .ff-navbar { border-radius: var(--ff-radius) var(--ff-radius) 0 0; }
+  .ft-navbar { border-radius: var(--ft-radius) var(--ft-radius) 0 0; }
 }
 
-.ff-brand-icon { color: var(--ff-coral); margin-right: 0.35rem; }
+.ft-brand-icon { color: var(--ft-coral); margin-right: 0.35rem; }
 
-.ff-toggler { border-color: rgba(255, 255, 255, 0.4); }
+.ft-toggler { border-color: rgba(255, 255, 255, 0.4); }
 
-.ff-login-form { align-items: stretch; }
+.ft-login-form { align-items: stretch; }
 @media (min-width: 992px) {
-  .ff-login-form { max-width: 40rem; } /* inline in the bar; in the phone menu it spans the full width */
-  .ff-login-form .btn { width: auto; }
+  .ft-login-form { max-width: 40rem; } /* inline in the bar; in the phone menu it spans the full width */
+  .ft-login-form .btn { width: auto; }
 }
 @media (max-width: 991.98px) {
-  .ff-login-form .btn { width: 100%; }
+  .ft-login-form .btn { width: 100%; }
 }
 
 /* Phone menu entries: brighter than Bootstrap's default dimmed nav links. */
-.ff-more-inline .nav-link { color: rgba(255, 255, 255, 0.85); }
-.ff-more-inline .nav-link:hover { color: #fff; }
+.ft-more-inline .nav-link { color: rgba(255, 255, 255, 0.85); }
+.ft-more-inline .nav-link:hover { color: #fff; }
 
 /* Drop-down and collapse open with a short slide and fade. */
-.dropdown-menu.show { animation: ff-drop 0.18s ease-out; transform-origin: top; }
+.dropdown-menu.show { animation: ft-drop 0.18s ease-out; transform-origin: top; }
 
-@keyframes ff-drop {
+@keyframes ft-drop {
   from { opacity: 0; transform: translateY(-0.5rem) scale(0.98); }
   to   { opacity: 1; transform: none; }
 }
 
 /* ---- content panel ("jumbotron") ---- */
 
-.ff-jumbotron {
-  background: var(--ff-panel);
+.ft-jumbotron {
+  background: var(--ft-panel);
   padding: 1.5rem;
   min-height: 12rem;
 }
 
 @media (min-width: 768px) {
-  .ff-jumbotron { border-radius: 0 0 var(--ff-radius) var(--ff-radius); }
+  .ft-jumbotron { border-radius: 0 0 var(--ft-radius) var(--ft-radius); }
 }
 
 @media (max-width: 575.98px) {
-  .ff-jumbotron { padding: 1rem 0.75rem; }
+  .ft-jumbotron { padding: 1rem 0.75rem; }
 }
 
-.ff-heading-icon { color: var(--ff-sky); margin-right: 0.35rem; }
+.ft-heading-icon { color: var(--ft-sky); margin-right: 0.35rem; }
 
-.ff-accordion .accordion-button:not(.collapsed) {
+.ft-accordion .accordion-button:not(.collapsed) {
   background: #e0f2fe;
   color: #075985;
 }
 
 /* ---- public maps table ---- */
 
-.ff-table-wrap {
+.ft-table-wrap {
   background: #fff;
   border: 1px solid #bae6fd;
   border-radius: 0.75rem;
   box-shadow: 0 0.25rem 0.75rem rgba(15, 23, 42, 0.12);
 }
 
-.ff-table {
+.ft-table {
   --bs-table-striped-bg: #effaff;
   --bs-table-hover-bg: #fff4d1;
-  --bs-table-hover-color: var(--ff-ink);
+  --bs-table-hover-color: var(--ft-ink);
   font-size: 0.95rem;
 }
 
-.ff-table thead tr { background: linear-gradient(90deg, var(--ff-sky), var(--ff-teal)); } /* one gradient across the row */
+.ft-table thead tr { background: linear-gradient(90deg, var(--ft-sky), var(--ft-teal)); } /* one gradient across the row */
 
-.ff-table thead th {
+.ft-table thead th {
   background-color: transparent;
   color: #fff;
   font-weight: 600;
@@ -172,16 +172,16 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   white-space: nowrap;
 }
 
-.ff-table td { padding: 0.55rem 0.9rem; }
+.ft-table td { padding: 0.55rem 0.9rem; }
 
-.ff-wrap { overflow-wrap: anywhere; } /* very long group or owner names wrap instead of widening the table */
+.ft-wrap { overflow-wrap: anywhere; } /* very long group or owner names wrap instead of widening the table */
 
-.ff-group-link { color: #0369a1; text-decoration: none; }
-.ff-group-link:hover { text-decoration: underline; }
+.ft-group-link { color: #0369a1; text-decoration: none; }
+.ft-group-link:hover { text-decoration: underline; }
 
-.ff-pilots { background: var(--ff-sun); color: #7c2d12; min-width: 2rem; }
+.ft-pilots { background: var(--ft-sun); color: #7c2d12; min-width: 2rem; }
 
-.ff-age {
+.ft-age {
   display: inline-block;
   margin-top: 0.1rem;
   padding: 0 0.5rem;
@@ -195,3 +195,47 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 @media (prefers-reduced-motion: reduce) {
   .dropdown-menu.show { animation: none; }
 }
+
+/* ---- identity pages ---- */
+.ft-card { max-width: 30rem; }
+.ft-card-wide { max-width: 44rem; }
+.ft-form { max-width: 26rem; }
+.ft-qr { width: 12rem; max-width: 100%; background: #fff; border: 1px solid var(--bs-border-color); border-radius: .5rem; padding: .25rem; }
+.ft-qr svg { display: block; width: 100%; height: auto; }
+.ft-codes { columns: 2; max-width: 20rem; font-size: 1.05rem; }
+.ft-codes li { padding: .15rem 0; }
+.ft-account-nav .list-group-item.active { background: var(--ft-navy-2); border-color: var(--ft-navy-2); }
+.ft-menu-heading { color: rgba(255, 255, 255, .6); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; padding: .5rem 0 .1rem; }
+
+/* Sign-in family of pages: a small card floating on the map instead of a full-width panel. */
+.ft-jumbotron-card {
+  max-width: 32rem;
+  min-height: 0;
+  margin: 1.5rem auto 0;
+  border-radius: var(--ft-radius);
+  border-top: 4px solid var(--ft-sky);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, .22);
+}
+.ft-frame:has(.ft-jumbotron-card) .ft-navbar { border-radius: var(--ft-radius); }
+@media (max-width: 767.98px) {
+  .ft-jumbotron-card { margin: 1rem .75rem 0; }
+}
+
+/* ---- page transitions ----
+   Browsers that support cross-document view transitions (Chrome, Edge, Safari 18.2+) cross-fade between pages;
+   others just load the next page as before. The menu bar stays put and only the page below it fades. */
+@view-transition { navigation: auto; }
+
+.ft-navbar { view-transition-name: ft-nav; }
+::view-transition-group(root) { animation-duration: 280ms; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: ease-out; }
+::view-transition-old(ft-nav), ::view-transition-new(ft-nav) { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
+
+/* "Log out" inside a drop-down list looks like the other entries. */
+.dropdown-menu form .dropdown-item { cursor: pointer; }
+/* A username is shown as typed, not in capitals. */
+.ft-menu-user { text-transform: none; letter-spacing: 0; font-size: .95rem; }
