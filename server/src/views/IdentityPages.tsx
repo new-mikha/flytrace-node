@@ -1,14 +1,15 @@
 import type { ComponentChildren } from 'preact';
+import { MIN_PASSWORD_LENGTH } from '../auth/accounts.ts';
 import type { CurrentUser } from '../auth/service.ts';
 import { Layout } from './Layout.tsx';
-import { Alert, Card, Field, Submit, type Flash } from './forms.tsx';
+import { Alert, Card, Field, Hints, Submit, type Flash } from './forms.tsx';
 
 interface Common { user: CurrentUser | null; path: string; flash?: Flash | null }
 type Errors = Record<string, string | undefined>;
 
-function Shell({ title, icon, user, path, flash, children, wide }: Common & { title: string; icon?: string; children: ComponentChildren; wide?: boolean }) {
+function Shell({ title, icon, user, path, flash, children, wide, scripts }: Common & { title: string; icon?: string; children: ComponentChildren; wide?: boolean; scripts?: string[] }) {
   return (
-    <Layout title={title} user={user} path={path} card>
+    <Layout title={title} user={user} path={path} card scripts={scripts}>
       <Card title={title} icon={icon} wide={wide}>
         <Alert flash={flash} />
         {children}
@@ -79,15 +80,27 @@ export interface RegisterValues { username?: string; email?: string }
 
 export function RegisterPage({ values, errors, ...c }: Common & { values: RegisterValues; errors: Errors }) {
   return (
-    <Shell title="Register" icon="fa-solid fa-user-plus" {...c}>
-      <form method="post" action="/register" novalidate>
-        <Field name="username" label="Username" value={values.username} error={errors.username} autocomplete="username"
-               help="3 to 64 letters, digits, dots, dashes or underscores." autofocus />
+    <Shell title="Register" icon="fa-solid fa-user-plus" scripts={['register.js']} {...c}>
+      <form method="post" action="/register" data-live-validate data-min-password={MIN_PASSWORD_LENGTH} novalidate>
+        <Field name="username" label="Username" value={values.username} error={errors.username} autocomplete="username" autofocus
+               hints={<Hints field="username" rules={[
+                 { rule: 'len', text: 'At least 3 characters' },
+                 { rule: 'chars', text: 'Only letters, digits, dots, dashes and underscores' },
+                 { rule: 'free', text: 'Not taken yet', bad: 'This username is taken' },
+               ]} />} />
         <Field name="email" label="Email" type="email" value={values.email} error={errors.email} autocomplete="email"
-               help="We send a confirmation link here. You can also log in with it." />
+               help="We send a confirmation link here. You can also log in with it."
+               hints={<Hints field="email" rules={[
+                 { rule: 'format', text: 'Looks like an email address, e.g. name@example.com' },
+                 { rule: 'free', text: 'Not registered yet', bad: 'This email address is already registered' },
+               ]} />} />
         <Field name="password" label="Password" type="password" error={errors.password} autocomplete="new-password"
-               help="At least 8 characters." />
-        <Field name="confirmPassword" label="Confirm password" type="password" error={errors.confirmPassword} autocomplete="new-password" />
+               hints={<Hints field="password" rules={[
+                 { rule: 'len', text: `At least ${MIN_PASSWORD_LENGTH} characters` },
+                 { rule: 'differs', text: 'Different from your username and email' },
+               ]} />} />
+        <Field name="confirmPassword" label="Confirm password" type="password" error={errors.confirmPassword} autocomplete="new-password"
+               hints={<Hints field="confirmPassword" rules={[{ rule: 'match', text: 'Same as the password' }]} />} />
         <Submit icon="fa-solid fa-user-plus">Register</Submit>
       </form>
       <hr />
@@ -163,7 +176,7 @@ export function ResetPasswordPage({ token, valid, errors, ...c }: Common & { tok
         <form method="post" action="/reset-password" novalidate>
           <input type="hidden" name="token" value={token} />
           <Field name="password" label="New password" type="password" error={errors.password} autocomplete="new-password"
-                 help="At least 8 characters." autofocus />
+                 help={`At least ${MIN_PASSWORD_LENGTH} characters.`} autofocus />
           <Field name="confirmPassword" label="Confirm new password" type="password" error={errors.confirmPassword} autocomplete="new-password" />
           <Submit icon="fa-solid fa-check">Change password</Submit>
         </form>

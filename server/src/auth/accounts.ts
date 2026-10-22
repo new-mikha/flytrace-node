@@ -8,8 +8,9 @@ import { hashPassword, verifyPassword } from './password.ts';
 export const usernameSchema = z.string().trim()
   .regex(/^[A-Za-z0-9._-]{3,64}$/, 'Use 3 to 64 letters, digits, dots, dashes or underscores.');
 export const emailSchema = z.string().trim().max(256).pipe(z.email('Enter a valid email address.'));
+export const MIN_PASSWORD_LENGTH = 6;
 export const newPasswordSchema = z.string()
-  .min(8, 'Use at least 8 characters.').max(128, 'Use at most 128 characters.');
+  .min(MIN_PASSWORD_LENGTH, `Use at least ${MIN_PASSWORD_LENGTH} characters.`).max(128, 'Use at most 128 characters.');
 
 export function isUniqueViolation(err: unknown): err is { code: string; constraint?: string } {
   return typeof err === 'object' && err !== null && (err as { code?: string }).code === '23505';
@@ -56,7 +57,7 @@ export type RegisterResult =
   | { ok: false; field: 'username' | 'email'; message: string };
 
 /** A new address must not equal anybody's username either (both are login names). */
-async function emailTaken(pool: Pool, email: string, exceptUserId?: string): Promise<boolean> {
+export async function emailTaken(pool: Pool, email: string, exceptUserId?: string): Promise<boolean> {
   const { rowCount } = await pool.query(
     `SELECT 1 FROM users WHERE (email = $1 OR username = $1) AND ($2::uuid IS NULL OR id <> $2)`,
     [email, exceptUserId ?? null]);

@@ -8,11 +8,13 @@ interface LayoutProps {
   path: string;
   /** Floating card (with shadow) instead of the plain panel: small, or 'wide' = as wide as the menu bar. Phones show a plain panel. */
   card?: boolean | 'wide';
+  /** Extra scripts (paths under /assets/js/) for this page only. */
+  scripts?: string[];
   children: ComponentChildren;
 }
 
 /** Page frame shared by every page: background, navigation bar and the "jumbotron" content panel. */
-export function Layout({ title, user, path, card, children }: LayoutProps) {
+export function Layout({ title, user, path, card, scripts, children }: LayoutProps) {
   return (
     <html lang="en">
       <head>
@@ -33,6 +35,7 @@ export function Layout({ title, user, path, card, children }: LayoutProps) {
         </div>
         <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>
         <script src="/assets/js/app.js" defer></script>
+        {scripts?.map((src) => <script src={`/assets/js/${src}`} defer></script>)}
       </body>
     </html>
   );

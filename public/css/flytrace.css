@@ -255,3 +255,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-toggler-text { color: rgba(255, 255, 255, .9); font-size: 1.1rem; padding: .35rem .75rem; }
 .ft-toggler-text:hover { color: #fff; }
 @media (max-width: 359.98px) { .ft-nano-hide { display: none; } }
+
+/* Live checklist under the register fields (public/js/register.js). */
+.ft-hints li { padding: .05rem 0; color: var(--bs-secondary-color); }
+.ft-hints li[data-state="ok"] { color: var(--bs-success-text-emphasis); }
+.ft-hints li[data-state="bad"] { color: var(--bs-danger-text-emphasis); }

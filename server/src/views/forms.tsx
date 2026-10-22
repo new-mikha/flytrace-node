@@ -21,6 +21,8 @@ interface FieldProps {
   error?: string;
   autocomplete?: string;
   help?: ComponentChildren;
+  /** Live checklist (see `Hints`) shown under the field whether or not there is an error. */
+  hints?: ComponentChildren;
   required?: boolean;
   autofocus?: boolean;
   inputmode?: 'numeric' | 'text';
@@ -41,6 +43,7 @@ export function Field(p: FieldProps) {
              maxlength={p.maxlength} aria-describedby={p.error ? `${id}-err` : p.help ? `${id}-help` : undefined} />
       {p.error && <div id={`${id}-err`} class="invalid-feedback">{p.error}</div>}
       {p.help && !p.error && <div id={`${id}-help`} class="form-text">{p.help}</div>}
+      {p.hints}
     </div>
   );
 }
@@ -60,5 +63,29 @@ export function Card({ title, icon, children, wide }: { title: string; icon?: st
       <h1 class="h3 mb-3">{icon && <><i class={`${icon} text-primary`} aria-hidden="true"></i>{' '}</>}{title}</h1>
       {children}
     </div>
+  );
+}
+
+export interface HintRule {
+  /** Name of the rule, matched by public/js/register.js. */
+  rule: string;
+  text: string;
+  /** Text shown instead when the rule fails after the person has typed (e.g. "This username is taken"). */
+  bad?: string;
+}
+
+/**
+ * Checklist of what a field needs. Without JavaScript it is just a list of requirements; public/js/register.js
+ * ticks the items off while the person types.
+ */
+export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
+  return (
+    <ul class="ft-hints list-unstyled small mb-0 mt-1" data-hints={field}>
+      {rules.map((r) => (
+        <li data-rule={r.rule} data-text={r.text} data-bad={r.bad}>
+          <i class="fa-regular fa-circle fa-fw text-muted" aria-hidden="true"></i> <span class="ft-hint-text">{r.text}</span>
+        </li>
+      ))}
+    </ul>
   );
 }

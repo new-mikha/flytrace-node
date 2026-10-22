@@ -1,5 +1,5 @@
 import type { ComponentChildren } from 'preact';
-import type { Account } from '../auth/accounts.ts';
+import { MIN_PASSWORD_LENGTH, type Account } from '../auth/accounts.ts';
 import type { CurrentUser } from '../auth/service.ts';
 import { ACCOUNT_SECTIONS } from './accountSections.ts';
 import { formatTimestamp } from './format.ts';
@@ -104,7 +104,7 @@ export function PasswordPage({ errors, ...c }: Common & { errors: Errors }) {
     <AccountShell title="Change password" {...c}>
       <form method="post" action="/account/password" class="ft-form" novalidate>
         <PasswordConfirm error={errors.currentPassword} />
-        <Field name="password" label="New password" type="password" error={errors.password} autocomplete="new-password" help="At least 8 characters." />
+        <Field name="password" label="New password" type="password" error={errors.password} autocomplete="new-password" help={`At least ${MIN_PASSWORD_LENGTH} characters.`} />
         <Field name="confirmPassword" label="Confirm new password" type="password" error={errors.confirmPassword} autocomplete="new-password" />
         <Submit icon="fa-solid fa-check">Change password</Submit>
         <p class="form-text mt-2">Other devices that are logged in will be logged out.</p>

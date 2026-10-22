@@ -53,7 +53,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
 
 /** Site address for links in emails; falls back to the local dev server. */
 export function baseUrl(config: Config): string {
-  return (config.PUBLIC_BASE_URL ?? `http://localhost:${config.PORT}`).replace(/\/+$/, '');
+  return (config.PUBLIC_BASE_URL ?? `http://127.0.0.1:${config.PORT}`).replace(/\/+$/, '');
 }
 
 export function legacyExcludedUsers(config: Config): string[] {

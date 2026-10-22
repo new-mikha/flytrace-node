@@ -104,7 +104,7 @@ describe('registration', () => {
     expect(bad.statusCode).toBe(422);
     expect(bad.body).toContain('letters, digits');
     expect(bad.body).toContain('valid email');
-    expect(bad.body).toContain('at least 8');
+    expect(bad.body).toContain('at least 6');
 
     const mismatch = await register(b, 'x1', { confirmPassword: 'different password' });
     expect(mismatch.statusCode).toBe(422);
@@ -383,5 +383,27 @@ describe('two-factor login', () => {
     const plain = new Browser(app);
     expect((await plain.loginAs(userName('mfa3'))).headers.location).toBe('/account');
     expect((await pool.query(`SELECT count(*) AS n FROM recovery_codes r JOIN users u ON u.id = r.user_id WHERE u.username = $1`, [userName('mfa3')])).rows[0].n).toBe('0');
+  });
+});
+
+describe('register page helpers', () => {
+  it('lists the rules under each field, for the live hints', async () => {
+    const page = await new Browser(app).get('/register');
+    expect(page.body).toContain('data-hints="username"');
+    expect(page.body).toContain('At least 3 characters');
+    expect(page.body).toContain('At least 6 characters');
+    expect(page.body).toContain('/assets/js/register.js');
+  });
+
+  it('says whether a username or email is already taken, ignoring case', async () => {
+    const b = new Browser(app);
+    await register(b, 'chk');
+    const check = async (query: string) => (await b.get(`/register/check?${query}`)).json().taken;
+    expect(await check(`username=${userName('chk').toUpperCase()}`)).toBe(true);
+    expect(await check(`username=${userName('free')}`)).toBe(false);
+    expect(await check(`email=${encodeURIComponent(userEmail('chk').toUpperCase())}`)).toBe(true);
+    expect(await check(`email=${encodeURIComponent(userEmail('free'))}`)).toBe(false);
+    expect(await check('username=a')).toBe(false); // invalid values are not looked up
+    expect((await b.get('/register/check?username=x')).headers['cache-control']).toBe('no-store');
   });
 });

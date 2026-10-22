@@ -1,7 +1,7 @@
 // Pages for people who are not (or not yet) logged in: log in (with the second step), register, confirm email,
 // forgot / reset password. The logged-in "My account" pages are in account.tsx.
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { changeEmail, confirmEmail, emailSchema, findByLogin, getAccount, newPasswordSchema, registerUser, setPassword, usernameSchema } from '../auth/accounts.ts';
+import { changeEmail, confirmEmail, emailSchema, emailTaken, findByLogin, getAccount, isUsernameTaken, newPasswordSchema, registerUser, setPassword, usernameSchema } from '../auth/accounts.ts';
 import { checkPassword, completeLogin } from '../auth/service.ts';
 import { consumeToken, peekToken } from '../auth/tokens.ts';
 import { useRecoveryCode, verifyUserCode } from '../auth/totp.ts';
@@ -124,6 +124,21 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     if (request.user) return reply.redirect('/account', 302);
     return sendHtml(reply, <RegisterPage {...common(request)} values={{}} errors={{}} />);
   });
+
+  // Answers the "not taken yet" hints on the register page while the person types. Reveals whether a username or
+  // email is registered, which registering itself reveals as well; hence the rate limit.
+  app.get<{ Querystring: { username?: string; email?: string } }>(
+    '/register/check', { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } }, async (request, reply) => {
+      const { username, email } = request.query;
+      reply.header('Cache-Control', 'no-store');
+      if (typeof username === 'string' && usernameSchema.safeParse(username.trim()).success) {
+        return { taken: await isUsernameTaken(pool, username.trim()) };
+      }
+      if (typeof email === 'string' && emailSchema.safeParse(email.trim()).success) {
+        return { taken: await emailTaken(pool, email.trim()) };
+      }
+      return { taken: false }; // not a valid value: the format hints say so, there is nothing to look up
+    });
 
   app.post('/register', { config: emailRateLimit }, async (request, reply) => {
     const f = formFields(request, 'username', 'email', 'password', 'confirmPassword');
