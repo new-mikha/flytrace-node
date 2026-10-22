@@ -218,7 +218,11 @@ describe('forgot and reset password', () => {
     expect(mail.to).toBe(userEmail('reset'));
     const token = tokenIn(mail);
 
-    expect((await b.get(`/reset-password?token=${encodeURIComponent(token)}`)).statusCode).toBe(200);
+    const resetPage = await b.get(`/reset-password?token=${encodeURIComponent(token)}`);
+    expect(resetPage.statusCode).toBe(200);
+    expect(resetPage.body).toContain('data-hints="password"'); // the same live hints as on the register page
+    expect(resetPage.body).toContain('ft-pw-toggle'); // show / hide password button
+    expect(resetPage.body).toContain(`data-forbidden="${userName('reset')},${userEmail('reset')}"`);
     const weak = await b.post('/reset-password', { token, password: 'short', confirmPassword: 'short' });
     expect(weak.statusCode).toBe(422);
     const done = await b.post('/reset-password', { token, password: 'brand new password', confirmPassword: 'brand new password' });
@@ -243,6 +247,10 @@ describe('account pages', () => {
   it('change the password, ending other sessions but not the current one', async () => {
     const b = new Browser(app);
     await register(b, 'pw');
+    const form = (await b.get('/account/password')).body;
+    expect(form).toContain('data-hints="password"');
+    expect(form).toContain('data-hints="confirmPassword"');
+    expect((await b.get('/account/email')).body).toContain('data-hints="email"');
     const other = new Browser(app);
     await other.loginAs(userName('pw'));
 
@@ -392,12 +400,13 @@ describe('register page helpers', () => {
     expect(page.body).toContain('data-hints="username"');
     expect(page.body).toContain('At least 3 characters');
     expect(page.body).toContain('At least 6 characters');
-    expect(page.body).toContain('/assets/js/register.js');
+    expect(page.body).toContain('/assets/js/live-hints.js');
   });
 
   it('says whether a username or email is already taken, ignoring case', async () => {
-    const b = new Browser(app);
-    await register(b, 'chk');
+    const owner = new Browser(app);
+    await register(owner, 'chk'); // registering logs this browser in
+    const b = new Browser(app); // an anonymous visitor
     const check = async (query: string) => (await b.get(`/register/check?${query}`)).json().taken;
     expect(await check(`username=${userName('chk').toUpperCase()}`)).toBe(true);
     expect(await check(`username=${userName('free')}`)).toBe(false);
@@ -405,5 +414,14 @@ describe('register page helpers', () => {
     expect(await check(`email=${encodeURIComponent(userEmail('free'))}`)).toBe(false);
     expect(await check('username=a')).toBe(false); // invalid values are not looked up
     expect((await b.get('/register/check?username=x')).headers['cache-control']).toBe('no-store');
+  });
+
+  it('does not count the logged-in person\'s own address as taken (change-email page)', async () => {
+    const owner = new Browser(app);
+    await register(owner, 'own');
+    await register(new Browser(app), 'other');
+    const check = async (email: string) => (await owner.get(`/register/check?email=${encodeURIComponent(email)}`)).json().taken;
+    expect(await check(userEmail('own'))).toBe(false);
+    expect(await check(userEmail('other'))).toBe(true);
   });
 });

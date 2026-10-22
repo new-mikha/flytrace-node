@@ -147,6 +147,20 @@
     if (button) begin('post', button, null);
   });
 
+  // Show / hide password: the eye buttons next to password fields are rendered hidden and only work with this script.
+  for (const button of document.querySelectorAll('.ft-pw-toggle')) button.hidden = false;
+  document.addEventListener('click', (event) => {
+    const button = event.target instanceof Element ? event.target.closest('.ft-pw-toggle') : null;
+    const input = button?.parentElement?.querySelector('input');
+    if (!button || !input) return;
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    button.setAttribute('aria-pressed', String(show));
+    button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    button.querySelector('i').className = `fa-regular ${show ? 'fa-eye-slash' : 'fa-eye'} fa-fw`;
+    input.focus();
+  });
+
   // Coming back with the Back button can restore the page from the browser cache with buttons still busy.
   window.addEventListener('pageshow', (event) => {
     if (!event.persisted) return;

@@ -1,4 +1,5 @@
 import type { ComponentChildren } from 'preact';
+import { MIN_PASSWORD_LENGTH } from '../auth/accounts.ts';
 
 export interface Flash { kind: 'success' | 'info' | 'danger'; text: string }
 
@@ -34,14 +35,30 @@ interface FieldProps {
 export function Field(p: FieldProps) {
   const id = `f-${p.name}`;
   const type = p.type ?? 'text';
+  const input = (
+    <input id={id} name={p.name} type={type as 'text'} class={`form-control${p.error ? ' is-invalid' : ''}`}
+           value={type === 'password' ? undefined : p.value} autocomplete={p.autocomplete}
+           required={p.required ?? true} autofocus={p.autofocus} inputmode={p.inputmode} pattern={p.pattern}
+           maxlength={p.maxlength} aria-describedby={p.error ? `${id}-err` : p.help ? `${id}-help` : undefined} />
+  );
   return (
     <div class="mb-3">
       <label for={id} class="form-label">{p.label}</label>
-      <input id={id} name={p.name} type={type as 'text'} class={`form-control${p.error ? ' is-invalid' : ''}`}
-             value={type === 'password' ? undefined : p.value} autocomplete={p.autocomplete}
-             required={p.required ?? true} autofocus={p.autofocus} inputmode={p.inputmode} pattern={p.pattern}
-             maxlength={p.maxlength} aria-describedby={p.error ? `${id}-err` : p.help ? `${id}-help` : undefined} />
-      {p.error && <div id={`${id}-err`} class="invalid-feedback">{p.error}</div>}
+      {type === 'password' ? (
+        // The eye button is hidden until public/js/app.js is running (it does nothing without it).
+        <div class="input-group has-validation">
+          {input}
+          <button class="btn btn-outline-secondary ft-pw-toggle" type="button" hidden aria-label="Show password" aria-pressed="false">
+            <i class="fa-regular fa-eye fa-fw" aria-hidden="true"></i>
+          </button>
+          {p.error && <div id={`${id}-err`} class="invalid-feedback">{p.error}</div>}
+        </div>
+      ) : (
+        <>
+          {input}
+          {p.error && <div id={`${id}-err`} class="invalid-feedback">{p.error}</div>}
+        </>
+      )}
       {p.help && !p.error && <div id={`${id}-help`} class="form-text">{p.help}</div>}
       {p.hints}
     </div>
@@ -67,7 +84,7 @@ export function Card({ title, icon, children, wide }: { title: string; icon?: st
 }
 
 export interface HintRule {
-  /** Name of the rule, matched by public/js/register.js. */
+  /** Name of the rule, matched by public/js/live-hints.js. */
   rule: string;
   text: string;
   /** Text shown instead when the rule fails after the person has typed (e.g. "This username is taken"). */
@@ -75,7 +92,7 @@ export interface HintRule {
 }
 
 /**
- * Checklist of what a field needs. Without JavaScript it is just a list of requirements; public/js/register.js
+ * Checklist of what a field needs. Without JavaScript it is just a list of requirements; public/js/live-hints.js
  * ticks the items off while the person types.
  */
 export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
@@ -88,4 +105,26 @@ export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
       ))}
     </ul>
   );
+}
+
+// Checklists shared by every page that sets a password or an email address (see public/js/live-hints.js).
+
+export function PasswordHints() {
+  return <Hints field="password" rules={[
+    { rule: 'len', text: `At least ${MIN_PASSWORD_LENGTH} characters` },
+    { rule: 'differs', text: 'Different from your username and email' },
+  ]} />;
+}
+
+export function ConfirmPasswordHints() {
+  return <Hints field="confirmPassword" rules={[{ rule: 'match', text: 'Same as the password' }]} />;
+}
+
+/** `different`: the form is for changing an address, so it must differ from the current one. */
+export function EmailHints({ different }: { different?: boolean }) {
+  return <Hints field="email" rules={[
+    { rule: 'format', text: 'Looks like an email address, e.g. name@example.com' },
+    ...(different ? [{ rule: 'different', text: 'Different from your current email' }] : []),
+    { rule: 'free', text: 'Not registered yet', bad: 'This email address is already registered' },
+  ]} />;
 }

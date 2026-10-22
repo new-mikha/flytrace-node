@@ -1,3 +1,4 @@
+import { audit } from '../audit.ts';
 import type { FastifyInstance } from 'fastify';
 import { requireLogin, requireRole } from '../auth/guards.ts';
 import type { Pool } from '../db.ts';
@@ -5,6 +6,7 @@ import { esc, page } from './html.ts';
 
 export async function pageRoutes(app: FastifyInstance, pool: Pool): Promise<void> {
   app.post('/logout', async (request, reply) => {
+    if (request.user) audit(request, 'logout', 'Logged out');
     await request.session.destroy();
     return reply.redirect('/', 302);
   });

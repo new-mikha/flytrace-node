@@ -1,11 +1,16 @@
-// Live hints on the register page: ticks the checklist under each field while the person types, and asks the server
-// (debounced) whether the username / email is still free. The server checks everything again on submit.
+// Live hints on forms that set a username, email or password (register, change email, reset / change password):
+// ticks the checklist under each field while the person types, and asks the server (debounced) whether the username /
+// email is still free. The server checks everything again on submit.
+// Form attributes: data-min-password, data-forbidden (comma-separated values the password must not equal, for pages
+// that have no username / email field), data-current-email (the address a new one must differ from).
 (() => {
   const form = document.querySelector('form[data-live-validate]');
   if (!form) return;
 
-  const field = (name) => form.elements[name];
-  const value = (name) => field(name).value;
+  const field = (name) => form.elements[name]; // undefined when this form has no such field
+  const value = (name) => (field(name) ? field(name).value : '');
+  const forbidden = (form.dataset.forbidden || '').split(',').filter(Boolean).map((v) => v.toLowerCase());
+  const currentEmail = (form.dataset.currentEmail || '').toLowerCase();
   const MIN_PASSWORD = Number(form.dataset.minPassword) || 6; // from the server, which owns the rule
   const MAX_PASSWORD = 128;
 
@@ -17,12 +22,14 @@
     },
     email: {
       format: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()),
+      different: (v) => v.trim().toLowerCase() !== currentEmail,
     },
     password: {
       len: (v) => v.length >= MIN_PASSWORD && v.length <= MAX_PASSWORD,
       differs: (v) => {
         const lower = v.toLowerCase();
-        return lower !== value('username').trim().toLowerCase() && lower !== value('email').trim().toLowerCase();
+        return lower !== value('username').trim().toLowerCase() && lower !== value('email').trim().toLowerCase()
+          && !forbidden.includes(lower);
       },
     },
     confirmPassword: {
@@ -100,16 +107,19 @@
     if (name === 'password') render('confirmPassword');
   }
 
-  for (const name of Object.keys(RULES)) {
+  const names = Object.keys(RULES).filter((name) => field(name)); // the fields this form has
+  for (const name of names) {
     field(name).addEventListener('input', () => update(name));
     field(name).addEventListener('blur', () => { touched.add(name); render(name); });
-    if (value(name) !== '') update(name); // the browser or a failed submit may have filled it in
+    // The browser or a failed submit may have filled it in. An address that is just the current one (change-email
+    // page starts with it) stays quiet until the person edits it.
+    if (value(name) !== '' && !(name === 'email' && currentEmail && value(name).trim().toLowerCase() === currentEmail)) update(name);
   }
 
   // Do not post what is clearly wrong: show the problems and put the cursor in the first field with one.
   form.addEventListener('submit', (event) => {
     let firstBad = null;
-    for (const name of Object.keys(RULES)) {
+    for (const name of names) {
       touched.add(name);
       render(name);
       const v = value(name);

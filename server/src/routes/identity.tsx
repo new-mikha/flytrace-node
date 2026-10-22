@@ -1,6 +1,7 @@
 // Pages for people who are not (or not yet) logged in: log in (with the second step), register, confirm email,
 // forgot / reset password. The logged-in "My account" pages are in account.tsx.
 import type { FastifyInstance, FastifyRequest } from 'fastify';
+import { audit, maskEmail } from '../audit.ts';
 import { changeEmail, confirmEmail, emailSchema, emailTaken, findByLogin, getAccount, isUsernameTaken, newPasswordSchema, registerUser, setPassword, usernameSchema } from '../auth/accounts.ts';
 import { checkPassword, completeLogin } from '../auth/service.ts';
 import { consumeToken, peekToken } from '../auth/tokens.ts';
@@ -66,14 +67,18 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     switch (result.kind) {
       case 'ok':
         await startSession(request, result.user.id);
+        audit(request, 'login.success', 'Logged in', { user: result.user.username, userId: result.user.id });
         return reply.redirect(returnUrl, 302);
       case 'two-factor':
+        audit(request, 'login.password_ok', 'Password accepted, waiting for the authenticator code', { userId: result.userId });
         await request.session.regenerate();
         request.session.pendingLogin = { userId: result.userId, returnUrl, attempts: 0, expires: Date.now() + PENDING_LOGIN_MS };
         return reply.redirect('/login/2fa', 302);
       case 'email-unconfirmed':
+        audit(request, 'login.refused', 'Login refused: email address not confirmed yet', { userId: result.userId });
         return fail('unconfirmed');
       default:
+        audit(request, 'login.failed', 'Failed login attempt', { ip: request.ip }); // no login name: people paste passwords there
         return fail('1');
     }
   });
@@ -84,21 +89,26 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     return pending && pending.expires > Date.now() ? pending : null;
   }
 
-  async function secondStep(request: FastifyRequest, reply: Reply, verify: (userId: string, code: string) => Promise<boolean>,
+  async function secondStep(request: FastifyRequest, reply: Reply, kind: string, verify: (userId: string, code: string) => Promise<boolean>,
                             retryPage: () => ReturnType<typeof sendHtml>) {
     const pending = pendingLogin(request);
     if (!pending) return reply.redirect('/login?error=expired', 302);
     const { code } = formFields(request, 'code');
     if (pending.attempts >= MAX_CODE_ATTEMPTS) {
+      audit(request, 'login.locked', 'Too many wrong codes, login attempt cancelled', { userId: pending.userId, ip: request.ip });
       request.session.pendingLogin = undefined;
       return reply.redirect('/login?error=locked', 302);
     }
     request.session.pendingLogin = { ...pending, attempts: pending.attempts + 1 };
-    if (!code || code.length > 40 || !(await verify(pending.userId, code))) return retryPage();
+    if (!code || code.length > 40 || !(await verify(pending.userId, code))) {
+      audit(request, 'login.code_failed', `Wrong ${kind}`, { userId: pending.userId, ip: request.ip });
+      return retryPage();
+    }
 
     const result = await completeLogin(pool, pending.userId);
     if (result.kind !== 'ok') return reply.redirect('/login?error=1', 302);
     await startSession(request, result.user.id);
+    audit(request, 'login.success', `Logged in with ${kind}`, { user: result.user.username, userId: result.user.id });
     return reply.redirect(pending.returnUrl, 302);
   }
 
@@ -107,7 +117,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     return sendHtml(reply, <TwoFactorLoginPage {...common(request)} />);
   });
   app.post('/login/2fa', { config: strictRateLimit }, async (request, reply) =>
-    secondStep(request, reply, (id, code) => verifyUserCode(pool, id, code),
+    secondStep(request, reply, 'authenticator code', (id, code) => verifyUserCode(pool, id, code),
       () => sendHtml(reply, <TwoFactorLoginPage {...common(request)} error />, 401)));
 
   app.get('/login/recovery', async (request, reply) => {
@@ -115,7 +125,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     return sendHtml(reply, <RecoveryLoginPage {...common(request)} />);
   });
   app.post('/login/recovery', { config: strictRateLimit }, async (request, reply) =>
-    secondStep(request, reply, (id, code) => useRecoveryCode(pool, id, code),
+    secondStep(request, reply, 'recovery code', (id, code) => useRecoveryCode(pool, id, code),
       () => sendHtml(reply, <RecoveryLoginPage {...common(request)} error />, 401)));
 
   // ---- register ----
@@ -125,7 +135,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     return sendHtml(reply, <RegisterPage {...common(request)} values={{}} errors={{}} />);
   });
 
-  // Answers the "not taken yet" hints on the register page while the person types. Reveals whether a username or
+  // Answers the "not taken yet" hints on the register and change-email pages while the person types. Reveals whether a username or
   // email is registered, which registering itself reveals as well; hence the rate limit.
   app.get<{ Querystring: { username?: string; email?: string } }>(
     '/register/check', { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } }, async (request, reply) => {
@@ -135,7 +145,8 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
         return { taken: await isUsernameTaken(pool, username.trim()) };
       }
       if (typeof email === 'string' && emailSchema.safeParse(email.trim()).success) {
-        return { taken: await emailTaken(pool, email.trim()) };
+        // a logged-in person changing their address is not "taken" by their own current one
+        return { taken: await emailTaken(pool, email.trim(), request.user?.id) };
       }
       return { taken: false }; // not a valid value: the format hints say so, there is nothing to look up
     });
@@ -158,6 +169,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
       errors[result.field] = result.message;
       return show(409);
     }
+    audit(request, 'register.created', `New account registered (${maskEmail(email)})`, { user: username, userId: result.userId });
     mail.queue(() => mail.sendConfirmEmail({ id: result.userId, username, email }));
 
     if (config.REQUIRE_CONFIRMED_EMAIL) {
@@ -183,6 +195,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     const info = await consumeToken(pool, token, 'confirm_email');
     if (!info) return reply.redirect(`/confirm-email?token=${encodeURIComponent(token)}`, 302);
     await confirmEmail(pool, info.userId);
+    audit(request, 'email.confirmed', 'Email address confirmed', { userId: info.userId });
     setFlash(request, 'success', 'Thank you, your email is confirmed.');
     return reply.redirect(request.user ? '/account' : '/login', 302);
   });
@@ -205,6 +218,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
         <p class="mb-0">Somebody else has registered {info.data} in the meantime. Please choose another address.</p>
       </MessagePage>, 409);
     }
+    audit(request, 'email.changed', `Email address changed to ${maskEmail(info.data)}`, { userId: info.userId });
     setFlash(request, 'success', 'Your email address is changed.');
     return reply.redirect(request.user ? '/account' : '/login', 302);
   });
@@ -237,6 +251,7 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     const found = login.length <= 256 ? await findByLogin(pool, login.trim()) : null;
     if (found?.email) {
       const recipient = { id: found.id, username: found.username, email: found.email };
+      audit(request, 'password.reset_requested', 'Password reset requested', { user: found.username, userId: found.id });
       mail.queue(() => mail.sendResetPassword(recipient));
     }
     return sendHtml(reply, <MessagePage {...common(request)} title="Check your email" icon="fa-regular fa-envelope">
@@ -248,8 +263,10 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
 
   app.get<{ Querystring: { token?: string } }>('/reset-password', async (request, reply) => {
     const token = request.query.token ?? '';
-    const valid = token.length > 0 && (await peekToken(pool, token, 'reset_password')) !== null;
-    return sendHtml(reply, <ResetPasswordPage {...common(request)} token={token} valid={valid} errors={{}} />, valid ? 200 : 400);
+    const info = token.length > 0 ? await peekToken(pool, token, 'reset_password') : null;
+    const account = info ? await getAccount(pool, info.userId) : null;
+    return sendHtml(reply, <ResetPasswordPage {...common(request)} token={token} valid={info !== null} errors={{}}
+      forbidden={[account?.username ?? '', account?.email ?? ''].filter(Boolean)} />, info ? 200 : 400);
   });
 
   app.post('/reset-password', { config: strictRateLimit }, async (request, reply) => {
@@ -259,13 +276,15 @@ export async function identityRoutes(app: FastifyInstance, pool: Pool, config: C
     const account = await getAccount(pool, info.userId);
     const errors = passwordErrors(f.password, f.confirmPassword, [account?.username ?? '', account?.email ?? '']);
     if (errors.password || errors.confirmPassword) {
-      return sendHtml(reply, <ResetPasswordPage {...common(request)} token={f.token} valid errors={errors} />, 422);
+      return sendHtml(reply, <ResetPasswordPage {...common(request)} token={f.token} valid errors={errors}
+        forbidden={[account?.username ?? '', account?.email ?? ''].filter(Boolean)} />, 422);
     }
     if (!(await consumeToken(pool, f.token, 'reset_password'))) { // lost a race with another submit of the same link
       return sendHtml(reply, <ResetPasswordPage {...common(request)} token={f.token} valid={false} errors={{}} />, 400);
     }
     await setPassword(pool, info.userId, f.password); // also logs out every session of this user
     await confirmEmail(pool, info.userId); // the link reached their mailbox, which proves it
+    audit(request, 'password.reset', 'Password reset with an emailed link; other sessions ended', { user: account?.username, userId: info.userId });
     if (account?.email) {
       const recipient = { id: account.id, username: account.username, email: account.email };
       mail.queue(() => mail.sendPasswordChanged(recipient));

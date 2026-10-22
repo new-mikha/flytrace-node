@@ -1,5 +1,6 @@
 // The logged-in "My account" pages: profile, email, password, two-factor login, personal data.
 import type { FastifyInstance, FastifyRequest } from 'fastify';
+import { audit, maskEmail } from '../audit.ts';
 import {
   canUseEmail, checkCurrentPassword, deleteAccount, disableTwoFactor, emailSchema, enableTwoFactor, exportPersonalData,
   getAccount, setPassword,
@@ -20,6 +21,8 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
   const guard = { preHandler: requireLogin };
   const common = (request: FastifyRequest) => ({ user: request.user!, path: request.url.split('?')[0]!, flash: takeFlash(request) });
   const accountOf = async (request: FastifyRequest) => (await getAccount(pool, request.user!.id))!;
+  const wrongPassword = (request: FastifyRequest, action: string) =>
+    audit(request, 'reauth.failed', `Wrong current password (${action})`, { action });
   const recipientOf = (a: { id: string; username: string; email: string | null }) =>
     a.email ? { id: a.id, username: a.username, email: a.email } : null;
 
@@ -69,10 +72,14 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
     if (!parsed.success) errors.email = parsed.error.issues[0]?.message;
     else if (account.email?.toLowerCase() === email.toLowerCase()) errors.email = 'This is already your email address.';
     else if (!(await canUseEmail(pool, email, account.id))) errors.email = 'This email address is already registered.';
-    if (!errors.email && !(await checkCurrentPassword(pool, account.id, f.currentPassword))) errors.currentPassword = 'Wrong password.';
+    if (!errors.email && !(await checkCurrentPassword(pool, account.id, f.currentPassword))) {
+      errors.currentPassword = 'Wrong password.';
+      wrongPassword(request, 'change email');
+    }
     if (errors.email || errors.currentPassword) {
       return sendHtml(reply, <EmailPage {...common(request)} account={account} errors={errors} value={email} />, 422);
     }
+    audit(request, 'email.change_requested', `Asked to change the email address to ${maskEmail(email)}`);
     mail.queue(() => mail.sendChangeEmail({ id: account.id, username: account.username, email }, email));
     setFlash(request, 'success', `We sent a confirmation link to ${email}. Your address changes when you open it.`);
     return reply.redirect('/account/email', 302);
@@ -81,16 +88,20 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
   // ---- password ----
 
   app.get('/account/password', guard, async (request, reply) =>
-    sendHtml(reply, <PasswordPage {...common(request)} errors={{}} />));
+    sendHtml(reply, <PasswordPage {...common(request)} account={await accountOf(request)} errors={{}} />));
 
   app.post('/account/password', { ...guard, config: strictRateLimit }, async (request, reply) => {
     const f = formFields(request, 'currentPassword', 'password', 'confirmPassword');
     const account = await accountOf(request);
     const errors: Record<string, string | undefined> = passwordErrors(f.password, f.confirmPassword, [account.username, account.email ?? '']);
-    if (!(await checkCurrentPassword(pool, account.id, f.currentPassword))) errors.currentPassword = 'Wrong password.';
-    if (Object.values(errors).some(Boolean)) return sendHtml(reply, <PasswordPage {...common(request)} errors={errors} />, 422);
+    if (!(await checkCurrentPassword(pool, account.id, f.currentPassword))) {
+      errors.currentPassword = 'Wrong password.';
+      wrongPassword(request, 'change password');
+    }
+    if (Object.values(errors).some(Boolean)) return sendHtml(reply, <PasswordPage {...common(request)} account={account} errors={errors} />, 422);
 
     await setPassword(pool, account.id, f.password, request.session.sessionId); // other devices are logged out
+    audit(request, 'password.changed', 'Password changed; other sessions ended');
     const to = recipientOf(account);
     if (to) mail.queue(() => mail.sendPasswordChanged(to));
     setFlash(request, 'success', 'Your password is changed.');
@@ -127,6 +138,7 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
     await enableTwoFactor(pool, request.user!.id, secret, step);
     request.session.pendingTotpSecret = undefined;
     const codes = await replaceRecoveryCodes(pool, request.user!.id);
+    audit(request, '2fa.enabled', 'Two-factor login turned on');
     return sendHtml(reply, <RecoveryCodesPage {...common(request)} codes={codes} firstTime />);
   });
 
@@ -135,9 +147,11 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
     const account = await accountOf(request);
     if (!account.twoFactorEnabled) return reply.redirect('/account/2fa', 302);
     if (!(await checkCurrentPassword(pool, account.id, currentPassword))) {
+      wrongPassword(request, 'new recovery codes');
       return sendHtml(reply, <TwoFactorPage {...common(request)} account={account} recoveryLeft={await countRecoveryCodes(pool, account.id)}
         errors={{ recovery: 'Wrong password.' }} />, 422);
     }
+    audit(request, '2fa.recovery_codes', 'New recovery codes generated');
     return sendHtml(reply, <RecoveryCodesPage {...common(request)} codes={await replaceRecoveryCodes(pool, account.id)} firstTime={false} />);
   });
 
@@ -145,10 +159,12 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
     const { currentPassword } = formFields(request, 'currentPassword');
     const account = await accountOf(request);
     if (!(await checkCurrentPassword(pool, account.id, currentPassword))) {
+      wrongPassword(request, 'turn off two-factor login');
       return sendHtml(reply, <TwoFactorPage {...common(request)} account={account} recoveryLeft={await countRecoveryCodes(pool, account.id)}
         errors={{ disable: 'Wrong password.' }} />, 422);
     }
     await disableTwoFactor(pool, account.id);
+    audit(request, '2fa.disabled', 'Two-factor login turned off');
     setFlash(request, 'success', 'Two-factor login is off.');
     return reply.redirect('/account/2fa', 302);
   });
@@ -160,6 +176,7 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
 
   app.get('/account/personal-data/download', guard, async (request, reply) => {
     const data = await exportPersonalData(pool, request.user!.id);
+    audit(request, 'data.exported', 'Downloaded their personal data');
     return reply.type('application/json').header('Content-Disposition', 'attachment; filename="flytrace-data.json"')
       .send(JSON.stringify(data, null, 2));
   });
@@ -168,10 +185,14 @@ export async function accountRoutes(app: FastifyInstance, pool: Pool, config: Co
     const f = formFields(request, 'currentPassword', 'confirm');
     const errors: Record<string, string | undefined> = {};
     if (f.confirm !== 'yes') errors.confirm = 'Tick the box to confirm.';
-    if (!(await checkCurrentPassword(pool, request.user!.id, f.currentPassword))) errors.currentPassword = 'Wrong password.';
+    if (!(await checkCurrentPassword(pool, request.user!.id, f.currentPassword))) {
+      errors.currentPassword = 'Wrong password.';
+      wrongPassword(request, 'delete account');
+    }
     if (errors.confirm || errors.currentPassword) {
       return sendHtml(reply, <PersonalDataPage {...common(request)} errors={errors} />, 422);
     }
+    audit(request, 'account.deleted', 'Account deleted');
     await deleteAccount(pool, request.user!.id);
     await request.session.regenerate();
     setFlash(request, 'info', 'Your account has been deleted.');

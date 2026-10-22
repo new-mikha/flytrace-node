@@ -104,10 +104,10 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-login-form { align-items: stretch; }
 @media (min-width: 992px) {
   .ft-login-form { max-width: 40rem; } /* inline in the bar; in the phone menu it spans the full width */
-  .ft-login-form .btn { width: auto; }
+  .ft-login-form > .btn { width: auto; }
 }
 @media (max-width: 991.98px) {
-  .ft-login-form .btn { width: 100%; }
+  .ft-login-form > .btn { width: 100%; }
 }
 
 /* Phone menu entries: brighter than Bootstrap's default dimmed nav links. */
@@ -256,7 +256,11 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-toggler-text:hover { color: #fff; }
 @media (max-width: 359.98px) { .ft-nano-hide { display: none; } }
 
-/* Live checklist under the register fields (public/js/register.js). */
+/* Live checklist under the fields of the register, email and password pages (public/js/live-hints.js). */
 .ft-hints li { padding: .05rem 0; color: var(--bs-secondary-color); }
 .ft-hints li[data-state="ok"] { color: var(--bs-success-text-emphasis); }
 .ft-hints li[data-state="bad"] { color: var(--bs-danger-text-emphasis); }
+
+/* The eye button inside the dark menu bar: part of the white password field. */
+.ft-login-form .ft-pw-toggle { color: #6c757d; background: #fff; border-color: var(--bs-border-color); }
+.ft-login-form .ft-pw-toggle:hover { color: #1f2a37; background: #f1f5f9; }

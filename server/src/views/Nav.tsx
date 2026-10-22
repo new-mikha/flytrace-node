@@ -113,8 +113,13 @@ function AnonymousNav({ path }: { path: string }) {
               <input type="hidden" name="returnUrl" value={path} />
               <input class="form-control mb-2 mb-lg-0" name="username" placeholder="User name or email" type="text"
                      autocomplete="username" aria-label="User name or email" required />
-              <input class="form-control mb-2 mb-lg-0" name="password" placeholder="Password" type="password"
-                     autocomplete="current-password" aria-label="Password" required />
+              <div class="input-group mb-2 mb-lg-0">
+                <input class="form-control" name="password" placeholder="Password" type="password"
+                       autocomplete="current-password" aria-label="Password" required />
+                <button class="btn btn-light ft-pw-toggle" type="button" hidden aria-label="Show password" aria-pressed="false">
+                  <i class="fa-regular fa-eye fa-fw" aria-hidden="true"></i>
+                </button>
+              </div>
               <button class="btn btn-primary text-nowrap" type="submit">
                 <span class="ft-label">Log in</span>
                 <span class="ft-busy d-none">Logging in&hellip; <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i></span>

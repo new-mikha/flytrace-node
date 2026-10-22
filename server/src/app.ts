@@ -14,13 +14,22 @@ import { homeRoutes } from './routes/home.tsx';
 import { identityRoutes } from './routes/identity.tsx';
 import { pageRoutes } from './routes/pages.ts';
 
-/** `mailer` can be replaced (tests capture the messages); by default it comes from the SMTP_* settings. */
-export async function buildApp(config: Config, pool: Pool, mailer?: Mailer): Promise<FastifyInstance> {
+/**
+ * `mailer` can be replaced (tests capture the messages); by default it comes from the SMTP_* settings.
+ * `logStream` makes the app write its JSON log lines there (tests read them).
+ */
+export async function buildApp(config: Config, pool: Pool, mailer?: Mailer, logStream?: NodeJS.WritableStream): Promise<FastifyInstance> {
   const app = Fastify({
     // JSON lines in production (for log tools), readable lines in development, nothing in tests.
-    logger: config.NODE_ENV === 'test' ? false
+    logger: logStream ? { level: 'info', stream: logStream }
+      : config.NODE_ENV === 'test' ? false
       : config.NODE_ENV === 'production' ? true
-      : { transport: { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss', ignore: 'pid,hostname,reqId' } } },
+      : { transport: { target: 'pino-pretty', options: {
+        translateTime: 'HH:MM:ss',
+        // messages are written to be read on their own; the fields stay in the JSON logs of production
+        ignore: 'pid,hostname,reqId,event,user,userId,to,subject,action,ip',
+        messageFormat: '{msg}{if user} [{user}]{end}',
+      } } },
     // Fastify's own two lines per request are replaced by the one line per page request below.
     logController: new LogController({ disableRequestLogging: true }),
     trustProxy: config.NODE_ENV === 'production', // behind nginx in production
@@ -31,7 +40,7 @@ export async function buildApp(config: Config, pool: Pool, mailer?: Mailer): Pro
   app.addHook('onResponse', async (request, reply) => {
     const path = request.url.split('?')[0]!;
     if (path.startsWith('/assets/') || path.startsWith('/vendor/')) return;
-    request.log.info(`${request.method} ${path} ${reply.statusCode} ${Math.round(reply.elapsedTime)}ms`);
+    request.log.info({ user: request.user?.username }, `${request.method} ${path} ${reply.statusCode} ${Math.round(reply.elapsedTime)}ms`);
   });
 
   // Static files first: routes registered before the session plugin do not run its per-request user lookup.

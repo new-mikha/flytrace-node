@@ -1,10 +1,11 @@
 import { baseUrl, type Config } from '../config.ts';
 import type { Pool } from '../db.ts';
 import { createToken } from '../auth/tokens.ts';
+import { maskEmail } from '../audit.ts';
 import type { Mailer } from './mailer.ts';
 import * as templates from './templates.ts';
 
-interface Log { error(obj: object, msg: string): void }
+interface Log { info(obj: object, msg: string): void; error(obj: object, msg: string): void }
 
 export interface Recipient { id: string; username: string; email: string }
 
@@ -45,36 +46,40 @@ export class MailService {
   }
 
   /** Sends and reports. `error` carries the transport's message, for the test-email page. */
-  private async deliver(to: string, message: Omit<Parameters<Mailer['send']>[0], 'to'>): Promise<{ ok: boolean; error?: string }> {
+  private async deliver(to: string, username: string, message: Omit<Parameters<Mailer['send']>[0], 'to'>): Promise<{ ok: boolean; error?: string }> {
+    const masked = maskEmail(to);
     try {
       await this.mailer.send({ to, ...message });
+      this.log.info({ event: 'email.sent', user: username, to: masked, subject: message.subject },
+        `Email "${message.subject}" sent to ${masked}`);
       return { ok: true };
     } catch (err) {
-      this.log.error({ err, to }, `Sending "${message.subject}" failed`);
+      this.log.error({ event: 'email.failed', err, user: username, to: masked, subject: message.subject },
+        `Sending email "${message.subject}" to ${masked} failed`);
       return { ok: false, error: err instanceof Error ? err.message : String(err) };
     }
   }
 
   async sendConfirmEmail(to: Recipient) {
     const token = await createToken(this.pool, to.id, 'confirm_email');
-    return this.deliver(to.email, templates.confirmEmailMessage(this.ctx, to.username, this.link('/confirm-email', token)));
+    return this.deliver(to.email, to.username, templates.confirmEmailMessage(this.ctx, to.username, this.link('/confirm-email', token)));
   }
 
   async sendResetPassword(to: Recipient) {
     const token = await createToken(this.pool, to.id, 'reset_password');
-    return this.deliver(to.email, templates.resetPasswordMessage(this.ctx, to.username, this.link('/reset-password', token)));
+    return this.deliver(to.email, to.username, templates.resetPasswordMessage(this.ctx, to.username, this.link('/reset-password', token)));
   }
 
   async sendChangeEmail(to: Recipient, newEmail: string) {
     const token = await createToken(this.pool, to.id, 'change_email', newEmail);
-    return this.deliver(newEmail, templates.changeEmailMessage(this.ctx, to.username, this.link('/confirm-email-change', token)));
+    return this.deliver(newEmail, to.username, templates.changeEmailMessage(this.ctx, to.username, this.link('/confirm-email-change', token)));
   }
 
   sendTest(to: Recipient) {
-    return this.deliver(to.email, templates.testMessage(this.ctx, to.username));
+    return this.deliver(to.email, to.username, templates.testMessage(this.ctx, to.username));
   }
 
   sendPasswordChanged(to: Recipient) {
-    return this.deliver(to.email, templates.passwordChangedMessage(this.ctx, to.username));
+    return this.deliver(to.email, to.username, templates.passwordChangedMessage(this.ctx, to.username));
   }
 }

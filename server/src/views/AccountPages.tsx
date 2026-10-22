@@ -4,15 +4,15 @@ import type { CurrentUser } from '../auth/service.ts';
 import { ACCOUNT_SECTIONS } from './accountSections.ts';
 import { formatTimestamp } from './format.ts';
 import { Layout } from './Layout.tsx';
-import { Alert, Field, Submit, type Flash } from './forms.tsx';
+import { Alert, ConfirmPasswordHints, EmailHints, Field, PasswordHints, Submit, type Flash } from './forms.tsx';
 
 interface Common { user: CurrentUser; path: string; flash?: Flash | null }
 type Errors = Record<string, string | undefined>;
 
 /** The signed-in "My account" area: a list of sections on the left, the section on the right. */
-function AccountShell({ title, user, path, flash, children }: Common & { title: string; children: ComponentChildren }) {
+function AccountShell({ title, user, path, flash, children, scripts }: Common & { title: string; children: ComponentChildren; scripts?: string[] }) {
   return (
-    <Layout title={title} user={user} path={path} card="wide">
+    <Layout title={title} user={user} path={path} card="wide" scripts={scripts}>
       <h1 class="h3 mb-3"><i class="fa-regular fa-circle-user text-primary" aria-hidden="true"></i> My account</h1>
       <div class="row g-4">
         <nav class="col-md-4 col-lg-3" aria-label="Account sections">
@@ -85,11 +85,12 @@ export function ProfilePage({ account, mailKind, ...c }: Common & { account: Acc
 
 export function EmailPage({ account, errors, value, ...c }: Common & { account: Account; errors: Errors; value?: string }) {
   return (
-    <AccountShell title="Email" {...c}>
+    <AccountShell title="Email" scripts={['live-hints.js']} {...c}>
       <p>Current address: <strong>{account.email ?? 'none'}</strong> <EmailStatus account={account} /></p>
-      <form method="post" action="/account/email" class="ft-form" novalidate>
+      <form method="post" action="/account/email" class="ft-form" data-live-validate data-current-email={account.email ?? ''} novalidate>
         <Field name="email" label="New email" type="email" value={value ?? account.email ?? undefined} error={errors.email} autocomplete="email"
-               help="We send a link to the new address; it replaces the current one once you open it." />
+               help="We send a link to the new address; it replaces the current one once you open it."
+               hints={<EmailHints different />} />
         <PasswordConfirm error={errors.currentPassword} />
         <Submit icon="fa-regular fa-paper-plane">Send confirmation link</Submit>
       </form>
@@ -99,13 +100,16 @@ export function EmailPage({ account, errors, value, ...c }: Common & { account: 
 
 // ---- password ----
 
-export function PasswordPage({ errors, ...c }: Common & { errors: Errors }) {
+export function PasswordPage({ account, errors, ...c }: Common & { account: Account; errors: Errors }) {
   return (
-    <AccountShell title="Change password" {...c}>
-      <form method="post" action="/account/password" class="ft-form" novalidate>
+    <AccountShell title="Change password" scripts={['live-hints.js']} {...c}>
+      <form method="post" action="/account/password" class="ft-form" data-live-validate data-min-password={MIN_PASSWORD_LENGTH}
+            data-forbidden={[account.username, account.email ?? ''].filter(Boolean).join(',')} novalidate>
         <PasswordConfirm error={errors.currentPassword} />
-        <Field name="password" label="New password" type="password" error={errors.password} autocomplete="new-password" help={`At least ${MIN_PASSWORD_LENGTH} characters.`} />
-        <Field name="confirmPassword" label="Confirm new password" type="password" error={errors.confirmPassword} autocomplete="new-password" />
+        <Field name="password" label="New password" type="password" error={errors.password} autocomplete="new-password"
+               hints={<PasswordHints />} />
+        <Field name="confirmPassword" label="Confirm new password" type="password" error={errors.confirmPassword} autocomplete="new-password"
+               hints={<ConfirmPasswordHints />} />
         <Submit icon="fa-solid fa-check">Change password</Submit>
         <p class="form-text mt-2">Other devices that are logged in will be logged out.</p>
       </form>

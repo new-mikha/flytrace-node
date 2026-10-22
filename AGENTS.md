@@ -66,6 +66,18 @@ simulated client its own `remoteAddress`.
 - Page changes cross-fade through CSS view transitions (`@view-transition`, duration in `flytrace.css`).
 - Check layout changes at phone (about 380 px), tablet and desktop widths, and clean up any temporary test page.
 
+## Logging
+
+- Every action that changes something or matters for security must call `audit(request, 'area.action', 'Readable
+  message', { ...details })` from `server/src/audit.ts` (login, email, password, 2FA, account, and in future groups,
+  events, trackers, waypoints: create, rename, delete, ...). Do it in new code too, even when nobody asks.
+  Emails sent are logged by `MailService`. Page request lines (`GET /path 200 12ms [user]`) are logged
+  automatically and skip `/assets/` and `/vendor/`.
+- Never log secrets: passwords, codes, recovery codes, tokens, session ids, query strings, typed login names
+  (people paste passwords there). Mask emails with `maskEmail`. Production logs are JSON; development uses pino-pretty.
+- When you start a test server, set `SMTP_HOST=` on its command line so that it does not send real email through
+  the owner's SMTP account (it reads the owner's `.env`).
+
 ## Decisions (do not re-propose)
 
 - The authenticator (TOTP) secret stays stored unencrypted in `users.two_factor_secret`.

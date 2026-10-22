@@ -2,7 +2,7 @@ import type { ComponentChildren } from 'preact';
 import { MIN_PASSWORD_LENGTH } from '../auth/accounts.ts';
 import type { CurrentUser } from '../auth/service.ts';
 import { Layout } from './Layout.tsx';
-import { Alert, Card, Field, Hints, Submit, type Flash } from './forms.tsx';
+import { Alert, Card, ConfirmPasswordHints, EmailHints, Field, Hints, PasswordHints, Submit, type Flash } from './forms.tsx';
 
 interface Common { user: CurrentUser | null; path: string; flash?: Flash | null }
 type Errors = Record<string, string | undefined>;
@@ -80,7 +80,7 @@ export interface RegisterValues { username?: string; email?: string }
 
 export function RegisterPage({ values, errors, ...c }: Common & { values: RegisterValues; errors: Errors }) {
   return (
-    <Shell title="Register" icon="fa-solid fa-user-plus" scripts={['register.js']} {...c}>
+    <Shell title="Register" icon="fa-solid fa-user-plus" scripts={['live-hints.js']} {...c}>
       <form method="post" action="/register" data-live-validate data-min-password={MIN_PASSWORD_LENGTH} novalidate>
         <Field name="username" label="Username" value={values.username} error={errors.username} autocomplete="username" autofocus
                hints={<Hints field="username" rules={[
@@ -90,17 +90,11 @@ export function RegisterPage({ values, errors, ...c }: Common & { values: Regist
                ]} />} />
         <Field name="email" label="Email" type="email" value={values.email} error={errors.email} autocomplete="email"
                help="We send a confirmation link here. You can also log in with it."
-               hints={<Hints field="email" rules={[
-                 { rule: 'format', text: 'Looks like an email address, e.g. name@example.com' },
-                 { rule: 'free', text: 'Not registered yet', bad: 'This email address is already registered' },
-               ]} />} />
+               hints={<EmailHints />} />
         <Field name="password" label="Password" type="password" error={errors.password} autocomplete="new-password"
-               hints={<Hints field="password" rules={[
-                 { rule: 'len', text: `At least ${MIN_PASSWORD_LENGTH} characters` },
-                 { rule: 'differs', text: 'Different from your username and email' },
-               ]} />} />
+               hints={<PasswordHints />} />
         <Field name="confirmPassword" label="Confirm password" type="password" error={errors.confirmPassword} autocomplete="new-password"
-               hints={<Hints field="confirmPassword" rules={[{ rule: 'match', text: 'Same as the password' }]} />} />
+               hints={<ConfirmPasswordHints />} />
         <Submit icon="fa-solid fa-user-plus">Register</Submit>
       </form>
       <hr />
@@ -169,15 +163,18 @@ export function ForgotPasswordPage({ error, ...c }: Common & { error?: string })
   );
 }
 
-export function ResetPasswordPage({ token, valid, errors, ...c }: Common & { token: string; valid: boolean; errors: Errors }) {
+/** `forbidden`: the account's username and email, which the new password must not equal (checked by the hints too). */
+export function ResetPasswordPage({ token, valid, errors, forbidden = [], ...c }: Common & { token: string; valid: boolean; errors: Errors; forbidden?: string[] }) {
   return (
-    <Shell title="Choose a new password" icon="fa-solid fa-key" {...c}>
+    <Shell title="Choose a new password" icon="fa-solid fa-key" scripts={['live-hints.js']} {...c}>
       {valid ? (
-        <form method="post" action="/reset-password" novalidate>
+        <form method="post" action="/reset-password" data-live-validate data-min-password={MIN_PASSWORD_LENGTH}
+              data-forbidden={forbidden.join(',')} novalidate>
           <input type="hidden" name="token" value={token} />
           <Field name="password" label="New password" type="password" error={errors.password} autocomplete="new-password"
-                 help={`At least ${MIN_PASSWORD_LENGTH} characters.`} autofocus />
-          <Field name="confirmPassword" label="Confirm new password" type="password" error={errors.confirmPassword} autocomplete="new-password" />
+                 hints={<PasswordHints />} autofocus />
+          <Field name="confirmPassword" label="Confirm new password" type="password" error={errors.confirmPassword} autocomplete="new-password"
+                 hints={<ConfirmPasswordHints />} />
           <Submit icon="fa-solid fa-check">Change password</Submit>
         </form>
       ) : (
