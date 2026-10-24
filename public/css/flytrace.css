@@ -214,7 +214,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 /* A page section (title + table, later also the events) keeps its title under the menu bar while the section is on screen and
    scrolls away with the end of its own section, so the next section's title takes over. The column header of a table (below)
-   sticks right under the title. Below 768 px the table turns into cards and has no column header, so there the title becomes
+   sticks right under the title. Below 1200 px the table turns into cards and has no column header, so there the title becomes
    an accented bar, edge to edge of the panel. */
 .ft-section-title {
   position: sticky;
@@ -227,8 +227,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   font-weight: 600;
   background: #fff; /* opaque: the panel colour is slightly see-through and rows would ghost through the title */
 }
-@media (min-width: 768px) { [data-bs-theme="dark"] .ft-section-title { background: #111827; } }
-@media (max-width: 767.98px) {
+@media (min-width: 1200px) { [data-bs-theme="dark"] .ft-section-title { background: #111827; } }
+@media (max-width: 1199.98px) {
   .ft-section-title {
     margin-inline: calc(-1 * var(--ft-pad-x));
     padding-inline: var(--ft-pad-x);
@@ -250,11 +250,11 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-sticky-head thead { position: sticky; top: calc(var(--ft-nav-h) + var(--ft-title-h)); z-index: 2; }
 }
 
-/* Cards: on phones (below 768 px) each row of a `.ft-cards` table becomes a card that fits the screen width, so nothing
+/* Cards: below xl (1200 px: phones, tablets, anything where the table would need to scroll sideways) each row of a `.ft-cards` table becomes a card that fits the screen width, so nothing
    scrolls sideways. From top to bottom: the name and the line under it (`.ft-card-full`, no labels), the figures in three equal
    columns with their label above (`.ft-card-stat`), the `data-label`led full-width line (`.ft-card-task`, `.ft-card-hide` leaves it
    out when empty) and the row of actions (`.ft-card-link`, right-aligned, any number of links). The header row stays for screen readers. */
-@media (max-width: 767.98px) {
+@media (max-width: 1199.98px) {
   .ft-table-wrap.ft-cards-wrap, .ft-table-wrap:has(.ft-cards) { overflow: visible; background: none; border: 0; box-shadow: none; }
   .ft-cards, .ft-cards tbody { display: block; }
   .ft-cards thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
@@ -296,9 +296,9 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-cards .ft-actions > * + * { margin-left: 0; }
 }
 
-/* Wide cards (a phone held sideways, 560 to 767 px): the cards would be mostly empty, so they flow instead of using the
+/* Wide cards (560 to 1199 px: a phone held sideways, a tablet): the cards would be mostly empty, so they flow instead of using the
    three-column grid: the name and the update time share the first line, the figures ("Pilots: 3", label beside the value) and the links the second, the task the third. */
-@media (min-width: 560px) and (max-width: 767.98px) {
+@media (min-width: 560px) and (max-width: 1199.98px) {
   .ft-cards tr { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 1.75rem; }
   .ft-cards .ft-card-full { flex: 1 1 calc(100% - 13.75rem); } /* the name (12rem) and the time fill the first line exactly */
   .ft-cards .ft-name-cell { flex: 0 0 12rem; } /* same width on every card, so the columns line up (a long name wraps) */
@@ -448,7 +448,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   --bs-table-hover-bg: #3a2f0a;
   --bs-table-hover-color: var(--ft-ink);
 }
-@media (max-width: 767.98px) { [data-bs-theme="dark"] .ft-cards tr { border-color: #0c4a6e; box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.5); } }
+@media (max-width: 1199.98px) { [data-bs-theme="dark"] .ft-cards tr { border-color: #0c4a6e; box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.5); } }
 [data-bs-theme="dark"] .ft-group-link { color: #7dd3fc; }
 [data-bs-theme="dark"] .ft-danger-link { color: #f87171; }
 [data-bs-theme="dark"] .ft-danger-link:hover { color: #fca5a5; }

@@ -42,9 +42,9 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
 }
 
 /**
- * The signed-in user's own groups, in the same table style as the public maps on the anonymous home page. Up to tablet
- * width the table scrolls sideways (`table-responsive-xl`); on phones (`ft-cards`, below 768 px) every row becomes a card, with
- * `data-label` as the label of the cells that need one.
+ * The signed-in user's own groups, in the same table style as the public maps on the anonymous home page. Below xl
+ * (`ft-cards`, under 1200 px) every row becomes a card, with `data-label` as the label of the cells that need one; the
+ * `table-responsive-xl` box only keeps a table that is still too wide scrollable.
  */
 export function UserGroupsTable({ list: { groups, showTask, simpleEvents }, now, admin }: { list: UserGroupsList; now: Date; admin: boolean }) {
   if (groups.length === 0) return <p class="text-muted">You don't have any pilot groups yet.</p>;

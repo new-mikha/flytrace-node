@@ -25,7 +25,7 @@ function Row({ group, now }: { group: PublicGroup; now: Date }) {
 
 /**
  * Public maps, newest position first, in the same table style as the signed-in user's groups: it scrolls sideways below xl,
- * the column header sticks from xl, and on phones (below 768 px) every row becomes a card (`ft-cards`, see UserGroupsTable).
+ * the column header sticks from xl, and below xl (1200 px) every row becomes a card (`ft-cards`, see UserGroupsTable).
  */
 export function PublicGroupsTable({ groups, total, now }: { groups: PublicGroup[]; total: number; now: Date }) {
   if (groups.length === 0) {
