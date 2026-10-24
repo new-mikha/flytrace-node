@@ -12,6 +12,7 @@
   --ft-radius: 0.5rem;
   --ft-frame-width: 1200px;
   --ft-nav-h: 3.7rem; /* height of the sticky menu bar */
+  --ft-title-h: 2.75rem; /* height of a sticky section title, including the gap under it */
 }
 
 body {
@@ -207,13 +208,29 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   }
 }
 
+/* A page section (title + table, later also the events) keeps its title under the menu bar while the section is on screen and
+   scrolls away with the end of its own section, so the next section's title takes over. The column header of a table (below)
+   sticks right under the title. */
+.ft-section-title {
+  position: sticky;
+  top: var(--ft-nav-h);
+  z-index: 3;
+  height: var(--ft-title-h);
+  margin: 0;
+  padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  background: var(--ft-panel);
+  backdrop-filter: blur(6px); /* the panel colour is slightly see-through: do not let rows ghost through the title */
+}
+
 /* A table that keeps its header in view while the page scrolls (my pilot groups). Where the table needs no sideways scrolling
    (xl and wider, see `table-responsive-xl`) the wrapper only clips its rounded corners, so the header sticks to the page
    under the menu bar and scrolls away with the end of its own table. A scroll container would break that, so narrower
    screens, which scroll the table sideways, keep a plain header. */
 @media (min-width: 1200px) {
   .ft-table-wrap.ft-sticky-head { overflow: clip; }
-  .ft-sticky-head thead { position: sticky; top: var(--ft-nav-h); z-index: 2; }
+  .ft-sticky-head thead { position: sticky; top: calc(var(--ft-nav-h) + var(--ft-title-h)); z-index: 2; }
 }
 
 /* Cards: on phones (below 768 px) each row of a `.ft-cards` table becomes a card that fits the screen width, so nothing

@@ -7,8 +7,10 @@ import { UserGroupsTable } from './UserGroupsTable.tsx';
 export function UserHomePage({ user, path, list, now }: { user: CurrentUser; path: string; list: UserGroupsList; now: Date }) {
   return (
     <Layout title="Flytrace" user={user} path={path} card="wide">
-      <h5 class="mb-3"><i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> My pilot groups</h5>
-      <UserGroupsTable list={list} now={now} admin={user.roles.includes('Admins')} />
+      <section class="ft-section">
+        <h5 class="ft-section-title"><i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> My pilot groups</h5>
+        <UserGroupsTable list={list} now={now} admin={user.roles.includes('Admins')} />
+      </section>
     </Layout>
   );
 }
