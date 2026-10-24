@@ -193,3 +193,26 @@
     barReset();
   });
 })();
+
+// On phones and tablets (burger menu) the bar slides away while the page is read downwards and comes back as soon as
+// the user scrolls up or reaches the top. It stays while the menu is open.
+(() => {
+  const nav = document.querySelector('.ft-navbar');
+  if (!nav) return;
+  const narrow = window.matchMedia('(max-width: 991.98px)');
+  const threshold = 8; // ignore tiny movements and rubber-banding
+  let last = window.scrollY;
+
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    const menuOpen = nav.querySelector('.navbar-collapse.show, .navbar-collapse.collapsing');
+    if (!narrow.matches || menuOpen || y <= nav.offsetHeight) {
+      nav.classList.remove('ft-nav-hidden');
+    } else if (y > last + threshold) {
+      nav.classList.add('ft-nav-hidden');
+    } else if (y < last - threshold) {
+      nav.classList.remove('ft-nav-hidden');
+    }
+    last = y;
+  }, { passive: true });
+})();
