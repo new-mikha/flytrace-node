@@ -34,6 +34,9 @@ TypeScript (ESM, strict), Fastify 5, plain `pg` SQL (no ORM), vitest, Postgres 1
 - `npm run db:reset`: dev only, drops and recreates the DB (refuses unless the name contains `_dev`), then migrates.
 - `npm run db:import-legacy -- db/legacy/dump/<timestamp>`: staging, transform and verify in one transaction.
 - `npm run user:create -- <name> <password> [role]`: dev user. `npm run dev`, `npm test`, `npm run typecheck`.
+- `npm run build` compiles into `dist/` and copies the migrations and the import SQL next to it. `scripts/deploy.sh user@host` builds and
+  copies `dist/`, `public/`, `package.json` and `package-lock.json` to the server (home Raspberry Pi); the server keeps its `.env`,
+  `node_modules` and database. There, `node dist/db/migrate.js` applies migrations and `node dist/server/src/index.js` starts the app.
 
 UI: pages are server-rendered with Preact JSX (`server/src/views/*.tsx`, `preact-render-to-string`; Preact escapes
 text and attributes by default, so avoid `dangerouslySetInnerHTML` for user data), styled with Bootstrap 5 CSS and

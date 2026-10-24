@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "tsx watch server/src/index.ts",
     "start": "node dist/server/src/index.js",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && cp -R db/migrations dist/db/ && cp db/legacy/staging.sql db/legacy/transform.sql db/legacy/verify.sql dist/db/legacy/",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "db:migrate": "tsx db/migrate.ts",
