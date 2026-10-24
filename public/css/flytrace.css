@@ -327,3 +327,26 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 [data-bs-theme="dark"] .ft-group-link { color: #7dd3fc; }
 [data-bs-theme="dark"] .ft-age { background: #14532d; color: #bbf7d0; }
 [data-bs-theme="dark"] .ft-hints li { color: #f87171; }
+
+/* Drop-down menus of the bar on wide screens: the opposite of the page theme (dark on the day theme, light on the
+   night theme), so they stand out from the page behind them. */
+@media (min-width: 992px) {
+  [data-bs-theme="light"] .ft-navbar .dropdown-menu {
+    --bs-dropdown-bg: #212529;
+    --bs-dropdown-color: #dee2e6;
+    --bs-dropdown-border-color: rgba(255, 255, 255, .15);
+    --bs-dropdown-divider-bg: rgba(255, 255, 255, .15);
+    --bs-dropdown-link-color: #dee2e6;
+    --bs-dropdown-link-hover-color: #fff;
+    --bs-dropdown-link-hover-bg: rgba(255, 255, 255, .15);
+  }
+  [data-bs-theme="dark"] .ft-navbar .dropdown-menu {
+    --bs-dropdown-bg: #fff;
+    --bs-dropdown-color: #212529;
+    --bs-dropdown-border-color: rgba(0, 0, 0, .175);
+    --bs-dropdown-divider-bg: rgba(0, 0, 0, .175);
+    --bs-dropdown-link-color: #212529;
+    --bs-dropdown-link-hover-color: #1e2125;
+    --bs-dropdown-link-hover-bg: #e9ecef;
+  }
+}
