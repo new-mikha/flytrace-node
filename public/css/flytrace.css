@@ -72,12 +72,18 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 .ft-navbar {
   background: linear-gradient(90deg, var(--ft-navy), var(--ft-navy-2));
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 0;
   /* Stays at the top of the screen while the page scrolls (above page content, below the loading bar). */
   position: sticky;
   top: 0;
   z-index: 1030;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.35);
+}
+
+/* The brand and the right-hand end line up with the page text below: same side padding as .ft-jumbotron. */
+.ft-navbar > .container-fluid { padding-inline: 1.5rem; }
+@media (max-width: 575.98px) {
+  .ft-navbar > .container-fluid { padding-inline: 0.75rem; }
 }
 
 /* On phones the opened menu can be taller than the screen: let it scroll inside the sticky bar. */
