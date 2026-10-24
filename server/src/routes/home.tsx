@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { Pool } from '../db.ts';
+import { listUserEvents } from '../repo/events.ts';
 import { listPublicGroups, listUserGroups } from '../repo/groups.ts';
 import { HomePage, PublicMaps } from '../views/HomePage.tsx';
 import { UserHomePage } from '../views/UserHomePage.tsx';
@@ -10,7 +11,8 @@ export async function homeRoutes(app: FastifyInstance, pool: Pool): Promise<void
   // so that the address bar keeps its short URL and a refresh shows the short list again.
   app.get<{ Querystring: { all?: string; fragment?: string } }>('/', async (request, reply) => {
     if (request.user) { // signed in: their own groups instead of the introduction and the public maps
-      return sendHtml(reply, <UserHomePage user={request.user} path={request.url} list={await listUserGroups(pool, request.user.id)} now={new Date()} />);
+      const [list, events] = await Promise.all([listUserGroups(pool, request.user.id), listUserEvents(pool, request.user.id)]);
+      return sendHtml(reply, <UserHomePage user={request.user} path={request.url} list={list} events={events} now={new Date()} />);
     }
     const showAll = request.query.all === '1';
     const { groups, total } = await listPublicGroups(pool, { all: showAll });

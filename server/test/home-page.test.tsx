@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CurrentUser } from '../src/auth/service.ts';
 import type { PublicGroup, UserGroup, UserGroupsList } from '../src/repo/groups.ts';
 import { HomePage } from '../src/views/HomePage.tsx';
+import type { UserEventsList } from '../src/repo/events.ts';
 import { UserHomePage } from '../src/views/UserHomePage.tsx';
 import { renderDocument } from '../src/views/render.tsx';
 
@@ -146,8 +147,9 @@ describe('user home page (my pilot groups)', () => {
     { id: 8, name: 'Quiet', trackers: 0, views: 0, updates: 0, newestCoordTs: null, event: { name: 'Empty one', taskPoints: 1 } },
     { id: 9, name: 'Plain', trackers: 2, views: 3, updates: 4, newestCoordTs: null, event: null },
   ];
-  const render = (u: CurrentUser, groups = mine, extra: Partial<UserGroupsList> = {}) =>
-    renderDocument(<UserHomePage user={u} path="/" list={{ groups, showTask: false, simpleEvents: true, ...extra }} now={now} />);
+  const noEvents: UserEventsList = { events: [], show: false };
+  const render = (u: CurrentUser, groups = mine, extra: Partial<UserGroupsList> = {}, events: UserEventsList = noEvents) =>
+    renderDocument(<UserHomePage user={u} path="/" list={{ groups, showTask: false, simpleEvents: true, ...extra }} events={events} now={now} />);
 
   it('lists the groups in the same table style as the public maps, with a link to each public map', () => {
     const html = render(user);
@@ -209,5 +211,39 @@ describe('user home page (my pilot groups)', () => {
     const html = render(user, []);
     expect(html).toContain("You don't have any pilot groups yet.");
     expect(html).not.toContain('ft-table');
+  });
+});
+
+describe('user home page: my events', () => {
+  const user: CurrentUser = { id: 'u1', username: 'ann', roles: [] };
+  const events: UserEventsList = {
+    show: true,
+    events: [
+      { id: 1, name: '<i>Dalby</i> 2024', waypoints: 42, isDefault: true },
+      { id: 2, name: 'Quiet', waypoints: 0, isDefault: false },
+    ],
+  };
+  const render = (list: UserEventsList) =>
+    renderDocument(<UserHomePage user={user} path="/" list={{ groups: [], showTask: false, simpleEvents: false }} events={list} now={now} />);
+
+  it('lists the events in the table style, marking the default one', () => {
+    const html = render(events);
+    expect(html).toContain('My events');
+    expect(html).toContain('>Event</th>');
+    expect(html).toContain('data-label="Waypoints"');
+    expect(html).toContain('Quiet');
+    expect(html).toContain('2024 *');
+    expect(html).toContain('* New pilot groups use this event by default.');
+    expect(html).not.toContain('<i>Dalby');
+  });
+
+  it('says so when there are no events, and has no default note', () => {
+    const html = render({ show: true, events: [] });
+    expect(html).toContain("You don't have any events yet.");
+    expect(html).not.toContain('New pilot groups use');
+  });
+
+  it('is left out in the single-event mode', () => {
+    expect(render({ ...events, show: false })).not.toContain('My events');
   });
 });
