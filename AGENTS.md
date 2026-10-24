@@ -62,7 +62,7 @@ simulated client its own `remoteAddress`.
 - Pages are "cards": `Layout` with `card` (small, for sign-in pages), `card="medium"` (My account) or `card="wide"` (home): a shadowed
   card on the faded map background with a gap under the menu. Below 768 px the card merges into the plain full-width
   panel. Pages using the older `legacyPage` template are still plain panels.
-- The menu bar is sticky; an open burger menu closes when the page is scrolled (`app.js`). Logged-out visitors get a text toggle "Log in, Register, etc" on small screens, logged-in
+- The menu bar is light on the day theme and dark navy on the night theme (rules at the end of `flytrace.css`; the markup keeps `navbar-dark`). It is sticky; an open burger menu closes when the page is scrolled (`app.js`). Logged-out visitors get a text toggle "Log in, Register, etc" on small screens, logged-in
   users the burger icon and a drop-down named after their username (account pages and Log out).
 - `public/js/app.js` shows a spinner and disables only `.btn` elements (never plain links), plus the loading bar at
   the top; a new click cancels the pending navigation, a form POST is never cancelled.
