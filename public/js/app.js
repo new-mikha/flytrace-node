@@ -194,16 +194,22 @@
   });
 })();
 
-// An open burger menu closes when the page is scrolled down by 1em from where it was when the menu finished opening
-// (it would otherwise cover the page). Scrolling while it opens or closes is ignored.
+// An open burger menu closes when the page is scrolled down by 1em in one go (a run of downward scrolling; any upward
+// movement starts the count again). Scrolling while it opens or closes is ignored.
 (() => {
   const menu = document.querySelector('.ft-navbar .navbar-collapse');
   if (!menu) return;
-  let openAt = 0;
-  menu.addEventListener('shown.bs.collapse', () => { openAt = window.scrollY; });
+  let last = window.scrollY;
+  let run = 0; // pixels scrolled down without turning back
   window.addEventListener('scroll', () => {
-    if (!menu.classList.contains('show')) return; // closed, or still opening/closing (class "collapsing")
-    const em = parseFloat(getComputedStyle(menu).fontSize);
-    if (window.scrollY - openAt >= em) window.bootstrap?.Collapse.getInstance(menu)?.hide();
+    const y = window.scrollY;
+    const delta = y - last;
+    last = y;
+    if (!menu.classList.contains('show')) { run = 0; return; } // closed, or still opening/closing (class "collapsing")
+    run = delta > 0 ? run + delta : 0;
+    if (run >= parseFloat(getComputedStyle(menu).fontSize)) {
+      run = 0;
+      window.bootstrap?.Collapse.getInstance(menu)?.hide();
+    }
   }, { passive: true });
 })();
