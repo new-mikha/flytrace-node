@@ -6,6 +6,8 @@
   --ft-navy-2: #1e3a5f;
   --ft-sky: #0ea5e9;
   --ft-teal: #14b8a6;
+  --ft-sky-dark: #0369a1; /* the same gradient, darker, for table headers and title bars on the night theme */
+  --ft-teal-dark: #0f766e;
   --ft-coral: #fb7185;
   --ft-sun: #fde68a;
   --ft-panel: rgba(255, 255, 255, 0.94);
@@ -233,6 +235,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
   }
   .ft-section-title .ft-heading-icon { color: #fff; }
+  [data-bs-theme="dark"] .ft-section-title { background: linear-gradient(90deg, var(--ft-sky-dark), var(--ft-teal-dark)); }
 }
 .ft-section + .ft-section { margin-top: 1.5rem; }
 
@@ -460,3 +463,5 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   background: linear-gradient(90deg, #2f5d8f, #3f78b0);
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
 }
+
+[data-bs-theme="dark"] .ft-table thead tr { background: linear-gradient(90deg, var(--ft-sky-dark), var(--ft-teal-dark)); }
