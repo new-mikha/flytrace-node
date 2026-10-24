@@ -11,7 +11,7 @@
   --ft-coral: #fb7185;
   --ft-sun: #fde68a;
   --ft-panel: rgba(255, 255, 255, 0.94);
-  --ft-row: #ffffff; /* the two alternating row colours of tables, which are also the card colours on phones */
+  --ft-row: #ffffff; /* the two alternating card colours on phones (table rows on wide screens have their own, see .ft-table) */
   --ft-row-alt: #dbeefa;
   --ft-radius: 0.5rem;
   --ft-frame-width: 1200px;
@@ -183,8 +183,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 }
 
 .ft-table {
-  --bs-table-bg: var(--ft-row);
-  --bs-table-striped-bg: var(--ft-row-alt);
+  --bs-table-striped-bg: #effaff;
   --bs-table-hover-bg: #fff4d1;
   --bs-table-hover-color: var(--ft-ink);
   font-size: 0.95rem;
@@ -429,8 +428,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 [data-bs-theme="dark"] .ft-table-wrap { background: #111827; border-color: #0c4a6e; box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.5); }
 [data-bs-theme="dark"] { --ft-row: #111827; --ft-row-alt: #1b2f50; }
 [data-bs-theme="dark"] .ft-table {
-  --bs-table-bg: var(--ft-row);
-  --bs-table-striped-bg: var(--ft-row-alt);
+  --bs-table-striped-bg: #0f1d33;
   --bs-table-hover-bg: #3a2f0a;
   --bs-table-hover-color: var(--ft-ink);
 }
