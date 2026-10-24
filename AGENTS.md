@@ -86,6 +86,15 @@ simulated client its own `remoteAddress`.
 - Legacy rows whose names are the literal text `${output}` (broken client tool, many users) are kept as they are.
   The import renames duplicate names (`X (2)`, ...) and prints each rename.
 
+## Planned (not started)
+
+- A production build step (`npm run build`, probably Vite or esbuild), to be done late, once the pages have settled:
+  one minified CSS file and one JS file instead of the separate Bootstrap, Font Awesome and our own files; a Font
+  Awesome subset with only the icons we use; versioned file names (`app.<hash>.css`) read from a manifest by `Layout`
+  in production only, so that `/assets/` can be cached for a year. Dev keeps serving the separate files from
+  `node_modules`. Compression (gzip or brotli) and the cache headers go in nginx or `@fastify/static`. Do not start
+  this unless asked.
+
 ## Auth model
 
 - Server-side sessions (not JWT): cookie `flytrace.sid` = signed session id; data in the Postgres `sessions` table.
