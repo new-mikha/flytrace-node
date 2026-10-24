@@ -145,11 +145,19 @@ describe('user home page (my pilot groups)', () => {
     const html = render(user);
     expect(html).toContain('My pilot groups');
     expect(html).toContain('ft-table');
-    expect(html).toContain('table-responsive-xl ft-table-wrap ft-bleed ft-sticky-head'); // scrolls sideways below xl, sticky header from xl
+    expect(html).toContain('table-responsive-xl ft-table-wrap ft-sticky-head'); // scrolls sideways below xl, sticky header from xl
     expect(html).toContain('href="/map/7"');
     expect(html).toContain('href="/map/8"');
     expect(html).toContain('Thu 5 Mar 11:30 UTC');
     expect(html).toContain('30 min ago');
+  });
+
+  it('labels the cells that need a label on a card (phones), and only those', () => {
+    const html = render({ ...user, roles: ['Admins'] }, mine, { showTask: true, simpleEvents: false });
+    expect(html).toContain('ft-cards');
+    for (const label of ['Pilots', 'Task', 'Views', 'Updates']) expect(html).toContain(`data-label="${label}"`);
+    expect(html).not.toContain('data-label="Name"');
+    expect(html).not.toContain('data-label="Updated"');
   });
 
   it('escapes group names', () => {

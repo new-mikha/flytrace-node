@@ -216,6 +216,43 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-sticky-head thead { position: sticky; top: var(--ft-nav-h); z-index: 2; }
 }
 
+/* Cards: on phones (below 768 px) each row of a `.ft-cards` table becomes a card that fits the screen width, so nothing
+   scrolls sideways. A cell with `data-label` gets that label in front; `.ft-card-full` cells (name, updated) take a whole
+   line and `.ft-card-link` goes to the end. The header row stays for screen readers only. */
+@media (max-width: 767.98px) {
+  .ft-table-wrap.ft-cards-wrap, .ft-table-wrap:has(.ft-cards) { overflow: visible; background: none; border: 0; box-shadow: none; }
+  .ft-cards, .ft-cards tbody { display: block; }
+  .ft-cards thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .ft-cards tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 1rem;
+    margin-bottom: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--bs-body-bg);
+    border: 1px solid #bae6fd;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.15rem 0.5rem rgba(15, 23, 42, 0.1);
+  }
+  .ft-cards tr:nth-child(odd) { background: var(--bs-table-striped-bg); }
+  .ft-cards td {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    text-align: start !important; /* beats .text-end */
+    white-space: normal;
+    min-width: 0;
+  }
+  .ft-cards td { order: 2; }                       /* the labelled values, in the order of the columns */
+  .ft-cards .ft-card-full { flex: 1 0 100%; order: 1; } /* the line under the name (updated) */
+  .ft-cards .ft-name-cell { font-size: 1.1rem; order: 0; }
+  .ft-cards td[data-label]::before { content: attr(data-label) ": "; color: var(--bs-secondary-color); font-size: 0.85rem; }
+  .ft-cards .ft-card-link { margin-left: auto; order: 3; }
+}
+
 /* One line per task on screens that scroll sideways; wrapping where the table has to fit (xl and wider). */
 .ft-task-cell { white-space: nowrap; }
 @media (min-width: 1200px) { .ft-task-cell { white-space: normal; } }
@@ -352,6 +389,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   --bs-table-hover-bg: #3a2f0a;
   --bs-table-hover-color: var(--ft-ink);
 }
+@media (max-width: 767.98px) { [data-bs-theme="dark"] .ft-cards tr { background: #111827; border-color: #0c4a6e; box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.5); } }
 [data-bs-theme="dark"] .ft-group-link { color: #7dd3fc; }
 [data-bs-theme="dark"] .ft-age { background: #14532d; color: #bbf7d0; }
 [data-bs-theme="dark"] .ft-hints li { color: #f87171; }

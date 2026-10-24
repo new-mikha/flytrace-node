@@ -17,9 +17,9 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
   const age = group.newestCoordTs ? formatAge(group.newestCoordTs, now) : null;
   return (
     <tr>
-      <td class="fw-semibold ft-name-cell">{group.name}</td>
-      <td class="text-end"><span class="badge rounded-pill ft-pilots">{group.trackers}</span></td>
-      <td class="text-nowrap">
+      <td class="fw-semibold ft-name-cell ft-card-full">{group.name}</td>
+      <td class="text-end" data-label="Pilots"><span class="badge rounded-pill ft-pilots">{group.trackers}</span></td>
+      <td class="text-nowrap ft-card-full">
         {group.newestCoordTs && (
           <>
             <div>{formatTimestamp(group.newestCoordTs)}</div>
@@ -27,10 +27,10 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
           </>
         )}
       </td>
-      {task && <td class="ft-task-cell"><TaskCell group={group} simple={task.simple} /></td>}
-      <td class="text-end">{group.views}</td>
-      {admin && <td class="text-end">{group.updates}</td>}
-      <td class="text-end text-nowrap">
+      {task && <td class="ft-task-cell" data-label="Task"><TaskCell group={group} simple={task.simple} /></td>}
+      <td class="text-end" data-label="Views">{group.views}</td>
+      {admin && <td class="text-end" data-label="Updates">{group.updates}</td>}
+      <td class="text-end text-nowrap ft-card-link">
         <a class="ft-group-link" href={`/map/${group.id}`} target="_blank" rel="noopener">
           Public map <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
         </a>
@@ -40,16 +40,17 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
 }
 
 /**
- * The signed-in user's own groups, in the same table style as the public maps on the anonymous home page. All columns
- * stay on every screen: a narrow screen scrolls the table sideways (`table-responsive`) instead of squeezing it.
+ * The signed-in user's own groups, in the same table style as the public maps on the anonymous home page. Up to tablet
+ * width the table scrolls sideways (`table-responsive-xl`); on phones (`ft-cards`, below 768 px) every row becomes a card, with
+ * `data-label` as the label of the cells that need one.
  */
 export function UserGroupsTable({ list: { groups, showTask, simpleEvents }, now, admin }: { list: UserGroupsList; now: Date; admin: boolean }) {
   if (groups.length === 0) return <p class="text-muted">You don't have any pilot groups yet.</p>;
   const task = showTask ? { simple: simpleEvents } : null;
   return (
     <>
-    <div class="table-responsive-xl ft-table-wrap ft-bleed ft-sticky-head">
-      <table class="table table-striped table-hover align-middle ft-table mb-0">
+    <div class="table-responsive-xl ft-table-wrap ft-sticky-head">
+      <table class="table table-striped table-hover align-middle ft-table ft-cards mb-0">
         <caption class="visually-hidden">My pilot groups</caption>
         <thead>
           <tr>
