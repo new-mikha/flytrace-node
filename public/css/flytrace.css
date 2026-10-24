@@ -295,6 +295,17 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-cards .ft-card-link { grid-column: 1 / -1; order: 4; display: flex; justify-content: flex-end; gap: 1.25rem; margin-top: 0.1rem; }
 }
 
+/* Wide cards (a phone held sideways, 560 to 767 px): the cards would be mostly empty, so they flow instead of using the
+   three-column grid: the name and the update time share the first line, the figures and the links the second, the task the third. */
+@media (min-width: 560px) and (max-width: 767.98px) {
+  .ft-cards tr { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 1.75rem; }
+  .ft-cards .ft-card-full { flex: 1 1 calc(100% - 13.75rem); } /* the name (12rem) and the time fill the first line exactly */
+  .ft-cards .ft-name-cell { flex: 0 0 12rem; } /* same width on every card, so the columns line up (a long name wraps) */
+  .ft-cards .ft-card-stat { flex: 0 0 auto; min-width: 5rem; }
+  .ft-cards .ft-card-link { order: 3; margin: 0 0 0 auto; }
+  .ft-cards .ft-card-task { order: 4; flex: 0 0 100%; }
+}
+
 /* One line per task on screens that scroll sideways; wrapping where the table has to fit (xl and wider). */
 .ft-task-cell { white-space: nowrap; }
 @media (min-width: 1200px) { .ft-task-cell { white-space: normal; } }
