@@ -156,6 +156,7 @@ describe('user home page (my pilot groups)', () => {
     const html = render({ ...user, roles: ['Admins'] }, mine, { showTask: true, simpleEvents: false });
     expect(html).toContain('ft-cards');
     for (const label of ['Pilots', 'Task', 'Views', 'Updates']) expect(html).toContain(`data-label="${label}"`);
+    expect(html).toContain('ft-card-hide'); // a group without a task leaves out the Task line on its card
     expect(html).not.toContain('data-label="Name"');
     expect(html).not.toContain('data-label="Updated"');
   });

@@ -18,7 +18,7 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
   return (
     <tr>
       <td class="fw-semibold ft-name-cell ft-card-full">{group.name}</td>
-      <td class="text-end" data-label="Pilots"><span class="badge rounded-pill ft-pilots">{group.trackers}</span></td>
+      <td class="text-end ft-card-stat" data-label="Pilots"><span class="badge rounded-pill ft-pilots">{group.trackers}</span></td>
       <td class="text-nowrap ft-card-full">
         {group.newestCoordTs && (
           <>
@@ -27,9 +27,9 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
           </>
         )}
       </td>
-      {task && <td class="ft-task-cell" data-label="Task"><TaskCell group={group} simple={task.simple} /></td>}
-      <td class="text-end" data-label="Views">{group.views}</td>
-      {admin && <td class="text-end" data-label="Updates">{group.updates}</td>}
+      {task && <td class={`ft-task-cell ft-card-task${group.event ? '' : ' ft-card-hide'}`} data-label="Task"><TaskCell group={group} simple={task.simple} /></td>}
+      <td class="text-end ft-card-stat" data-label="Views">{group.views}</td>
+      {admin && <td class="text-end ft-card-stat" data-label="Updates">{group.updates}</td>}
       <td class="text-end text-nowrap ft-card-link">
         <a class="ft-group-link" href={`/map/${group.id}`} target="_blank" rel="noopener">
           Public map <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
