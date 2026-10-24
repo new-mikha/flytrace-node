@@ -11,6 +11,8 @@
   --ft-coral: #fb7185;
   --ft-sun: #fde68a;
   --ft-panel: rgba(255, 255, 255, 0.94);
+  --ft-row: #ffffff; /* the two alternating row colours of tables, which are also the card colours on phones */
+  --ft-row-alt: #dbeefa;
   --ft-radius: 0.5rem;
   --ft-frame-width: 1200px;
   --ft-nav-h: 3.7rem; /* height of the sticky menu bar */
@@ -181,7 +183,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 }
 
 .ft-table {
-  --bs-table-striped-bg: #effaff;
+  --bs-table-bg: var(--ft-row);
+  --bs-table-striped-bg: var(--ft-row-alt);
   --bs-table-hover-bg: #fff4d1;
   --bs-table-hover-color: var(--ft-ink);
   font-size: 0.95rem;
@@ -263,12 +266,12 @@ a.disabled { pointer-events: none; opacity: 0.65; }
     gap: 0.15rem 0.75rem;
     margin-bottom: 0.6rem;
     padding: 0.5rem 0.9rem;
-    background: var(--bs-body-bg);
+    background: var(--ft-row);
     border: 1px solid #bae6fd;
     border-radius: 0.75rem;
     box-shadow: 0 0.15rem 0.5rem rgba(15, 23, 42, 0.1);
   }
-  .ft-cards tr:nth-child(odd) { background: var(--bs-table-striped-bg); }
+  .ft-cards tr:nth-child(odd) { background: var(--ft-row-alt); }
   .ft-cards td {
     display: block;
     order: 2;
@@ -424,12 +427,14 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 [data-bs-theme="dark"] .ft-accordion .accordion-button:not(.collapsed) { background: #12304a; color: #7dd3fc; }
 
 [data-bs-theme="dark"] .ft-table-wrap { background: #111827; border-color: #0c4a6e; box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.5); }
+[data-bs-theme="dark"] { --ft-row: #111827; --ft-row-alt: #1b2f50; }
 [data-bs-theme="dark"] .ft-table {
-  --bs-table-striped-bg: #0f1d33;
+  --bs-table-bg: var(--ft-row);
+  --bs-table-striped-bg: var(--ft-row-alt);
   --bs-table-hover-bg: #3a2f0a;
   --bs-table-hover-color: var(--ft-ink);
 }
-@media (max-width: 767.98px) { [data-bs-theme="dark"] .ft-cards tr { background: #111827; border-color: #0c4a6e; box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.5); } }
+@media (max-width: 767.98px) { [data-bs-theme="dark"] .ft-cards tr { border-color: #0c4a6e; box-shadow: 0 0.15rem 0.5rem rgba(0, 0, 0, 0.5); } }
 [data-bs-theme="dark"] .ft-group-link { color: #7dd3fc; }
 [data-bs-theme="dark"] .ft-age { background: #14532d; color: #bbf7d0; }
 [data-bs-theme="dark"] .ft-hints li { color: #f87171; }
