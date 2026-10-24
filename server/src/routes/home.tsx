@@ -10,7 +10,7 @@ export async function homeRoutes(app: FastifyInstance, pool: Pool): Promise<void
   // so that the address bar keeps its short URL and a refresh shows the short list again.
   app.get<{ Querystring: { all?: string; fragment?: string } }>('/', async (request, reply) => {
     if (request.user) { // signed in: their own groups instead of the introduction and the public maps
-      return sendHtml(reply, <UserHomePage user={request.user} path={request.url} groups={await listUserGroups(pool, request.user.id)} now={new Date()} />);
+      return sendHtml(reply, <UserHomePage user={request.user} path={request.url} list={await listUserGroups(pool, request.user.id)} now={new Date()} />);
     }
     const showAll = request.query.all === '1';
     const { groups, total } = await listPublicGroups(pool, { all: showAll });

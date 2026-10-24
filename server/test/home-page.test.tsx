@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CurrentUser } from '../src/auth/service.ts';
-import type { PublicGroup, UserGroup } from '../src/repo/groups.ts';
+import type { PublicGroup, UserGroup, UserGroupsList } from '../src/repo/groups.ts';
 import { HomePage } from '../src/views/HomePage.tsx';
 import { UserHomePage } from '../src/views/UserHomePage.tsx';
 import { renderDocument } from '../src/views/render.tsx';
@@ -133,10 +133,13 @@ describe('home page (logged in)', () => {
 describe('user home page (my pilot groups)', () => {
   const user: CurrentUser = { id: 'u1', username: 'ann', roles: [] };
   const mine: UserGroup[] = [
-    { id: 7, name: '<b>Cup</b> & "Co"', trackers: 3, views: 42, updates: 1234, newestCoordTs: new Date('2026-03-05T11:30:00Z') },
-    { id: 8, name: 'Quiet', trackers: 0, views: 0, updates: 0, newestCoordTs: null },
+    { id: 7, name: '<b>Cup</b> & "Co"', trackers: 3, views: 42, updates: 1234, newestCoordTs: new Date('2026-03-05T11:30:00Z'),
+      event: { name: 'Dalby 2024', taskPoints: 5 } },
+    { id: 8, name: 'Quiet', trackers: 0, views: 0, updates: 0, newestCoordTs: null, event: { name: 'Empty one', taskPoints: 1 } },
+    { id: 9, name: 'Plain', trackers: 2, views: 3, updates: 4, newestCoordTs: null, event: null },
   ];
-  const render = (u: CurrentUser, list = mine) => renderDocument(<UserHomePage user={u} path="/" groups={list} now={now} />);
+  const render = (u: CurrentUser, groups = mine, extra: Partial<UserGroupsList> = {}) =>
+    renderDocument(<UserHomePage user={u} path="/" list={{ groups, showTask: false, simpleEvents: true, ...extra }} now={now} />);
 
   it('lists the groups in the same table style as the public maps, with a link to each public map', () => {
     const html = render(user);
@@ -159,6 +162,28 @@ describe('user home page (my pilot groups)', () => {
     const admin = render({ ...user, roles: ['Admins'] });
     expect(admin).toContain('Updates');
     expect(admin).toContain('1234');
+  });
+
+  it('has no Task column until events are in use', () => {
+    const html = render(user);
+    expect(html).not.toContain('Task');
+    expect(html).not.toContain('Dalby 2024');
+  });
+
+  it('names the event in the Task column in the multiple-events mode, and marks an empty task', () => {
+    const html = render(user, mine, { showTask: true, simpleEvents: false });
+    expect(html).toContain('>Task</th>');
+    expect(html).toContain('yes: Dalby 2024');
+    expect(html).toContain('yes: Empty one ^');
+    expect(html).toContain('>none</span>');
+    expect(html).toContain('^ The task is empty');
+  });
+
+  it('says only Yes or No in the single-event mode', () => {
+    const html = render(user, mine, { showTask: true, simpleEvents: true });
+    expect(html).toContain('>Yes</span>');
+    expect(html).toContain('>No</span>');
+    expect(html).not.toContain('Dalby 2024');
   });
 
   it('says so when there are no groups', () => {
