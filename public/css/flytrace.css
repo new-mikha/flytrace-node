@@ -12,7 +12,7 @@
   --ft-radius: 0.5rem;
   --ft-frame-width: 1200px;
   --ft-nav-h: 3.7rem; /* height of the sticky menu bar */
-  --ft-title-h: 2.75rem; /* height of a sticky section title, including the gap under it */
+  --ft-title-h: 2.75rem; /* height of a section title bar */
 }
 
 body {
@@ -208,21 +208,24 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   }
 }
 
-/* A page section (title + table, later also the events) keeps its title under the menu bar while the section is on screen and
-   scrolls away with the end of its own section, so the next section's title takes over. The column header of a table (below)
-   sticks right under the title. */
+/* A page section (title + table, later also the events) has an accented title bar, edge to edge of the panel, that stays under
+   the menu bar while the section is on screen and scrolls away with the end of its own section, so the next section's title
+   takes over. The column header of a table (below) sticks right under the bar. The bar is opaque: rows never show through. */
 .ft-section-title {
   position: sticky;
   top: var(--ft-nav-h);
   z-index: 3;
   height: var(--ft-title-h);
-  margin: 0;
-  padding-bottom: 0.5rem;
+  margin: 0 calc(-1 * var(--ft-pad-x)) 0.75rem;
+  padding: 0 var(--ft-pad-x);
   display: flex;
   align-items: center;
-  background: var(--ft-panel);
-  backdrop-filter: blur(6px); /* the panel colour is slightly see-through: do not let rows ghost through the title */
+  font-weight: 600;
+  background: #e0f2fe;
+  border-block: 1px solid #bae6fd;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
 }
+.ft-section + .ft-section { margin-top: 1.5rem; }
 
 /* A table that keeps its header in view while the page scrolls (my pilot groups). Where the table needs no sideways scrolling
    (xl and wider, see `table-responsive-xl`) the wrapper only clips its rounded corners, so the header sticks to the page
@@ -441,3 +444,5 @@ a.disabled { pointer-events: none; opacity: 0.65; }
     --bs-dropdown-link-hover-bg: #e9ecef;
   }
 }
+
+[data-bs-theme="dark"] .ft-section-title { background: #0c2d48; border-color: #0c4a6e; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); }
