@@ -194,14 +194,16 @@
   });
 })();
 
-// An open burger menu closes as soon as the page is scrolled (it would otherwise cover the page and follow the scroll).
+// An open burger menu closes when the page is scrolled down by 1em from where it was when the menu finished opening
+// (it would otherwise cover the page). Scrolling while it opens or closes is ignored.
 (() => {
   const menu = document.querySelector('.ft-navbar .navbar-collapse');
   if (!menu) return;
   let openAt = 0;
-  menu.addEventListener('show.bs.collapse', () => { openAt = window.scrollY; });
+  menu.addEventListener('shown.bs.collapse', () => { openAt = window.scrollY; });
   window.addEventListener('scroll', () => {
-    if (!menu.classList.contains('show') || Math.abs(window.scrollY - openAt) < 10) return;
-    window.bootstrap?.Collapse.getInstance(menu)?.hide();
+    if (!menu.classList.contains('show')) return; // closed, or still opening/closing (class "collapsing")
+    const em = parseFloat(getComputedStyle(menu).fontSize);
+    if (window.scrollY - openAt >= em) window.bootstrap?.Collapse.getInstance(menu)?.hide();
   }, { passive: true });
 })();
