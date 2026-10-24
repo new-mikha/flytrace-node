@@ -253,7 +253,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-cards .ft-card-full { grid-column: 1 / -1; order: 1; }
   .ft-cards .ft-card-task { grid-column: 1 / -1; order: 3; }
   .ft-cards .ft-card-hide { display: none; }
-  .ft-cards td[data-label]::before { content: attr(data-label) ": "; color: var(--bs-secondary-color); font-size: 0.95rem; }
+  .ft-cards td[data-label]::before { content: attr(data-label) ": "; color: rgba(var(--bs-body-color-rgb), 0.9); font-size: 0.95rem; }
   .ft-cards td.ft-card-stat[data-label]::before { display: block; content: attr(data-label); font-size: 0.95rem; line-height: 1.15; }
   .ft-cards .ft-card-stat { line-height: 1.25; }
   .ft-cards .ft-card-stat .badge { padding: 0.15rem 0.5rem; }
