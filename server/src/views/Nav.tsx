@@ -224,7 +224,6 @@ function UserNav({ user, path }: { user: CurrentUser; path: string }) {
         <Toggler />
         <div class="collapse navbar-collapse" id="navMain">
           <ul class="navbar-nav me-auto">
-            <li class="nav-item"><a {...navLink(path, '/groups')} href="/groups">My groups</a></li>
             {user.roles.includes('Admins') && (
               <li class="nav-item"><a {...navLink(path, '/admin')} href="/admin">Admin</a></li>
             )}

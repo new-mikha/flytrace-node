@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { CurrentUser } from '../src/auth/service.ts';
-import type { PublicGroup } from '../src/repo/groups.ts';
+import type { PublicGroup, UserGroup } from '../src/repo/groups.ts';
 import { HomePage } from '../src/views/HomePage.tsx';
+import { UserHomePage } from '../src/views/UserHomePage.tsx';
 import { renderDocument } from '../src/views/render.tsx';
 
 const now = new Date('2026-03-05T12:00:00Z');
@@ -120,12 +121,49 @@ describe('home page (logged in)', () => {
   it('shows the user name and a log-out button instead of the login form', () => {
     const html = render(user);
     expect(html).toContain('Log out');
-    expect(html).toContain('My groups');
     expect(html).not.toContain('name="password"');
     expect(html).not.toContain('/admin');
   });
 
   it('shows the Admin link to admins only', () => {
     expect(render({ ...user, roles: ['Admins'] })).toContain('href="/admin"');
+  });
+});
+
+describe('user home page (my pilot groups)', () => {
+  const user: CurrentUser = { id: 'u1', username: 'ann', roles: [] };
+  const mine: UserGroup[] = [
+    { id: 7, name: '<b>Cup</b> & "Co"', trackers: 3, views: 42, updates: 1234, newestCoordTs: new Date('2026-03-05T11:30:00Z') },
+    { id: 8, name: 'Quiet', trackers: 0, views: 0, updates: 0, newestCoordTs: null },
+  ];
+  const render = (u: CurrentUser, list = mine) => renderDocument(<UserHomePage user={u} path="/" groups={list} now={now} />);
+
+  it('lists the groups in the same table style as the public maps, with a link to each public map', () => {
+    const html = render(user);
+    expect(html).toContain('My pilot groups');
+    expect(html).toContain('ft-table');
+    expect(html).toContain('href="/map/7"');
+    expect(html).toContain('href="/map/8"');
+    expect(html).toContain('Thu 5 Mar 11:30 UTC');
+    expect(html).toContain('30 min ago');
+  });
+
+  it('escapes group names', () => {
+    const html = render(user);
+    expect(html).toContain('&lt;b>Cup&lt;/b> &amp; &quot;Co&quot;');
+    expect(html).not.toContain('<b>Cup');
+  });
+
+  it('shows the Updates counter to admins only', () => {
+    expect(render(user)).not.toContain('Updates');
+    const admin = render({ ...user, roles: ['Admins'] });
+    expect(admin).toContain('Updates');
+    expect(admin).toContain('1234');
+  });
+
+  it('says so when there are no groups', () => {
+    const html = render(user, []);
+    expect(html).toContain("You don't have any pilot groups yet.");
+    expect(html).not.toContain('ft-table');
   });
 });

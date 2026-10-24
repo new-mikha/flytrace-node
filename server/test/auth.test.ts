@@ -55,9 +55,9 @@ describe('anonymous', () => {
     expect((await app.inject({ url: '/' })).statusCode).toBe(200);
   });
   it('is redirected to login from protected pages', async () => {
-    const res = await app.inject({ url: '/groups' });
+    const res = await app.inject({ url: '/account/password' });
     expect(res.statusCode).toBe(302);
-    expect(res.headers.location).toBe('/login?returnUrl=%2Fgroups');
+    expect(res.headers.location).toBe('/login?returnUrl=%2Faccount%2Fpassword');
     expect((await app.inject({ url: '/admin' })).statusCode).toBe(302);
     expect((await app.inject({ url: '/account' })).statusCode).toBe(302);
   });
@@ -117,10 +117,10 @@ describe('login', () => {
 
   it('works through the HTML form too', async () => {
     const res = await app.inject({ method: 'POST', url: '/login',
-      payload: `username=${USER}&password=correct%20horse&returnUrl=%2Fgroups`,
+      payload: `username=${USER}&password=correct%20horse&returnUrl=%2Faccount`,
       headers: { 'content-type': 'application/x-www-form-urlencoded' } });
     expect(res.statusCode).toBe(302);
-    expect(res.headers.location).toBe('/groups');
+    expect(res.headers.location).toBe('/account');
     const bad = await app.inject({ method: 'POST', url: '/login',
       payload: `username=${USER}&password=nope&returnUrl=https%3A%2F%2Fevil.example`,
       headers: { 'content-type': 'application/x-www-form-urlencoded' } });
@@ -133,9 +133,10 @@ describe('authorisation', () => {
     const { cookies } = await login(USER, 'correct horse');
     expect(await whoami(cookies)).toBe(USER);
 
-    const groups = await app.inject({ url: '/groups', cookies });
-    expect(groups.statusCode).toBe(200);
-    expect(groups.body).toContain(`Test group ${run}`);
+    const home = await app.inject({ url: '/', cookies });
+    expect(home.statusCode).toBe(200);
+    expect(home.body).toContain('My pilot groups');
+    expect(home.body).toContain(`Test group ${run}`);
 
     const admin = await app.inject({ url: '/admin', cookies });
     expect(admin.statusCode).toBe(302);

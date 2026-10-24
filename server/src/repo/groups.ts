@@ -49,3 +49,26 @@ export async function listPublicGroups(pool: Pool, { all }: { all: boolean }): P
     total: count.rows[0]?.total ?? 0,
   };
 }
+
+export interface UserGroup {
+  id: number;
+  name: string;
+  trackers: number;
+  views: number;
+  /** How many times the map page asked for fresh positions (shown to admins only). */
+  updates: number;
+  newestCoordTs: Date | null;
+}
+
+/** The groups a user owns, by name (public or not). */
+export async function listUserGroups(pool: Pool, userId: string): Promise<UserGroup[]> {
+  const { rows } = await pool.query<{ id: number; name: string; trackers: number; views: number; updates: string; newest_coord_ts: Date | null }>(
+    `SELECT g.id, g.name, g.views_num AS views, g.page_updates_num::text AS updates, g.newest_coord_ts,
+            (SELECT count(*)::int FROM group_trackers t WHERE t.group_id = g.id) AS trackers
+     FROM groups g WHERE g.user_id = $1 ORDER BY lower(g.name), g.id`,
+    [userId],
+  );
+  return rows.map((r) => ({
+    id: r.id, name: r.name, trackers: r.trackers, views: r.views, updates: Number(r.updates), newestCoordTs: r.newest_coord_ts,
+  }));
+}
