@@ -52,9 +52,6 @@ const MORE_ITEMS: (MoreLink | null)[] = [
   { href: '/register', label: 'Register', icon: 'fa-solid fa-user-plus', button: true },
   { href: '/forgot-password', label: 'Forgot password?', icon: 'fa-solid fa-key' },
   null,
-  { href: 'http://leonardo.flytrace.com', label: 'Leonardo to analyze saved GPS tracks', external: true },
-  { href: 'http://gts.flytrace.com', label: 'OpenGTS for phone-based tracking', external: true },
-  null,
   { href: '/contact', label: 'Contact us', icon: 'fa-regular fa-envelope' },
 ];
 
