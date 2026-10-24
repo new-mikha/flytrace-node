@@ -27,7 +27,7 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
           </>
         )}
       </td>
-      {task && <td class="text-nowrap"><TaskCell group={group} simple={task.simple} /></td>}
+      {task && <td class="ft-task-cell"><TaskCell group={group} simple={task.simple} /></td>}
       <td class="text-end">{group.views}</td>
       {admin && <td class="text-end">{group.updates}</td>}
       <td class="text-end text-nowrap">
@@ -48,7 +48,7 @@ export function UserGroupsTable({ list: { groups, showTask, simpleEvents }, now,
   const task = showTask ? { simple: simpleEvents } : null;
   return (
     <>
-    <div class="table-responsive ft-table-wrap">
+    <div class="table-responsive-xl ft-table-wrap ft-sticky-head">
       <table class="table table-striped table-hover align-middle ft-table mb-0">
         <caption class="visually-hidden">My pilot groups</caption>
         <thead>

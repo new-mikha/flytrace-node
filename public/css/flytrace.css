@@ -11,6 +11,7 @@
   --ft-panel: rgba(255, 255, 255, 0.94);
   --ft-radius: 0.5rem;
   --ft-frame-width: 1200px;
+  --ft-nav-h: 3.7rem; /* height of the sticky menu bar */
 }
 
 body {
@@ -168,6 +169,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
      fraction of a pixel taller than the box, which turned the wrapper into a second vertical scroll container that
      caught trackpad scrolling before the page did. Only sideways scrolling is wanted here. */
   overflow-y: hidden;
+  position: relative; /* keeps the table's visually-hidden labels inside the wrapper: they are absolutely positioned and would otherwise widen the page */
   background: #fff;
   border: 1px solid #bae6fd;
   border-radius: 0.75rem;
@@ -193,6 +195,19 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 }
 
 .ft-table td { padding: 0.55rem 0.9rem; }
+
+/* A table that keeps its header in view while the page scrolls (my pilot groups). Where the table needs no sideways scrolling
+   (xl and wider, see `table-responsive-xl`) the wrapper only clips its rounded corners, so the header sticks to the page
+   under the menu bar and scrolls away with the end of its own table. A scroll container would break that, so narrower
+   screens, which scroll the table sideways, keep a plain header. */
+@media (min-width: 1200px) {
+  .ft-table-wrap.ft-sticky-head { overflow: clip; }
+  .ft-sticky-head thead { position: sticky; top: var(--ft-nav-h); z-index: 2; }
+}
+
+/* One line per task on screens that scroll sideways; wrapping where the table has to fit (xl and wider). */
+.ft-task-cell { white-space: nowrap; }
+@media (min-width: 1200px) { .ft-task-cell { white-space: normal; } }
 
 .ft-name-cell { min-width: 12rem; } /* a name wraps at spaces but never squeezes into a thin column; the table scrolls instead */
 
