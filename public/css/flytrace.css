@@ -194,6 +194,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 .ft-table td { padding: 0.55rem 0.9rem; }
 
+.ft-name-cell { min-width: 12rem; } /* a name wraps at spaces but never squeezes into a thin column; the table scrolls instead */
+
 .ft-wrap { overflow-wrap: anywhere; } /* very long group or owner names wrap instead of widening the table */
 
 .ft-group-link { color: #0369a1; text-decoration: none; }

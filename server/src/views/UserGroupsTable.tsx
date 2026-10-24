@@ -17,12 +17,8 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
   const age = group.newestCoordTs ? formatAge(group.newestCoordTs, now) : null;
   return (
     <tr>
-      <td class="fw-semibold ft-wrap">
-        {group.name}
-        {/* Narrow screens hide the Pilots and Views columns; show them here instead. */}
-        <div class="d-sm-none small fw-normal text-body-secondary">{group.trackers} pilots, {group.views} views</div>
-      </td>
-      <td class="text-end d-none d-sm-table-cell"><span class="badge rounded-pill ft-pilots">{group.trackers}</span></td>
+      <td class="fw-semibold ft-name-cell">{group.name}</td>
+      <td class="text-end"><span class="badge rounded-pill ft-pilots">{group.trackers}</span></td>
       <td class="text-nowrap">
         {group.newestCoordTs && (
           <>
@@ -31,9 +27,9 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
           </>
         )}
       </td>
-      {task && <td class="ft-wrap d-none d-md-table-cell"><TaskCell group={group} simple={task.simple} /></td>}
-      <td class="text-end d-none d-sm-table-cell">{group.views}</td>
-      {admin && <td class="text-end d-none d-md-table-cell">{group.updates}</td>}
+      {task && <td class="text-nowrap"><TaskCell group={group} simple={task.simple} /></td>}
+      <td class="text-end">{group.views}</td>
+      {admin && <td class="text-end">{group.updates}</td>}
       <td class="text-end text-nowrap">
         <a class="ft-group-link" href={`/map/${group.id}`} target="_blank" rel="noopener">
           Public map <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
@@ -43,7 +39,10 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
   );
 }
 
-/** The signed-in user's own groups, in the same table style as the public maps on the anonymous home page. */
+/**
+ * The signed-in user's own groups, in the same table style as the public maps on the anonymous home page. All columns
+ * stay on every screen: a narrow screen scrolls the table sideways (`table-responsive`) instead of squeezing it.
+ */
 export function UserGroupsTable({ list: { groups, showTask, simpleEvents }, now, admin }: { list: UserGroupsList; now: Date; admin: boolean }) {
   if (groups.length === 0) return <p class="text-muted">You don't have any pilot groups yet.</p>;
   const task = showTask ? { simple: simpleEvents } : null;
@@ -55,11 +54,11 @@ export function UserGroupsTable({ list: { groups, showTask, simpleEvents }, now,
         <thead>
           <tr>
             <th scope="col">Name</th>
-            <th scope="col" class="text-end d-none d-sm-table-cell">Pilots</th>
+            <th scope="col" class="text-end">Pilots</th>
             <th scope="col">Updated</th>
-            {task && <th scope="col" class="d-none d-md-table-cell">Task</th>}
-            <th scope="col" class="text-end d-none d-sm-table-cell">Views</th>
-            {admin && <th scope="col" class="text-end d-none d-md-table-cell">Updates</th>}
+            {task && <th scope="col">Task</th>}
+            <th scope="col" class="text-end">Views</th>
+            {admin && <th scope="col" class="text-end">Updates</th>}
             <th scope="col"><span class="visually-hidden">Links</span></th>
           </tr>
         </thead>
