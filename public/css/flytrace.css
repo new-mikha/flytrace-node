@@ -223,16 +223,16 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   font-weight: 600;
   background: #fff; /* opaque: the panel colour is slightly see-through and rows would ghost through the title */
 }
-[data-bs-theme="dark"] .ft-section-title { background: #111827; }
+@media (min-width: 768px) { [data-bs-theme="dark"] .ft-section-title { background: #111827; } }
 @media (max-width: 767.98px) {
   .ft-section-title {
     margin-inline: calc(-1 * var(--ft-pad-x));
     padding-inline: var(--ft-pad-x);
-    background: #e0f2fe;
-    border-block: 1px solid #bae6fd;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+    background: linear-gradient(90deg, var(--ft-sky), var(--ft-teal)); /* the colours of the table header that cards do not have */
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
   }
-  [data-bs-theme="dark"] .ft-section-title { background: #0c2d48; border-color: #0c4a6e; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); }
+  .ft-section-title .ft-heading-icon { color: #fff; }
 }
 .ft-section + .ft-section { margin-top: 1.5rem; }
 
