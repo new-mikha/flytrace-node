@@ -308,6 +308,14 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-cards .ft-card-task { order: 4; flex: 0 0 100%; }
 }
 
+/* Narrow cards (a phone held upright): the links share the whole width of the row, the first at the left edge, the last at
+   the right edge and, with three links, the middle one centred. */
+@media (max-width: 559.98px) {
+  .ft-cards .ft-card-link > a { flex: 1 1 0; text-align: center; }
+  .ft-cards .ft-card-link > a:first-child { text-align: left; }
+  .ft-cards .ft-card-link > a:last-child { text-align: right; }
+}
+
 /* One line per task on screens that scroll sideways; wrapping where the table has to fit (xl and wider). */
 .ft-task-cell { white-space: nowrap; }
 @media (min-width: 1200px) { .ft-task-cell { white-space: normal; } }
