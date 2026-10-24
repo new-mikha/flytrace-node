@@ -99,7 +99,9 @@ simulated client its own `remoteAddress`.
 
 ## Auth model
 
-- Server-side sessions (not JWT): cookie `flytrace.sid` = signed session id; data in the Postgres `sessions` table.
+- Server-side sessions (not JWT): cookie `flytrace.sid` = signed session id; data in the Postgres `sessions` table. The cookie
+  is Secure in production (`COOKIE_SECURE` in .env overrides): `@fastify/session` sends no cookie at all for a Secure cookie
+  over plain HTTP, so a production login only works behind HTTPS (the proxy must send `X-Forwarded-Proto`) or with `COOKIE_SECURE=false`.
 - Login accepts username or email (both unique, case-insensitive). Legacy hashes `flytrace1|...` are verified
   and upgraded to argon2id on first login. Roles come from `user_roles`, loaded from the DB on every request.
 - Registration rejects a username equal to another user's email (usernames cannot contain `@`, and a new email

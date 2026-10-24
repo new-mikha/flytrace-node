@@ -34,7 +34,7 @@ export async function registerSession(app: FastifyInstance, config: Config, pool
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: config.NODE_ENV === 'production',
+      secure: config.COOKIE_SECURE ?? config.NODE_ENV === 'production',
       maxAge: SEVEN_DAYS_MS,
     },
     rolling: true,

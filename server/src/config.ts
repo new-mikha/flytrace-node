@@ -12,6 +12,10 @@ function isTimeZone(name: string): boolean {
   try { new Intl.DateTimeFormat('en', { timeZone: name }); return true; } catch { return false; }
 }
 
+/** A true/false setting that may be left unset (unlike `flag`, there is no fallback to apply here). */
+const optionalFlag = z.preprocess((v) => (v === '' ? undefined : v), z.enum(['true', 'false', '1', '0']).optional())
+  .transform((v) => (v === undefined ? undefined : v === 'true' || v === '1'));
+
 const schema = z.object({
   DATABASE_URL: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -21,6 +25,10 @@ const schema = z.object({
   LOG_TIMEZONE: optional(z.string().refine(isTimeZone, 'must be a time zone name such as Europe/Berlin or UTC')),
   // Comma-separated usernames to skip when importing the legacy dump.
   LEGACY_EXCLUDE_USERS: z.string().default(''),
+
+  // Whether the session cookie is marked Secure (sent over HTTPS only). Default: yes in production, no otherwise. The session
+  // library does not send a Secure cookie at all over plain HTTP, so set false only to try the site over HTTP on a home network.
+  COOKIE_SECURE: optionalFlag,
 
   // Public address of the site, used for the links in emails (no trailing slash needed).
   PUBLIC_BASE_URL: optional(z.url()),
