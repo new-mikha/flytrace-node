@@ -8,7 +8,7 @@ function TaskCell({ group, simple }: { group: UserGroup; simple: boolean }) {
   if (!group.event) return <span class="text-body-secondary">{simple ? 'No' : 'none'}</span>;
   return (
     <span class={isEmptyTask(group) ? 'text-body-secondary' : undefined}>
-      {simple ? 'Yes' : `yes: ${group.event.name}`}{isEmptyTask(group) && ' ^'}
+      {simple ? 'Yes' : group.event.name}{isEmptyTask(group) && ' ^'}
     </span>
   );
 }

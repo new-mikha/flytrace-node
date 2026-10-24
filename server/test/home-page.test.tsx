@@ -182,8 +182,9 @@ describe('user home page (my pilot groups)', () => {
   it('names the event in the Task column in the multiple-events mode, and marks an empty task', () => {
     const html = render(user, mine, { showTask: true, simpleEvents: false });
     expect(html).toContain('>Task</th>');
-    expect(html).toContain('yes: Dalby 2024');
-    expect(html).toContain('yes: Empty one ^');
+    expect(html).toContain('>Dalby 2024</span>');
+    expect(html).not.toContain('yes: ');
+    expect(html).toContain('Empty one ^');
     expect(html).toContain('>none</span>');
     expect(html).toContain('^ The task is empty');
   });
