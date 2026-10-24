@@ -48,7 +48,7 @@ export function UserGroupsTable({ list: { groups, showTask, simpleEvents }, now,
   const task = showTask ? { simple: simpleEvents } : null;
   return (
     <>
-    <div class="table-responsive-xl ft-table-wrap ft-sticky-head">
+    <div class="table-responsive-xl ft-table-wrap ft-bleed ft-sticky-head">
       <table class="table table-striped table-hover align-middle ft-table mb-0">
         <caption class="visually-hidden">My pilot groups</caption>
         <thead>

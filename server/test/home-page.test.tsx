@@ -145,7 +145,7 @@ describe('user home page (my pilot groups)', () => {
     const html = render(user);
     expect(html).toContain('My pilot groups');
     expect(html).toContain('ft-table');
-    expect(html).toContain('table-responsive-xl ft-table-wrap ft-sticky-head'); // scrolls sideways below xl, sticky header from xl
+    expect(html).toContain('table-responsive-xl ft-table-wrap ft-bleed ft-sticky-head'); // scrolls sideways below xl, sticky header from xl
     expect(html).toContain('href="/map/7"');
     expect(html).toContain('href="/map/8"');
     expect(html).toContain('Thu 5 Mar 11:30 UTC');

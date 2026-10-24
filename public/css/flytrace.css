@@ -133,7 +133,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 .ft-jumbotron {
   background: var(--ft-panel);
-  padding: 1.5rem;
+  --ft-pad-x: 1.5rem; /* side padding, which a full-bleed table (.ft-bleed) cancels */
+  padding: 1.5rem var(--ft-pad-x);
   min-height: 12rem;
 }
 
@@ -142,7 +143,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 }
 
 @media (max-width: 575.98px) {
-  .ft-jumbotron { padding: 1rem 0.75rem; }
+  .ft-jumbotron { --ft-pad-x: 0.75rem; padding: 1rem var(--ft-pad-x); }
 }
 
 .ft-heading-icon { color: var(--ft-sky); margin-right: 0.35rem; }
@@ -195,6 +196,16 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 }
 
 .ft-table td { padding: 0.55rem 0.9rem; }
+
+/* On screens where the page is a plain full-width panel (below 768 px) a table box with .ft-bleed runs from edge to edge of
+   the screen instead of sitting inside the panel's side padding, and the table follows its width. */
+@media (max-width: 767.98px) {
+  .ft-table-wrap.ft-bleed {
+    margin-inline: calc(-1 * var(--ft-pad-x));
+    border-inline: 0;
+    border-radius: 0;
+  }
+}
 
 /* A table that keeps its header in view while the page scrolls (my pilot groups). Where the table needs no sideways scrolling
    (xl and wider, see `table-responsive-xl`) the wrapper only clips its rounded corners, so the header sticks to the page
