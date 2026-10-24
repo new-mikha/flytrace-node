@@ -70,8 +70,10 @@ interface PublicMapsProps {
 export function PublicMaps({ groups, total, showAll, now }: PublicMapsProps) {
   return (
     <>
-      <h5 class="mb-3"><i class="fa-solid fa-earth-europe ft-heading-icon" aria-hidden="true"></i> Public maps</h5>
-      <PublicGroupsTable groups={groups} total={total} now={now} />
+      <section class="ft-section">
+        <h5 class="ft-section-title"><i class="fa-solid fa-earth-europe ft-heading-icon" aria-hidden="true"></i> Public maps</h5>
+        <PublicGroupsTable groups={groups} total={total} now={now} />
+      </section>
       <MoreMaps showAll={showAll} total={total} shown={groups.length} />
     </>
   );

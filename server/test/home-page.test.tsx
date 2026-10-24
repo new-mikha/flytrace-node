@@ -55,6 +55,14 @@ describe('home page (anonymous)', () => {
     expect(html).toContain('Thu 5 Mar 11:30 UTC');
   });
 
+  it('is a card list on phones with a sticky title and header, like the signed-in table', () => {
+    expect(html).toContain('table-responsive-xl ft-table-wrap ft-sticky-head');
+    expect(html).toContain('ft-cards');
+    expect(html).toContain('ft-section-title');
+    for (const label of ['Owner', 'Pilots', 'Views']) expect(html).toContain(`data-label="${label}"`);
+    expect(html).not.toContain('d-md-table-cell'); // no hidden columns: the table scrolls instead
+  });
+
   it('highlights the age only for positions less than a day old', () => {
     expect(html).toContain('30 min ago');
     expect(html).not.toContain('4 d 2 hr');
