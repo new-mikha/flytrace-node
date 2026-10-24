@@ -454,34 +454,9 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   }
 }
 
-/* The menu bar follows the theme: light on the day theme, the dark navy gradient on the night theme (the markup keeps
-   Bootstrap's navbar-dark, which makes everything white; these rules turn it dark-on-light for the day theme). */
+/* The menu bar follows the theme: a mid blue on the day theme (lighter than the night bar, darker than the white card), the dark
+   navy gradient on the night theme. Text stays white in both, so only the background differs. */
 [data-bs-theme="light"] .ft-navbar {
-  --bs-navbar-color: rgba(15, 23, 42, 0.75);
-  --bs-navbar-hover-color: var(--ft-navy);
-  --bs-navbar-active-color: var(--ft-navy);
-  --bs-navbar-brand-color: var(--ft-navy);
-  --bs-navbar-brand-hover-color: var(--ft-navy);
-  --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2815, 23, 42, 0.75%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-  background: linear-gradient(90deg, #ffffff, #e0f2fe);
-  border-bottom: 1px solid #bae6fd;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
-}
-[data-bs-theme="light"] .ft-toggler { border-color: rgba(15, 23, 42, 0.3); }
-[data-bs-theme="light"] .ft-toggler-text { color: rgba(15, 23, 42, 0.85); }
-[data-bs-theme="light"] .ft-toggler-text:hover,
-[data-bs-theme="light"] .ft-more-inline .nav-link:hover,
-[data-bs-theme="light"] .ft-switch:hover { color: var(--ft-navy); }
-[data-bs-theme="light"] .ft-more-inline .nav-link,
-[data-bs-theme="light"] .ft-switch { color: rgba(15, 23, 42, 0.8); }
-[data-bs-theme="light"] .ft-menu-heading { color: rgba(15, 23, 42, 0.55); }
-[data-bs-theme="light"] .ft-navbar .btn-outline-light {
-  --bs-btn-color: var(--ft-navy);
-  --bs-btn-border-color: rgba(15, 23, 42, 0.4);
-  --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: var(--ft-navy);
-  --bs-btn-hover-border-color: var(--ft-navy);
-  --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: var(--ft-navy);
-  --bs-btn-active-border-color: var(--ft-navy);
+  background: linear-gradient(90deg, #2f5d8f, #3f78b0);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
 }
