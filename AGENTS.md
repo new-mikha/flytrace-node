@@ -37,6 +37,9 @@ TypeScript (ESM, strict), Fastify 5, plain `pg` SQL (no ORM), vitest, Postgres 1
 - `npm run build` compiles into `dist/` and copies the migrations and the import SQL next to it. `scripts/deploy.sh user@host` builds and
   copies `dist/`, `public/`, `package.json` and `package-lock.json` to the server (home Raspberry Pi); the server keeps its `.env`,
   `node_modules` and database. There, `node dist/db/migrate.js` applies migrations and `node dist/server/src/index.js` starts the app.
+  The app runs there as the systemd service `flytrace` (`deploy/flytrace.service`, installed once by `scripts/setup-service.sh user@host`,
+  which also allows passwordless `sudo systemctl restart flytrace` only). `scripts/deploy.sh` runs `npm ci --omit=dev` on the server when
+  `package-lock.json` changed, restarts the service and fails unless the home page answers 200 within 30 seconds.
 
 UI: pages are server-rendered with Preact JSX (`server/src/views/*.tsx`, `preact-render-to-string`; Preact escapes
 text and attributes by default, so avoid `dangerouslySetInnerHTML` for user data), styled with Bootstrap 5 CSS and

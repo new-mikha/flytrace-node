@@ -1,0 +1,20 @@
+# systemd unit for Flytrace; scripts/setup-service.sh fills in the @...@ values and installs it.
+[Unit]
+Description=Flytrace
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+User=@USER@
+WorkingDirectory=@DIR@
+# The app reads its settings from the .env in WorkingDirectory.
+ExecStart=@NODE@ dist/server/src/index.js
+Restart=always
+RestartSec=3
+# The app shuts down cleanly on SIGTERM; give it a moment before systemd gives up.
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
