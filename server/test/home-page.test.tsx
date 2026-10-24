@@ -162,6 +162,15 @@ describe('user home page (my pilot groups)', () => {
     expect(html).toContain('30 min ago');
   });
 
+  it('offers Edit and Delete next to the public map link of each group', () => {
+    const html = render(user);
+    for (const id of [7, 8, 9]) {
+      expect(html).toContain(`href="/groups/${id}">Edit</a>`);
+      expect(html).toContain(`href="/groups/${id}/delete">Delete</a>`);
+    }
+    expect(html.indexOf('/groups/7">Edit')).toBeLessThan(html.indexOf('/map/7'));
+  });
+
   it('labels the cells that need a label on a card (phones), and only those', () => {
     const html = render({ ...user, roles: ['Admins'] }, mine, { showTask: true, simpleEvents: false });
     expect(html).toContain('ft-cards');
@@ -235,6 +244,14 @@ describe('user home page: my events', () => {
     expect(html).toContain('2024 *');
     expect(html).toContain('* New pilot groups use this event by default.');
     expect(html).not.toContain('<i>Dalby');
+  });
+
+  it('offers Edit and Delete for each event', () => {
+    const html = render(events);
+    for (const id of [1, 2]) {
+      expect(html).toContain(`href="/events/${id}">Edit</a>`);
+      expect(html).toContain(`href="/events/${id}/delete">Delete</a>`);
+    }
   });
 
   it('says so when there are no events, and has no default note', () => {

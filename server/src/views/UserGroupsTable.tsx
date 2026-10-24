@@ -30,7 +30,9 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
       {task && <td class={`ft-task-cell ft-card-task${group.event ? '' : ' ft-card-hide'}`} data-label="Task"><TaskCell group={group} simple={task.simple} /></td>}
       <td class="text-end ft-card-stat" data-label="Views">{group.views}</td>
       {admin && <td class="text-end ft-card-stat" data-label="Updates">{group.updates}</td>}
-      <td class="text-end text-nowrap ft-card-link">
+      <td class="text-end text-nowrap ft-card-link ft-actions">
+        <a class="ft-group-link" href={`/groups/${group.id}`}>Edit</a>
+        <a class="ft-danger-link" href={`/groups/${group.id}/delete`}>Delete</a>
         <a class="ft-group-link" href={`/map/${group.id}`} target="_blank" rel="noopener">
           Public map <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
         </a>
@@ -60,7 +62,7 @@ export function UserGroupsTable({ list: { groups, showTask, simpleEvents }, now,
             {task && <th scope="col">Task</th>}
             <th scope="col" class="text-end">Views</th>
             {admin && <th scope="col" class="text-end">Updates</th>}
-            <th scope="col"><span class="visually-hidden">Links</span></th>
+            <th scope="col"><span class="visually-hidden">Actions</span></th>
           </tr>
         </thead>
         <tbody>

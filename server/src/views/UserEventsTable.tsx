@@ -5,6 +5,10 @@ function Row({ event }: { event: UserEvent }) {
     <tr>
       <td class={`ft-name-cell ft-card-full ${event.isDefault ? 'fw-bold' : 'fw-semibold'}`}>{event.name}{event.isDefault && ' *'}</td>
       <td class="text-end ft-card-stat" data-label="Waypoints">{event.waypoints}</td>
+      <td class="text-end text-nowrap ft-card-link ft-actions">
+        <a class="ft-group-link" href={`/events/${event.id}`}>Edit</a>
+        <a class="ft-danger-link" href={`/events/${event.id}/delete`}>Delete</a>
+      </td>
     </tr>
   );
 }
@@ -21,6 +25,7 @@ export function UserEventsTable({ list: { events } }: { list: UserEventsList }) 
           <tr>
             <th scope="col">Event</th>
             <th scope="col" class="text-end">Waypoints</th>
+            <th scope="col"><span class="visually-hidden">Actions</span></th>
           </tr>
         </thead>
         <tbody>
