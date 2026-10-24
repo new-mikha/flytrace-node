@@ -15,6 +15,17 @@ import { identityRoutes } from './routes/identity.tsx';
 import { pageRoutes } from './routes/pages.ts';
 import { themeOf, themeRoutes } from './routes/theme.ts';
 
+/** Production log times: ISO 8601 in the process's time zone with its offset (pino's default is epoch milliseconds). */
+function localIsoTime(): string {
+  const d = new Date();
+  const p = (n: number, width = 2) => String(n).padStart(width, '0');
+  const offset = -d.getTimezoneOffset();
+  const sign = offset < 0 ? '-' : '+';
+  const date = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  const time = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(d.getMilliseconds(), 3)}`;
+  return `,"time":"${date}T${time}${sign}${p(Math.floor(Math.abs(offset) / 60))}:${p(Math.abs(offset) % 60)}"`;
+}
+
 /**
  * `mailer` can be replaced (tests capture the messages); by default it comes from the SMTP_* settings.
  * `logStream` makes the app write its JSON log lines there (tests read them).
@@ -24,9 +35,9 @@ export async function buildApp(config: Config, pool: Pool, mailer?: Mailer, logS
     // JSON lines in production (for log tools), readable lines in development, nothing in tests.
     logger: logStream ? { level: 'info', stream: logStream }
       : config.NODE_ENV === 'test' ? false
-      : config.NODE_ENV === 'production' ? true
+      : config.NODE_ENV === 'production' ? { level: 'info', timestamp: localIsoTime }
       : { transport: { target: 'pino-pretty', options: {
-        translateTime: 'HH:MM:ss',
+        translateTime: 'SYS:HH:MM:ss', // SYS: = the process's time zone (LOG_TIMEZONE, else the host's), not UTC
         // messages are written to be read on their own; the fields stay in the JSON logs of production
         ignore: 'pid,hostname,reqId,event,user,userId,to,subject,action,ip',
         messageFormat: '{msg}{if user} [{user}]{end}',

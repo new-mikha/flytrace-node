@@ -8,11 +8,17 @@ const flag = (fallback: boolean) =>
   z.preprocess((v) => (v === '' || v === undefined ? undefined : v), z.enum(['true', 'false', '1', '0']).optional())
     .transform((v) => (v === undefined ? fallback : v === 'true' || v === '1'));
 
+function isTimeZone(name: string): boolean {
+  try { new Intl.DateTimeFormat('en', { timeZone: name }); return true; } catch { return false; }
+}
+
 const schema = z.object({
   DATABASE_URL: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(3000),
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  // Time zone for log times and any other local-time output, e.g. Europe/Berlin. Unset: the host's time zone.
+  LOG_TIMEZONE: optional(z.string().refine(isTimeZone, 'must be a time zone name such as Europe/Berlin or UTC')),
   // Comma-separated usernames to skip when importing the legacy dump.
   LEGACY_EXCLUDE_USERS: z.string().default(''),
 
