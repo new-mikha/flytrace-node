@@ -312,7 +312,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
    the right edge and, with three links, the middle one centred. */
 @media (max-width: 559.98px) {
   .ft-cards .ft-card-link > a { flex: 1 1 0; text-align: center; }
-  .ft-cards .ft-card-link > a:first-child { text-align: left; }
+  .ft-cards .ft-card-link > a:first-child { text-align: left; padding-left: 0.6rem; } /* a small indent, so Edit does not sit on the card edge */
   .ft-cards .ft-card-link > a:last-child { text-align: right; }
 }
 
