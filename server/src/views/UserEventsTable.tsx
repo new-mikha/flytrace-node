@@ -2,9 +2,9 @@ import type { UserEvent, UserEventsList } from '../repo/events.ts';
 
 function Row({ event }: { event: UserEvent }) {
   return (
-    <tr>
-      <td class={`ft-name-cell ft-card-full ${event.isDefault ? 'fw-bold' : 'fw-semibold'}`}>{event.name}{event.isDefault && ' *'}</td>
-      <td class="text-end ft-card-stat" data-label="Waypoints">{event.waypoints}</td>
+    <tr class={event.isDefault ? 'ft-default' : undefined}>
+      <td class={`ft-name-cell ft-card-full ${event.isDefault ? 'fw-bold' : 'fw-semibold'}`}>{event.isDefault && '* '}{event.name}</td>
+      <td class="text-end ft-card-full" data-label="Waypoints">{event.waypoints}</td>
       <td class="text-end text-nowrap ft-card-link ft-actions">
         <a class="ft-group-link" href={`/events/${event.id}`}>Edit</a>
         <a class="ft-danger-link" href={`/events/${event.id}/delete`}>Delete</a>

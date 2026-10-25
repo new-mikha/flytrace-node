@@ -241,7 +241,8 @@ describe('user home page: my events', () => {
     expect(html).toContain('>Event</th>');
     expect(html).toContain('data-label="Waypoints"');
     expect(html).toContain('Quiet');
-    expect(html).toContain('2024 *');
+    expect(html).toContain('* &lt;i>Dalby&lt;/i> 2024');
+    expect(html.match(/ft-default/g)).toHaveLength(1); // only the default event is highlighted
     expect(html).toContain('* New pilot groups use this event by default.');
     expect(html).not.toContain('<i>Dalby');
   });

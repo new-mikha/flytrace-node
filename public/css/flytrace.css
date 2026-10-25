@@ -316,6 +316,16 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-cards .ft-card-link > a:last-child { text-align: right; }
 }
 
+/* The default event: a soft warm tint on its row (table) or card, which beats the stripes. */
+.ft-default { --bs-table-bg: #fff6d6; --bs-table-striped-bg: #fff6d6; --bs-table-hover-bg: #fff0b8; }
+@media (max-width: 1199.98px) {
+  .ft-cards tr.ft-default, .ft-cards tr.ft-default:nth-child(odd) { background: #fff6d6; border-color: #f0d780; }
+}
+[data-bs-theme="dark"] .ft-default { --bs-table-bg: #2b2812; --bs-table-striped-bg: #2b2812; --bs-table-hover-bg: #3a2f0a; }
+@media (max-width: 1199.98px) {
+  [data-bs-theme="dark"] .ft-cards tr.ft-default, [data-bs-theme="dark"] .ft-cards tr.ft-default:nth-child(odd) { background: #2b2812; border-color: #6b5a1a; }
+}
+
 /* One line per task on screens that scroll sideways; wrapping where the table has to fit (xl and wider). */
 .ft-task-cell { white-space: nowrap; }
 @media (min-width: 1200px) { .ft-task-cell { white-space: normal; } }
