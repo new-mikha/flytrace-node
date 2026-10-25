@@ -175,21 +175,23 @@ function LogoutForm() {
 }
 
 /**
- * The signed-in controls, in the same order on wide screens (the right end of the bar) and in the phone menu: day / night
- * switch, the user name (plain text), Settings, Log out.
+ * The signed-in controls at the right end of the bar (and in the phone menu, same order): day / night switch, Settings, then the
+ * user name (plain text) with Log out. The user name and Log out share a line, also on phones; a long name wraps inside its own space.
  */
 function UserMenu({ user, path }: { user: CurrentUser; path: string }) {
   const inSettings = path === '/settings' || path.startsWith('/settings/') || path === '/account' || path.startsWith('/account/');
   return (
     <ul class="navbar-nav ms-lg-auto align-items-lg-center ft-user-nav">
       <li class="nav-item px-lg-2 py-2 py-lg-0"><ThemeSwitch path={path} /></li>
-      <li class="nav-item"><span class="navbar-text ft-user"><i class="fa-regular fa-user fa-fw" aria-hidden="true"></i> {user.username}</span></li>
       <li class="nav-item">
         <a class={`nav-link${inSettings ? ' active' : ''}`} href="/settings" aria-current={inSettings ? 'page' : undefined}>
           <i class="fa-solid fa-gear fa-fw" aria-hidden="true"></i> Settings
         </a>
       </li>
-      <li class="nav-item"><LogoutForm /></li>
+      <li class="nav-item ft-user-line">
+        <span class="navbar-text ft-user"><i class="fa-regular fa-user fa-fw" aria-hidden="true"></i><span class="ft-user-name">{user.username}</span></span>
+        <LogoutForm />
+      </li>
     </ul>
   );
 }
@@ -201,11 +203,12 @@ function UserNav({ user, path }: { user: CurrentUser; path: string }) {
         <Brand />
         <Toggler />
         <div class="collapse navbar-collapse" id="navMain">
-          {user.roles.includes('Admins') && (
-            <ul class="navbar-nav me-lg-3">
+          <ul class="navbar-nav me-lg-3">
+            <li class="nav-item"><a {...navLink(path.split('?')[0]!, '/')} href="/">Home</a></li>
+            {user.roles.includes('Admins') && (
               <li class="nav-item"><a {...navLink(path, '/admin')} href="/admin">Admin</a></li>
-            </ul>
-          )}
+            )}
+          </ul>
           <UserMenu user={user} path={path} />
         </div>
       </div>

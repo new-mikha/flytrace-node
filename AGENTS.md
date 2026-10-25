@@ -63,8 +63,8 @@ simulated client its own `remoteAddress`.
   card on the faded map background with a gap under the menu. Below 768 px the card merges into the plain full-width
   panel. Pages using the older `legacyPage` template are still plain panels.
 - The menu bar is a mid blue on the day theme and dark navy on the night theme, white text on both (rule at the end of `flytrace.css`). It is sticky; an open burger menu closes when the page is scrolled (`app.js`). Logged-out visitors get a text toggle "Log in, Register, etc" on small screens, logged-in
-  users the burger icon. Signed in, the right end of the bar (and the phone menu, same order) is: day/night switch, the user name as plain
-  text, Settings, Log out.
+  users the burger icon. Signed in, the bar has Home (and Admin for admins) after the brand; its right end (and the phone menu, same order)
+  is: day/night switch, Settings, then the user name as plain text with Log out on the same line (a long name wraps).
 - `public/js/app.js` shows a spinner and disables only `.btn` elements (never plain links), plus the loading bar at
   the top; a new click cancels the pending navigation, a form POST is never cancelled.
 - Day / night theme: the `ft-theme` cookie (`dark`, anything else means day; day is the default whatever the browser

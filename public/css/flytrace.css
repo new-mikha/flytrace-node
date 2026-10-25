@@ -506,9 +506,11 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 [data-bs-theme="dark"] .ft-table thead tr { background: linear-gradient(90deg, var(--ft-sky-dark), var(--ft-teal-dark)); }
 
 /* Signed-in controls in the bar: switch, user name, Settings, Log out (same order in the phone menu). */
-.ft-user { display: inline-block; padding-block: 0.5rem; }
-.ft-logout { width: 100%; text-align: left; }
-@media (min-width: 992px) { .ft-logout { width: auto; } }
+.ft-user-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; column-gap: 1rem; }
+.ft-user { flex: 1 1 0; min-width: 8rem; padding-block: 0.5rem; display: flex; align-items: baseline; gap: 0.25rem; }
+.ft-user-name { min-width: 0; overflow-wrap: anywhere; } /* a long name wraps in its own space, the icon stays at its first line */
+.ft-logout { white-space: nowrap; }
+@media (min-width: 992px) { .ft-user-line { flex-wrap: nowrap; justify-content: flex-start; } .ft-user { flex: 0 1 auto; min-width: 0; } }
 @media (max-width: 991.98px) { .ft-user-nav { padding-bottom: 0.5rem; } }
 
 /* ---- settings (account and website preferences) ----
