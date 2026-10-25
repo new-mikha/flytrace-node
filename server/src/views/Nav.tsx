@@ -1,5 +1,4 @@
 import type { CurrentUser } from '../auth/service.ts';
-import { ACCOUNT_SECTIONS } from './accountSections.ts';
 
 interface NavProps {
   user: CurrentUser | null;
@@ -166,53 +165,32 @@ function AnonymousNav({ path }: { path: string }) {
   );
 }
 
-function LogoutForm({ className, buttonClass }: { className?: string; buttonClass: string }) {
+/** "Log out" as a menu link (a form, because logging out is a POST). */
+function LogoutForm() {
   return (
-    <form class={className} method="post" action="/logout">
-      <button class={buttonClass} type="submit"><i class="fa-solid fa-right-from-bracket fa-fw" aria-hidden="true"></i> Log out</button>
+    <form method="post" action="/logout">
+      <button class="nav-link ft-logout" type="submit"><i class="fa-solid fa-right-from-bracket fa-fw" aria-hidden="true"></i> Log out</button>
     </form>
   );
 }
 
-/** "<username> v": the account pages and Log out. A drop-down on wide screens, listed in the opened menu on phones. */
+/**
+ * The signed-in controls, in the same order on wide screens (the right end of the bar) and in the phone menu: day / night
+ * switch, the user name (plain text), Settings, Log out.
+ */
 function UserMenu({ user, path }: { user: CurrentUser; path: string }) {
-  const here = path === '/account' || path.startsWith('/account/');
+  const inSettings = path === '/settings' || path.startsWith('/settings/') || path === '/account' || path.startsWith('/account/');
   return (
-    <>
-      <ThemeButton path={path} />
-      <ul class="navbar-nav d-none d-lg-flex">
-        <li class="nav-item dropdown">
-          <a class={`nav-link dropdown-toggle${here ? ' active' : ''}`} href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fa-regular fa-user" aria-hidden="true"></i> {user.username}
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            {ACCOUNT_SECTIONS.map((s) => (
-              <li><a class={`dropdown-item${path === s.href ? ' active' : ''}`} href={s.href}>
-                <i class={`${s.icon} fa-fw`} aria-hidden="true"></i> {s.label}
-              </a></li>
-            ))}
-            <li><hr class="dropdown-divider" /></li>
-            <li><LogoutForm buttonClass="dropdown-item" /></li>
-          </ul>
-        </li>
-      </ul>
-      <div class="d-lg-none ft-more-inline">
-        <hr class="border-light opacity-25 my-2" />
-        <div class="navbar-nav">
-          <div class="nav-link py-2"><ThemeSwitch path={path} /></div>
-        </div>
-        <hr class="border-light opacity-25 my-2" />
-        <div class="ft-menu-heading ft-menu-user"><i class="fa-regular fa-user" aria-hidden="true"></i> {user.username}</div>
-        <div class="navbar-nav">
-          {ACCOUNT_SECTIONS.map((s) => (
-            <a {...navLink(path, s.href)} class={`nav-link py-2 ps-3${path === s.href ? ' active' : ''}`} href={s.href}>
-              <i class={`${s.icon} fa-fw`} aria-hidden="true"></i> {s.label}
-            </a>
-          ))}
-        </div>
-        <LogoutForm className="mt-2 mb-1" buttonClass="btn btn-outline-light btn-sm" />
-      </div>
-    </>
+    <ul class="navbar-nav ms-lg-auto align-items-lg-center ft-user-nav">
+      <li class="nav-item px-lg-2 py-2 py-lg-0"><ThemeSwitch path={path} /></li>
+      <li class="nav-item"><span class="navbar-text ft-user"><i class="fa-regular fa-user fa-fw" aria-hidden="true"></i> {user.username}</span></li>
+      <li class="nav-item">
+        <a class={`nav-link${inSettings ? ' active' : ''}`} href="/settings" aria-current={inSettings ? 'page' : undefined}>
+          <i class="fa-solid fa-gear fa-fw" aria-hidden="true"></i> Settings
+        </a>
+      </li>
+      <li class="nav-item"><LogoutForm /></li>
+    </ul>
   );
 }
 
@@ -223,12 +201,11 @@ function UserNav({ user, path }: { user: CurrentUser; path: string }) {
         <Brand />
         <Toggler />
         <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item"><a {...navLink(path, '/settings')} href="/settings">Settings</a></li>
-            {user.roles.includes('Admins') && (
+          {user.roles.includes('Admins') && (
+            <ul class="navbar-nav me-lg-3">
               <li class="nav-item"><a {...navLink(path, '/admin')} href="/admin">Admin</a></li>
-            )}
-          </ul>
+            </ul>
+          )}
           <UserMenu user={user} path={path} />
         </div>
       </div>

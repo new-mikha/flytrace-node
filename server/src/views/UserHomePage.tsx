@@ -15,7 +15,7 @@ export function UserHomePage({ user, path, list, events, now }: { user: CurrentU
       </section>
       {!events.show && (
         <p class="small text-body-secondary mt-3 mb-0">
-          Events: choose Multiple Events Mode in <a href="/settings">Settings</a> to manage several events.
+          Events: choose Multiple Events Mode in <a href="/settings/events-mode">Settings</a> to manage several events.
         </p>
       )}
       {events.show && (

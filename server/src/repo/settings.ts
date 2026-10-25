@@ -4,7 +4,7 @@ import type { Pool } from '../db.ts';
 export interface UserSettings {
   /** `single`: one default event ("Today Task"); `multiple`: many events. */
   eventsMode: 'single' | 'multiple';
-  /** How maps show altitude: not at all, in feet or in meters. */
+  /** How maps show altitude: not at all, in feet or in kilometers (the legacy name of the metric choice is "Meters", stored as `m`, but the map shows km). */
   altitude: 'none' | 'ft' | 'm';
   /** Whether a new group shows or hides owner-defined messages. */
   messagesByDefault: 'show' | 'hide';
@@ -37,9 +37,10 @@ export async function saveSettings(pool: Pool, userId: string, s: UserSettings):
   );
 }
 
-/** The submitted form as settings, or null when a value is not one of the offered choices. */
-export function parseSettings(f: { eventsMode: string; altitude: string; messagesByDefault: string }): UserSettings | null {
-  if (!['single', 'multiple'].includes(f.eventsMode) || !['none', 'ft', 'm'].includes(f.altitude)
-      || !['show', 'hide'].includes(f.messagesByDefault)) return null;
-  return f as UserSettings;
+/** The submitted value of one setting, or null when it is not one of the offered choices. */
+export function parseSetting<K extends keyof UserSettings>(key: K, value: string): UserSettings[K] | null {
+  const choices: { [P in keyof UserSettings]: readonly string[] } = {
+    eventsMode: ['single', 'multiple'], altitude: ['none', 'ft', 'm'], messagesByDefault: ['show', 'hide'],
+  };
+  return choices[key].includes(value) ? (value as UserSettings[K]) : null;
 }

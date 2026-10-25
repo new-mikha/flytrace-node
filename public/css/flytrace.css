@@ -505,6 +505,30 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 [data-bs-theme="dark"] .ft-table thead tr { background: linear-gradient(90deg, var(--ft-sky-dark), var(--ft-teal-dark)); }
 
-/* Settings page: each group of options has a title with a thin accent line under it. */
-.ft-settings-title { padding-bottom: 0.3rem; margin-bottom: 0.6rem; border-bottom: 2px solid #bae6fd; font-weight: 600; }
-[data-bs-theme="dark"] .ft-settings-title { border-bottom-color: #0c4a6e; }
+/* Signed-in controls in the bar: switch, user name, Settings, Log out (same order in the phone menu). */
+.ft-user { display: inline-block; padding-block: 0.5rem; }
+.ft-logout { width: 100%; text-align: left; }
+@media (min-width: 992px) { .ft-logout { width: auto; } }
+@media (max-width: 991.98px) { .ft-user-nav { padding-bottom: 0.5rem; } }
+
+/* ---- settings (account and website preferences) ----
+   Wide screens: the list of all settings at the left, the page at the right. Phones: /settings is the list alone (label,
+   description, current value, chevron: one tap opens a page), and a page is shown alone with a link back to the list. */
+.ft-settings { display: grid; gap: 1.25rem; }
+@media (min-width: 768px) { .ft-settings { grid-template-columns: 15rem minmax(0, 1fr); gap: 2rem; } }
+.ft-settings-pane { max-width: 40rem; }
+.ft-settings-group + .ft-settings-group { margin-top: 1.25rem; }
+.ft-settings-group-title {
+  margin: 0 0 0.4rem 0.25rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #0369a1;
+}
+.ft-settings-list .list-group-item { display: flex; align-items: center; gap: 0.75rem; }
+.ft-settings-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.ft-settings-desc { font-size: 0.85rem; color: var(--bs-secondary-color); }
+.ft-settings-value { color: #0369a1; white-space: nowrap; }
+.ft-settings-chevron { color: var(--bs-secondary-color); }
+.ft-settings-back { display: inline-block; margin-bottom: 0.75rem; text-decoration: none; color: #0369a1; }
+@media (max-width: 767.98px) {
+  .ft-settings-list .list-group-item { padding: 0.8rem 1rem; }
+  .ft-settings-label { font-size: 1.05rem; }
+}
+[data-bs-theme="dark"] .ft-settings-group-title, [data-bs-theme="dark"] .ft-settings-value, [data-bs-theme="dark"] .ft-settings-back { color: #7dd3fc; }

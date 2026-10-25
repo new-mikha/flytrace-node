@@ -35,60 +35,89 @@ afterAll(async () => {
   await app.close(); // also ends the pool
 });
 
-const post = (payload: Record<string, string>) =>
-  app.inject({ method: 'POST', url: '/settings', remoteAddress: ip, cookies, headers: FORM, payload: new URLSearchParams(payload).toString() });
+const post = (url: string, payload: Record<string, string>) =>
+  app.inject({ method: 'POST', url, remoteAddress: ip, cookies, headers: FORM, payload: new URLSearchParams(payload).toString() });
 
-describe('settings page', () => {
-  it('needs a login', async () => {
-    const res = await app.inject({ url: '/settings' });
-    expect(res.statusCode).toBe(302);
-    expect(res.headers.location).toBe('/login?returnUrl=%2Fsettings');
-    expect((await app.inject({ method: 'POST', url: '/settings', payload: 'eventsMode=multiple' , headers: FORM })).statusCode).toBe(302);
+describe('settings', () => {
+  it('need a login', async () => {
+    for (const url of ['/settings', '/settings/events-mode', '/settings/altitude', '/settings/messages']) {
+      const res = await app.inject({ url });
+      expect(res.statusCode).toBe(302);
+      expect(res.headers.location).toBe(`/login?returnUrl=${encodeURIComponent(url)}`);
+    }
+    expect((await app.inject({ method: 'POST', url: '/settings/altitude', payload: 'altitude=m', headers: FORM })).statusCode).toBe(302);
   });
 
-  it('shows the defaults for a new user, and a Settings link in the menu', async () => {
+  it('list every page in two groups, with the current values for phones', async () => {
     const res = await app.inject({ url: '/settings', cookies });
     expect(res.statusCode).toBe(200);
-    expect(res.body).toContain('Save settings');
-    expect(res.body).toMatch(/value="single"[^>]*checked/);
-    expect(res.body).toMatch(/value="none"[^>]*checked/);
-    expect(res.body).toMatch(/value="show"[^>]*checked/);
-    expect(res.body).toContain('href="/settings"');
+    for (const href of ['/account', '/account/email', '/account/password', '/account/2fa', '/account/personal-data',
+      '/settings/events-mode', '/settings/altitude', '/settings/messages']) expect(res.body).toContain(`href="${href}"`);
+    expect(res.body).toContain('>Account</h2>');
+    expect(res.body).toContain('>Website</h2>');
+    expect(res.body).toContain('>Single</span>');
+    expect(res.body).toContain('>Off</span>');
+    expect(res.body).toContain('>Show</span>');
   });
 
-  it('saves all three settings, shows them again', async () => {
-    const res = await post({ eventsMode: 'multiple', altitude: 'm', messagesByDefault: 'hide' });
+  it('are linked from the bar as plain user name, Settings and Log out (no drop-down)', async () => {
+    const res = await app.inject({ url: '/settings', cookies });
+    expect(res.body).toMatch(/class="nav-link active" href="\/settings"/);
+    expect(res.body).toContain('Log out');
+    expect(res.body).toContain(USER);
+    expect(res.body).not.toContain('dropdown-menu');
+  });
+
+  it('show the same list at the left of the account pages', async () => {
+    const res = await app.inject({ url: '/account/password', cookies });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toContain('href="/settings/altitude"');
+    expect(res.body).toMatch(/list-group-item list-group-item-action active" href="\/account\/password"/);
+    expect(res.body).toContain('href="/settings"'); // the way back on phones
+  });
+
+  it('show the defaults on a new user\'s preference pages', async () => {
+    expect((await app.inject({ url: '/settings/events-mode', cookies })).body).toMatch(/value="single"[^>]*checked/);
+    const altitude = await app.inject({ url: '/settings/altitude', cookies });
+    expect(altitude.body).toMatch(/value="none"[^>]*checked/);
+    expect(altitude.body).toContain('Show altitude in kilometers');
+    expect((await app.inject({ url: '/settings/messages', cookies })).body).toMatch(/value="show"[^>]*checked/);
+  });
+
+  it('save one preference at a time and leave the others alone', async () => {
+    let res = await post('/settings/events-mode', { eventsMode: 'multiple' });
     expect(res.statusCode).toBe(302);
-    expect(res.headers.location).toBe('/settings');
+    expect(res.headers.location).toBe('/settings/events-mode');
+    expect((await app.inject({ url: '/settings/events-mode', cookies })).body).toContain('Saved.');
+    res = await post('/settings/altitude', { altitude: 'm' });
+    expect(res.headers.location).toBe('/settings/altitude');
+    res = await post('/settings/messages', { messagesByDefault: 'hide' });
+    expect(res.headers.location).toBe('/settings/messages');
     expect(await getSettings(pool, userId)).toEqual({ eventsMode: 'multiple', altitude: 'm', messagesByDefault: 'hide' });
-    const page = await app.inject({ url: '/settings', cookies });
-    expect(page.body).toContain('Settings saved.');
-    expect(page.body).toMatch(/value="multiple"[^>]*checked/);
-    expect(page.body).toMatch(/value="m"[^>]*checked/);
-    expect(page.body).toMatch(/value="hide"[^>]*checked/);
+    expect((await post('/settings/altitude', { altitude: 'none' })).statusCode).toBe(302);
+    expect(await getSettings(pool, userId)).toEqual({ eventsMode: 'multiple', altitude: 'none', messagesByDefault: 'hide' });
+    const index = await app.inject({ url: '/settings', cookies });
+    expect(index.body).toContain('>Multiple</span>');
+    expect(index.body).toContain('>Hide</span>');
   });
 
-  it('changes an existing profile and can switch altitude off again', async () => {
-    expect((await post({ eventsMode: 'single', altitude: 'none', messagesByDefault: 'show' })).statusCode).toBe(302);
-    expect(await getSettings(pool, userId)).toEqual({ eventsMode: 'single', altitude: 'none', messagesByDefault: 'show' });
-    expect((await post({ eventsMode: 'single', altitude: 'ft', messagesByDefault: 'show' })).statusCode).toBe(302);
+  it('reject a value that is not one of the choices and keep the saved settings', async () => {
+    await post('/settings/altitude', { altitude: 'ft' });
+    for (const [url, fields] of [['/settings/altitude', { altitude: 'km' }], ['/settings/events-mode', { eventsMode: 'many' }],
+      ['/settings/messages', {}]] as const) {
+      const res = await post(url, fields);
+      expect(res.statusCode).toBe(422);
+      expect(res.body).toContain('Please choose one of the options.');
+    }
     expect((await getSettings(pool, userId)).altitude).toBe('ft');
   });
 
-  it('rejects a value that is not one of the choices and keeps the saved settings', async () => {
-    const res = await post({ eventsMode: 'many', altitude: 'km', messagesByDefault: 'show' });
-    expect(res.statusCode).toBe(422);
-    expect(res.body).toContain('Please choose one option in each section.');
-    expect((await getSettings(pool, userId)).altitude).toBe('ft');
-    expect((await post({ eventsMode: 'single' })).statusCode).toBe(422); // missing fields
-  });
-
-  it('makes the events table appear on the home page in the multiple-events mode', async () => {
-    await post({ eventsMode: 'multiple', altitude: 'none', messagesByDefault: 'show' });
+  it('make the events table appear on the home page in the multiple-events mode', async () => {
+    await post('/settings/events-mode', { eventsMode: 'multiple' });
     expect((await app.inject({ url: '/', cookies })).body).toContain('My events');
-    await post({ eventsMode: 'single', altitude: 'none', messagesByDefault: 'show' });
+    await post('/settings/events-mode', { eventsMode: 'single' });
     const home = await app.inject({ url: '/', cookies });
     expect(home.body).not.toContain('My events');
-    expect(home.body).toContain('href="/settings">Settings</a> to manage several events');
+    expect(home.body).toContain('href="/settings/events-mode">Settings</a> to manage several events');
   });
 });

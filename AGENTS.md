@@ -63,7 +63,8 @@ simulated client its own `remoteAddress`.
   card on the faded map background with a gap under the menu. Below 768 px the card merges into the plain full-width
   panel. Pages using the older `legacyPage` template are still plain panels.
 - The menu bar is a mid blue on the day theme and dark navy on the night theme, white text on both (rule at the end of `flytrace.css`). It is sticky; an open burger menu closes when the page is scrolled (`app.js`). Logged-out visitors get a text toggle "Log in, Register, etc" on small screens, logged-in
-  users the burger icon and a drop-down named after their username (account pages and Log out).
+  users the burger icon. Signed in, the right end of the bar (and the phone menu, same order) is: day/night switch, the user name as plain
+  text, Settings, Log out.
 - `public/js/app.js` shows a spinner and disables only `.btn` elements (never plain links), plus the loading bar at
   the top; a new click cancels the pending navigation, a form POST is never cancelled.
 - Day / night theme: the `ft-theme` cookie (`dark`, anything else means day; day is the default whatever the browser
@@ -120,6 +121,9 @@ simulated client its own `remoteAddress`.
 - Code: `server/src/auth/` (`password.ts`, `service.ts`, `accounts.ts`, `tokens.ts`, `totp.ts`, `session.ts`,
   `guards.ts`), `server/src/mail/`, pages in `server/src/routes/identity.tsx` (signed out) and
   `account.tsx` (My account), views in `server/src/views/IdentityPages.tsx` and `AccountPages.tsx`.
-- User settings (`/settings`, "Settings" link on the left of the bar): events mode, altitude display and the default for
-  owner-defined messages, one form saved into `user_profiles` (`server/src/repo/settings.ts`, `routes/settings.tsx`,
-  `views/SettingsPage.tsx`). Every change is audited (`settings.changed`).
+- Settings (`/settings`, the "Settings" link in the bar) are one area for the account pages (`/account`, `/account/email`, ...) and the
+  website preferences (`/settings/events-mode`, `/settings/altitude`, `/settings/messages`, saved into `user_profiles`; code in
+  `server/src/repo/settings.ts`, `routes/settings.tsx`, `views/SettingsPages.tsx`). The list is `views/settingsSections.ts`, the frame
+  `views/SettingsShell.tsx`: wide screens show the list at the left of every page, phones show `/settings` as the list alone (label,
+  description, current value) and each page alone with a way back. Altitude "kilometers" is stored as `m` (legacy: the map shows km).
+  Every change is audited (`settings.changed`).
