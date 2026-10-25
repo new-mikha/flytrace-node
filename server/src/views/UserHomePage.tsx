@@ -13,6 +13,11 @@ export function UserHomePage({ user, path, list, events, now }: { user: CurrentU
         <h5 class="ft-section-title"><i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> My pilot groups</h5>
         <UserGroupsTable list={list} now={now} admin={user.roles.includes('Admins')} />
       </section>
+      {!events.show && (
+        <p class="small text-body-secondary mt-3 mb-0">
+          Events: choose Multiple Events Mode in <a href="/settings">Settings</a> to manage several events.
+        </p>
+      )}
       {events.show && (
         <section class="ft-section">
           <h5 class="ft-section-title"><i class="fa-solid fa-flag-checkered ft-heading-icon" aria-hidden="true"></i> My events</h5>

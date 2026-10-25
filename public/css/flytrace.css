@@ -504,3 +504,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 }
 
 [data-bs-theme="dark"] .ft-table thead tr { background: linear-gradient(90deg, var(--ft-sky-dark), var(--ft-teal-dark)); }
+
+/* Settings page: each group of options has a title with a thin accent line under it. */
+.ft-settings-title { padding-bottom: 0.3rem; margin-bottom: 0.6rem; border-bottom: 2px solid #bae6fd; font-weight: 600; }
+[data-bs-theme="dark"] .ft-settings-title { border-bottom-color: #0c4a6e; }

@@ -120,3 +120,6 @@ simulated client its own `remoteAddress`.
 - Code: `server/src/auth/` (`password.ts`, `service.ts`, `accounts.ts`, `tokens.ts`, `totp.ts`, `session.ts`,
   `guards.ts`), `server/src/mail/`, pages in `server/src/routes/identity.tsx` (signed out) and
   `account.tsx` (My account), views in `server/src/views/IdentityPages.tsx` and `AccountPages.tsx`.
+- User settings (`/settings`, "Settings" link on the left of the bar): events mode, altitude display and the default for
+  owner-defined messages, one form saved into `user_profiles` (`server/src/repo/settings.ts`, `routes/settings.tsx`,
+  `views/SettingsPage.tsx`). Every change is audited (`settings.changed`).
