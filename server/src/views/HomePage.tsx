@@ -81,7 +81,7 @@ export function PublicMaps({ groups, total, showAll, now }: PublicMapsProps) {
 
 export function HomePage({ user, path, groups, total, showAll, now }: HomePageProps) {
   return (
-    <Layout title="Flytrace" user={user} path={path} card="wide">
+    <Layout title="Home" user={user} path={path} card="wide">
       <h5>
         With Flytrace, watch groups of <External href="http://www.findmespot.com/en/index.php?cid=102">SPOT</External> and{' '}
         <External href="https://explore.garmin.com/inreach/">Garmin inReach</External> satellite communicators on a single map page.

@@ -28,6 +28,11 @@ describe('home page (anonymous)', () => {
     expect(html).toContain('/assets/css/flytrace.css');
   });
 
+  it('is titled "Home - Flytrace" and has the favicon', () => {
+    expect(html).toContain('<title>Home - Flytrace</title>');
+    expect(html).toContain('<link rel="icon" href="/assets/img/favicon.ico"');
+  });
+
   it('has the loading bar that app.js drives', () => {
     expect(html).toContain('id="ft-progress"');
   });

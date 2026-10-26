@@ -8,7 +8,7 @@ import { UserGroupsTable } from './UserGroupsTable.tsx';
 /** The home page of a signed-in user. Their pilot groups, and their events when they use the multiple-events mode. */
 export function UserHomePage({ user, path, list, events, now }: { user: CurrentUser; path: string; list: UserGroupsList; events: UserEventsList; now: Date }) {
   return (
-    <Layout title="Flytrace" user={user} path={path} card="wide">
+    <Layout title="Home" user={user} path={path} card="wide">
       <section class="ft-section">
         <h5 class="ft-section-title"><i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> My pilot groups</h5>
         <UserGroupsTable list={list} now={now} admin={user.roles.includes('Admins')} />
