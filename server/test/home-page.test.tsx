@@ -216,6 +216,15 @@ describe('user home page (my pilot groups)', () => {
     expect(html).not.toContain('Dalby 2024');
   });
 
+  it('has a Create new group button, and a button for others\' public groups, below the table', () => {
+    const html = render(user);
+    expect(html).toContain('href="/groups/new"');
+    expect(html).toContain('Create new group');
+    expect(html).toContain("Show others' public groups");
+    expect(html.indexOf('/groups/new')).toBeGreaterThan(html.indexOf('/map/9'));
+    expect(render(user, [])).toContain('Create new group'); // also when there are no groups yet
+  });
+
   it('says so when there are no groups', () => {
     const html = render(user, []);
     expect(html).toContain("You don't have any pilot groups yet.");
@@ -259,6 +268,19 @@ describe('user home page: my events', () => {
     const html = render({ show: true, events: [] });
     expect(html).toContain("You don't have any events yet.");
     expect(html).not.toContain('New pilot groups use');
+  });
+
+  it('explains events above the table and offers Create new event, the default note and the way to single mode below it', () => {
+    const html = render(events);
+    expect(html).toContain('You can set up events here to show tasks on your public maps.');
+    expect(html).not.toContain('help'); // no help link
+    expect(html.indexOf('show tasks on your public maps')).toBeLessThan(html.indexOf('Dalby'));
+    expect(html).toContain('href="/events/new"');
+    expect(html.indexOf('/events/new')).toBeGreaterThan(html.indexOf('Quiet'));
+    expect(html.indexOf('/events/new')).toBeLessThan(html.indexOf('* New pilot groups use this event by default.'));
+    expect(html).toContain('Multiple events mode looks too complicated?');
+    expect(html).toContain('href="/settings/events-mode">Single Task mode</a>');
+    expect(render({ show: true, events: [] })).toContain('Create new event'); // also with no events yet
   });
 
   it('is left out in the single-event mode', () => {

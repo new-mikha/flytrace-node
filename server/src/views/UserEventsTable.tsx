@@ -17,7 +17,6 @@ function Row({ event }: { event: UserEvent }) {
 export function UserEventsTable({ list: { events } }: { list: UserEventsList }) {
   if (events.length === 0) return <p class="text-muted">You don't have any events yet.</p>;
   return (
-    <>
     <div class="table-responsive-xl ft-table-wrap ft-sticky-head">
       <table class="table table-striped table-hover align-middle ft-table ft-cards mb-0">
         <caption class="visually-hidden">My events</caption>
@@ -33,7 +32,5 @@ export function UserEventsTable({ list: { events } }: { list: UserEventsList }) 
         </tbody>
       </table>
     </div>
-    {events.some((e) => e.isDefault) && <p class="small text-body-secondary mt-2 mb-0">* New pilot groups use this event by default.</p>}
-    </>
   );
 }
