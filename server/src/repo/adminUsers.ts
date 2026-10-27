@@ -3,12 +3,12 @@ import type { Pool } from '../db.ts';
 
 export const USERS_PAGE_SIZE = 50;
 
-export type SortKey = 'username' | 'email' | 'roles' | 'groups' | 'lastLogin';
+export type SortKey = 'username' | 'email' | 'roles' | 'groups' | 'locked' | 'lastLogin';
 export interface UserSort { key: SortKey; dir: 'asc' | 'desc' }
 
 export const DEFAULT_SORT: UserSort = { key: 'username', dir: 'asc' };
-/** What a first click on a column does: names A to Z, but the biggest or newest first for figures and dates. */
-export const FIRST_DIR: Record<SortKey, UserSort['dir']> = { username: 'asc', email: 'asc', roles: 'asc', groups: 'desc', lastLogin: 'desc' };
+/** What a first click on a column does: names A to Z, but the biggest, newest or locked first for figures, dates and the lock. */
+export const FIRST_DIR: Record<SortKey, UserSort['dir']> = { username: 'asc', email: 'asc', roles: 'asc', groups: 'desc', locked: 'desc', lastLogin: 'desc' };
 
 // Fixed SQL per key (nothing from the request is put into the query). Empty emails, users without roles and never-seen logins go
 // last in both directions (almost everybody has no role, so the few with roles come first). Roles compare as their names in order.
@@ -17,6 +17,7 @@ const ORDER_BY: Record<SortKey, (dir: string) => string> = {
   email: (dir) => `u.email ${dir} NULLS LAST`,
   roles: (dir) => `string_agg(r.name::text, ', ' ORDER BY r.name) ${dir} NULLS LAST`,
   groups: (dir) => `groups ${dir}`,
+  locked: (dir) => `u.is_locked_out ${dir}`,
   lastLogin: (dir) => `u.last_login_at ${dir} NULLS LAST`,
 };
 

@@ -119,6 +119,20 @@ describe('sorting the list', () => {
     expect(order((await admin.get(`/admin?q=${all}&sort=roles&dir=asc`)).body)).toEqual([ADMIN, NO_MAIL, PLAIN, TARGET]); // then by name
   });
 
+  it('shows a Locked column and sorts by it, locked users first on a first click', async () => {
+    const admin = await loginAs(ADMIN);
+    await pool.query('UPDATE users SET is_locked_out = true WHERE id = $1', [ids[TARGET]]);
+    try {
+      const res = await admin.get(`/admin?q=${all}&sort=locked`);
+      expect(order(res.body)).toEqual([TARGET, ADMIN, NO_MAIL, PLAIN]); // then by name
+      expect(res.body).toContain('>Yes</span>');
+      expect(res.body).toContain('aria-sort="descending"');
+      expect(order((await admin.get(`/admin?q=${all}&sort=locked&dir=asc`)).body)).toEqual([ADMIN, NO_MAIL, PLAIN, TARGET]);
+    } finally {
+      await pool.query('UPDATE users SET is_locked_out = false WHERE id = $1', [ids[TARGET]]);
+    }
+  });
+
   it('marks the sorted column and links the opposite direction; unknown values mean the default order', async () => {
     const admin = await loginAs(ADMIN);
     const res = await admin.get(`/admin?q=${all}&sort=email&dir=asc`);

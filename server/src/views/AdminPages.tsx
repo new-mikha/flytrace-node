@@ -20,7 +20,7 @@ function listHref(q: string, pageNo: number, sort: UserSort): string {
   return query ? `/admin?${query}` : '/admin';
 }
 
-const SORT_LABELS: Record<SortKey, string> = { username: 'User name', email: 'Email', roles: 'Roles', groups: 'Groups', lastLogin: 'Last login' };
+const SORT_LABELS: Record<SortKey, string> = { username: 'User name', email: 'Email', roles: 'Roles', groups: 'Groups', locked: 'Locked', lastLogin: 'Last login' };
 
 /** A column header that sorts by its column: a click on the current column flips the direction. */
 function SortHeader({ column, q, sort, right }: { column: SortKey; q: string; sort: UserSort; right?: boolean }) {
@@ -38,11 +38,12 @@ function UserRow({ u }: { u: AdminUserRow }) {
   return (
     <tr>
       <td class="fw-semibold ft-name-cell ft-card-full">
-        {u.username} {u.locked && <span class="badge text-bg-danger">Locked</span>}
+        {u.username}
       </td>
       <td class="ft-card-full text-body-secondary">{u.email}</td>
       <td class="ft-card-stat" data-label="Roles">{u.roles.join(', ') || '-'}</td>
       <td class="text-end ft-card-stat" data-label="Groups">{u.groups}</td>
+      <td class="ft-card-stat" data-label="Locked">{u.locked ? <span class="badge text-bg-danger">Yes</span> : <span class="text-body-secondary">No</span>}</td>
       <td class="text-nowrap ft-card-full">{u.lastLoginAt ? formatTimestamp(u.lastLoginAt) : <span class="text-body-secondary">never</span>}</td>
       <td class="text-end text-nowrap ft-card-link ft-actions">
         <a class="ft-group-link" href={`/admin/users/${u.id}`}>Manage</a>
@@ -134,6 +135,7 @@ export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pag
                   <SortHeader column="email" q={q} sort={sort} />
                   <SortHeader column="roles" q={q} sort={sort} />
                   <SortHeader column="groups" q={q} sort={sort} right />
+                  <SortHeader column="locked" q={q} sort={sort} />
                   <SortHeader column="lastLogin" q={q} sort={sort} />
                   <th scope="col"><span class="visually-hidden">Actions</span></th>
                 </tr>
