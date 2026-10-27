@@ -100,11 +100,19 @@ function TrackerItem({ group, t, canEdit, rename }: { group: EditableGroup; t: G
           <TypeBadge type={t.type} />{' '}
           {url ? <a href={url} target="_blank" rel="noopener">{shortId(t)}</a> : shortId(t)}
         </div>
+        {canEdit && (
+          // Same idea for Delete: the script asks right in the row; without it the link opens the confirmation page.
+          <form method="post" action={`/groups/${group.id}/trackers/${t.id}/delete`} class="ft-delete-form" hidden>
+            <span>Delete <strong>{t.name}</strong>?</span>
+            <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+            <a class="btn btn-sm btn-outline-secondary" href={`/groups/${group.id}#tracker-${t.id}`} data-delete-cancel>Keep</a>
+          </form>
+        )}
       </div>
       {canEdit && (
         <div class="ft-actions text-nowrap" hidden={!!rename}>
           <a class="ft-group-link" href={`/groups/${group.id}?rename=${t.id}#tracker-${t.id}`} data-rename>Rename</a>
-          <a class="ft-danger-link" href={`/groups/${group.id}/trackers/${t.id}/delete`}>Delete</a>
+          <a class="ft-danger-link" href={`/groups/${group.id}/trackers/${t.id}/delete`} data-delete>Delete</a>
         </div>
       )}
     </li>
@@ -188,7 +196,7 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
   return (
     <Layout title={group.name} user={user} path={`/groups/${group.id}`} card="wide" scripts={canEdit ? ['group-editor.js'] : undefined}>
       <p class="mb-2"><a class="ft-group-link" href="/"><i class="fa-solid fa-arrow-left fa-xs" aria-hidden="true"></i> My groups</a></p>
-      <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-3" id="ft-head">
         <h1 class="h3 mb-0 me-2 ft-wrap">{group.name}</h1>
         <span class={`badge ${group.isPublic ? 'text-bg-success' : 'text-bg-secondary'}`}>
           <i class={`fa-solid ${group.isPublic ? 'fa-house' : 'fa-eye-slash'} fa-xs`} aria-hidden="true"></i> {group.isPublic ? 'On the homepage' : 'Unlisted'}
@@ -198,7 +206,7 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
           Public map <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
         </a>
       </div>
-      <Alert flash={flash} />
+      <div id="ft-flash"><Alert flash={flash} /></div>
       {!canEdit && (
         <div class="alert alert-info" role="note">
           <i class="fa-solid fa-eye me-1" aria-hidden="true"></i> This group belongs to <strong>{group.owner}</strong>. You can look at it, but not change it.

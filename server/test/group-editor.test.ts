@@ -160,6 +160,8 @@ describe('creating and editing', () => {
     // Every row carries its (hidden) rename form for the script to swap in; `?rename=` shows one without JavaScript.
     const plain = (await owner.get(`/groups/${id}`)).body;
     expect(plain.match(/class="ft-rename-form" hidden/g)).toHaveLength(2);
+    expect(plain.match(/class="ft-delete-form" hidden/g)).toHaveLength(2); // the same for Delete's question
+    for (const part of ['id="ft-head"', 'id="ft-flash"', 'id="trackers"', 'id="add-tracker"']) expect(plain).toContain(part); // what group-editor.js swaps
     const renaming = (await owner.get(`/groups/${id}?rename=${ann.id}`)).body;
     expect(renaming.match(/class="ft-rename-form" hidden/g)).toHaveLength(1);
     expect(renaming).toContain('Update');
