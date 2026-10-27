@@ -136,7 +136,7 @@ describe('creating and editing', () => {
     expect((await groupRow(id)).name).toBe('Fly-in');
   });
 
-  it('adds, renames, switches off and deletes trackers', async () => {
+  it("adds, renames, turns on and off, and deletes trackers", async () => {
     const owner = await loginAs(OWNER);
     const id = await newGroup(owner);
     const bad = await owner.post(`/groups/${id}/trackers`, { trackerName: 'Ann', link: 'Phillm' });
@@ -170,12 +170,20 @@ describe('creating and editing', () => {
     expect((await owner.post(`/groups/${id}/trackers/${ann.id}/rename`, { name: 'Anna' })).statusCode).toBe(302);
     expect((await trackerRows(id))[0].name).toBe('Anna');
 
-    await owner.post(`/groups/${id}/trackers/${ann.id}/switch`, { on: '0' });
+    // "Turn the trackers on & off": the page has the checkboxes (shown by the script, or by ?onoff=1), Save sends the checked ones.
+    const closed = (await owner.get(`/groups/${id}`)).body;
+    expect(closed).toContain('Turn the trackers on &amp; off');
+    expect(closed).not.toContain('data-selecting');
+    expect(closed.match(/class="form-check-input ft-check"/g)).toHaveLength(2);
+    expect((await owner.get(`/groups/${id}?onoff=1`)).body).toContain('data-selecting="true"');
+    const off = await owner.post(`/groups/${id}/trackers/on-off`, { on: String(bob.id) });
+    expect(off.statusCode).toBe(302);
     expect((await trackerRows(id)).map((t) => t.is_on)).toEqual([false, true]);
     expect((await owner.get(`/groups/${id}`)).body).toContain('ft-tracker-off');
-    await owner.post(`/groups/${id}/trackers/${ann.id}/switch`, { on: '1' });
+    await owner.post(`/groups/${id}/trackers/on-off`, { on: [String(ann.id), String(bob.id), '999999999'] }); // a stranger's id is ignored
     expect((await trackerRows(id)).map((t) => t.is_on)).toEqual([true, true]);
-    await owner.post(`/groups/${id}/trackers/${ann.id}/switch`, { on: '0' });
+    await owner.post(`/groups/${id}/trackers/on-off`); // nothing checked: all off
+    expect((await trackerRows(id)).map((t) => t.is_on)).toEqual([false, false]);
 
     expect((await owner.get(`/groups/${id}/trackers/${bob.id}/delete`)).body).toContain('Delete tracker');
     await owner.post(`/groups/${id}/trackers/${bob.id}/delete`);
@@ -223,8 +231,8 @@ describe('who may open a group', () => {
       expect(res.body).not.toContain('Save settings');
       expect(res.body).not.toContain('Add a tracker');
       expect(res.body).not.toContain('Rename');
-      expect(res.body).not.toContain('role="switch"');
-      for (const url of [`/groups/${id}`, `/groups/${id}/delete`, `/groups/${id}/trackers`, `/groups/${id}/trackers/${tid}/switch`,
+      expect(res.body).not.toContain("ft-check"); // no checkboxes, no on/off button
+      for (const url of [`/groups/${id}`, `/groups/${id}/delete`, `/groups/${id}/trackers`, `/groups/${id}/trackers/on-off`,
                          `/groups/${id}/trackers/${tid}/rename`, `/groups/${id}/trackers/${tid}/delete`]) {
         expect((await viewer.post(url, { name: 'Hacked', visibility: 'public', messages: 'show', trackerName: 'X', link: SPOT_ID })).headers.location).toBe('/403');
       }

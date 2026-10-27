@@ -42,6 +42,8 @@ interface PageProps {
   altitude?: string;
   /** Tracker being renamed (`?rename=`), when no draft says so. */
   renaming?: number | null;
+  /** The on/off selection is open (`?onoff=1`, without JavaScript): the trackers show checkboxes. */
+  selecting?: boolean;
 }
 
 /** Link to the tracker's own page at SPOT or Garmin. */
@@ -62,17 +64,37 @@ function TypeBadge({ type }: { type: GroupTracker['type'] }) {
   return <span class={`badge ft-type-badge ft-type-${type}`} title={label}>{type === 'G' ? 'i' : type}<span class="visually-hidden"> {label}</span></span>;
 }
 
-/** On or off in one click (a form of its own, so it works without JavaScript). Not the owner: a plain pill. */
-function Switch({ group, t, canEdit }: { group: EditableGroup; t: GroupTracker; canEdit: boolean }) {
-  if (!canEdit) return <span class={`badge ${t.isOn ? 'text-bg-success' : 'text-bg-secondary'}`}>{t.isOn ? 'On' : 'Off'}</span>;
+/**
+ * The On/Off cell: the state as a pill and, for the owner, a checkbox that replaces it while the trackers are being turned
+ * on and off (`data-selecting` on #trackers, see the toolbar). The checkboxes belong to the form of that toolbar (`form=`),
+ * as they sit inside the list, which has forms of its own.
+ */
+function Slot({ t, canEdit }: { t: GroupTracker; canEdit: boolean }) {
   return (
-    <form method="post" action={`/groups/${group.id}/trackers/${t.id}/switch`} class="ft-onoff-form">
-      <input type="hidden" name="on" value={t.isOn ? '0' : '1'} />
-      <button class="ft-onoff" type="submit" role="switch" aria-checked={t.isOn ? 'true' : 'false'}
-              aria-label={`${t.name} is ${t.isOn ? 'on' : 'off'}`} title={t.isOn ? 'On: click to turn off' : 'Off: click to turn on'}>
-        <span class="ft-onoff-knob"></span>
-      </button>
-    </form>
+    <div class="ft-slot">
+      <span class={`badge ft-status ${t.isOn ? 'text-bg-success' : 'text-bg-secondary'}`}>{t.isOn ? 'On' : 'Off'}</span>
+      {canEdit && (
+        <input class="form-check-input ft-check" type="checkbox" name="on" value={t.id} checked={t.isOn} data-was={t.isOn ? '1' : '0'}
+               form="ft-onoff-form" aria-label={`${t.name} is on`} />
+      )}
+    </div>
+  );
+}
+
+/** "Turn the trackers on & off", and while that is open: Save, Select all, Select none, Cancel (the legacy buttons). */
+function OnOffTools({ group }: { group: EditableGroup }) {
+  return (
+    <div class="ft-onoff-tools">
+      <a class="btn btn-outline-primary btn-sm ft-onoff-start" href={`/groups/${group.id}?onoff=1#trackers`} data-onoff-start>
+        <i class="fa-solid fa-power-off fa-fw" aria-hidden="true"></i> Turn the trackers on &amp; off
+      </a>
+      <form id="ft-onoff-form" method="post" action={`/groups/${group.id}/trackers/on-off`} class="ft-onoff-bar">
+        <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-check fa-fw" aria-hidden="true"></i> Save changes</button>
+        <button class="btn btn-outline-secondary btn-sm ft-needs-js" type="button" data-onoff-all>Select all</button>
+        <button class="btn btn-outline-secondary btn-sm ft-needs-js" type="button" data-onoff-none>Select none</button>
+        <a class="btn btn-outline-secondary btn-sm" href={`/groups/${group.id}#trackers`} data-onoff-cancel>Cancel</a>
+      </form>
+    </div>
   );
 }
 
@@ -81,7 +103,7 @@ function TrackerItem({ group, t, canEdit, rename }: { group: EditableGroup; t: G
   const muted = t.isOn ? '' : ' ft-tracker-off';
   return (
     <li class={`list-group-item ft-tracker${muted}`} id={`tracker-${t.id}`}>
-      <Switch group={group} t={t} canEdit={canEdit} />
+      <Slot t={t} canEdit={canEdit} />
       <div class="ft-tracker-main">
         <div class="ft-tracker-name" hidden={!!rename}>{t.name}</div>
         {canEdit && (
@@ -184,7 +206,7 @@ function AddTracker({ group, add }: { group: EditableGroup; add?: GroupDraft['ad
  * The group editor. Wide screens: the group settings at the left, the trackers (switch, name, id, rename and delete on each
  * row) and under them the form for a new tracker at the right; phones stack them in that order. Anybody but the owner gets the same page read-only.
  */
-export function GroupPage({ user, group, canEdit, flash, draft, altitude, renaming }: PageProps) {
+export function GroupPage({ user, group, canEdit, flash, draft, altitude, renaming, selecting }: PageProps) {
   const renameId = draft?.rename?.id ?? renaming ?? null;
   const on = group.trackers.filter((t) => t.isOn).length;
   return (
@@ -219,11 +241,12 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
           </section>
         </div>
         <div class="col-lg-7">
-          <section class="ft-section" id="trackers">
+          <section class="ft-section" id="trackers" data-selecting={selecting ? 'true' : undefined}>
             <h5 class="ft-section-title">
               <i class="fa-solid fa-location-dot ft-heading-icon" aria-hidden="true"></i> Trackers
               {group.trackers.length > 0 && <span class="ft-section-note">{on} of {group.trackers.length} on</span>}
             </h5>
+            {canEdit && group.trackers.length > 0 && <OnOffTools group={group} />}
             {group.trackers.length === 0 ? (
               <p class="text-body-secondary mb-0">{canEdit ? 'No trackers yet. Add the first one with the form.' : 'The group has no trackers yet.'}</p>
             ) : (

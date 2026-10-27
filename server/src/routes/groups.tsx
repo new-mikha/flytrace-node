@@ -24,7 +24,7 @@ import { audit } from '../audit.ts';
 import { requireLogin } from '../auth/guards.ts';
 import type { Pool } from '../db.ts';
 import {
-  addTracker, createGroup, deleteGroup, deleteTracker, getGroup, renameTracker, setTrackerOn, updateGroup, type EditableGroup,
+  addTracker, createGroup, deleteGroup, deleteTracker, getGroup, renameTracker, setTrackersOn, updateGroup, type EditableGroup,
 } from '../repo/groupEditor.ts';
 import { getSettings } from '../repo/settings.ts';
 import { parseTrackerInput } from '../repo/trackerInput.ts';
@@ -70,13 +70,15 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return back(request, reply, group, `Created "${group.name}". Give it a name, then add its trackers.`);
   });
 
-  app.get<{ Params: { id: string }; Querystring: { rename?: string } }>('/groups/:id', guard, async (request, reply) => {
+  // `?rename=<tracker id>` and `?onoff=1` open the rename form and the on/off selection without JavaScript.
+  app.get<{ Params: { id: string }; Querystring: { rename?: string; onoff?: string } }>('/groups/:id', guard, async (request, reply) => {
     const found = await load(request, reply, false);
     if (!found) return reply;
     const user = request.user!;
     const altitude = found.canEdit ? ALTITUDE_LABEL[(await getSettings(pool, user.id)).altitude] : undefined;
     const renaming = found.canEdit && /^\d+$/.test(request.query.rename ?? '') ? Number(request.query.rename) : null;
-    return sendHtml(reply, <GroupPage user={user} {...found} flash={takeFlash(request)} altitude={altitude} renaming={renaming} />);
+    const selecting = found.canEdit && request.query.onoff === '1';
+    return sendHtml(reply, <GroupPage user={user} {...found} flash={takeFlash(request)} altitude={altitude} renaming={renaming} selecting={selecting} />);
   });
 
   const show = (request: FastifyRequest, reply: FastifyReply, group: EditableGroup, draft: GroupDraft) =>
@@ -140,17 +142,18 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return back(request, reply, group, `Added ${name}.`, '#trackers');
   });
 
-  // The switch on a tracker's row: it sends the state the person wants (`on=1` or `on=0`).
-  app.post<{ Params: { id: string; tid: string } }>('/groups/:id/trackers/:tid/switch', guard, async (request, reply) => {
+  // "Turn the trackers on & off": the checked trackers (`on` = their ids) are on, the others off.
+  app.post<{ Params: { id: string } }>('/groups/:id/trackers/on-off', guard, async (request, reply) => {
     const found = await load(request, reply, true);
     if (!found) return reply;
     const { group } = found;
-    const tracker = /^\d+$/.test(request.params.tid) ? group.trackers.find((t) => t.id === Number(request.params.tid)) : undefined;
-    if (!tracker) return notFound(request, reply);
-    const on = formFields(request, 'on').on === '1';
-    await setTrackerOn(pool, group.id, tracker.id, on);
-    audit(request, 'tracker.switched', `Pilot switched ${on ? 'on' : 'off'}`, { groupId: group.id, trackerId: tracker.id, pilot: tracker.name, on });
-    return reply.redirect(`/groups/${group.id}#tracker-${tracker.id}`, 302);
+    const raw = (request.body as { on?: unknown } | undefined)?.on;
+    const ids = (Array.isArray(raw) ? raw : raw === undefined ? [] : [raw]).map(Number).filter(Number.isSafeInteger);
+    const on = group.trackers.filter((t) => ids.includes(t.id)).map((t) => t.id);
+    const changed = group.trackers.filter((t) => t.isOn !== on.includes(t.id)).length;
+    await setTrackersOn(pool, group.id, on);
+    audit(request, 'tracker.on-off', 'Trackers switched on and off', { groupId: group.id, on: on.length, off: group.trackers.length - on.length, changed });
+    return back(request, reply, group, changed === 0 ? 'Nothing changed.' : 'Saved.', '#trackers');
   });
 
   app.post<{ Params: { id: string; tid: string } }>('/groups/:id/trackers/:tid/rename', guard, async (request, reply) => {

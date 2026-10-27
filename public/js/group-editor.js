@@ -21,12 +21,14 @@
 // Group editor enhancements. Every control also works without this script (plain links and forms); with it:
 //  - the SPOT / inReach radios follow the tracker link while it is typed, until the person picks one;
 //  - Rename and Delete open in the row itself (the server renders both forms hidden in every row);
-//  - the changes to the trackers (switch, rename, add, delete) are sent with fetch and the parts of the page that changed
+//  - "Turn the trackers on & off" opens the checkboxes in place, with Select all, Select none and Cancel;
+//  - the changes to the trackers (on/off, rename, add, delete) are sent with fetch and the parts of the page that changed
 //    (the header, the message, the list, the add form) are swapped for those of the answer: no page load, no flicker.
 // The server stays the only place with rules: it answers with the whole page (refused changes come back with their errors).
 (() => {
   const main = document.querySelector('main');
   if (!main) return;
+  document.documentElement.classList.add('ft-js'); // shows what needs this script (Select all / none)
   const closest = (event, selector) => (event.target instanceof Element ? event.target.closest(selector) : null);
   const plainClick = (event) => event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey);
 
@@ -77,9 +79,35 @@
     rowMode(row, link.hasAttribute('data-rename') ? 'rename' : 'view');
   });
 
+  // ---- "Turn the trackers on & off": the checkboxes are in the page, shown while #trackers has data-selecting
+  const checks = () => [...main.querySelectorAll('#trackers .ft-check')];
+  function selecting(on) {
+    const section = document.getElementById('trackers');
+    if (on) {
+      section.setAttribute('data-selecting', 'true');
+      checks()[0]?.focus();
+    } else {
+      section.removeAttribute('data-selecting');
+      for (const c of checks()) c.checked = c.dataset.was === '1'; // what a cancelled selection left behind is dropped
+      section.querySelector('.ft-onoff-start')?.focus();
+    }
+  }
+
+  main.addEventListener('click', (event) => {
+    const button = closest(event, '[data-onoff-start], [data-onoff-cancel], [data-onoff-all], [data-onoff-none]');
+    if (!button || !plainClick(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (button.hasAttribute('data-onoff-start')) selecting(true);
+    else if (button.hasAttribute('data-onoff-cancel')) selecting(false);
+    else for (const c of checks()) c.checked = button.hasAttribute('data-onoff-all');
+  });
+
   main.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
     const open = closest(event, '.ft-rename-form');
-    if (event.key === 'Escape' && open) rowMode(open.closest('.ft-tracker'), 'view');
+    if (open) rowMode(open.closest('.ft-tracker'), 'view');
+    else if (closest(event, '#trackers[data-selecting]')) selecting(false);
   });
 
   // ---- Delete asks in a dialog (Bootstrap's modal, one for the page). The link's data-confirm-* attributes say what to
@@ -128,16 +156,7 @@
     if (sending) return; // one change at a time, in the order the person made them
     sending = true;
     const rowId = form.closest('.ft-tracker')?.id;
-    const isSwitch = form.classList.contains('ft-onoff-form');
     const sections = ['trackers', 'add-tracker'].map((id) => document.getElementById(id));
-    const toggle = form.querySelector('.ft-onoff');
-    const flip = () => { // the switch moves at once; the answer replaces it anyway
-      if (!toggle) return;
-      const on = toggle.getAttribute('aria-checked') !== 'true';
-      toggle.setAttribute('aria-checked', String(on));
-      toggle.closest('.ft-tracker').classList.toggle('ft-tracker-off', !on);
-    };
-    flip();
     for (const s of sections) s?.classList.add('ft-pending');
     try {
       const response = await fetch(form.action, {
@@ -157,9 +176,9 @@
       const row = rowId ? document.getElementById(rowId) : null;
       if (bad) bad.focus();
       else if (form.id === 'ft-add-tracker') document.getElementById('f-trackerName')?.focus();
-      else row?.querySelector(isSwitch ? '.ft-onoff' : 'a[data-rename]')?.focus();
+      else if (form.id === 'ft-onoff-form') document.querySelector('#trackers .ft-onoff-start')?.focus();
+      else row?.querySelector('a[data-rename]')?.focus();
     } catch {
-      flip(); // nothing is known to have happened: put the switch back and say so
       for (const s of sections) s?.classList.remove('ft-pending');
       say('Could not reach the server. Check the connection and try again.');
     } finally {

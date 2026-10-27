@@ -433,12 +433,16 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-tracker-id { overflow-wrap: anywhere; }
 .ft-tracker-off .ft-tracker-name, .ft-tracker-off .ft-tracker-id { text-decoration: line-through; color: var(--bs-secondary-color); }
 .ft-tracker-off .ft-type-badge { opacity: 0.55; }
-.ft-onoff-form { margin: 0; line-height: 0; }
-.ft-onoff { position: relative; width: 2.6rem; height: 1.5rem; padding: 0; border: 0; border-radius: 1rem; cursor: pointer; background: var(--bs-secondary-bg); box-shadow: inset 0 0 0 1px var(--bs-border-color); transition: background 0.15s; }
-.ft-onoff[aria-checked="true"] { background: var(--bs-success); box-shadow: none; }
-.ft-onoff-knob { position: absolute; top: 0.2rem; left: 0.2rem; width: 1.1rem; height: 1.1rem; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); transition: transform 0.15s; }
-.ft-onoff[aria-checked="true"] .ft-onoff-knob { transform: translateX(1.1rem); }
-.ft-onoff:focus-visible { outline: 2px solid var(--bs-primary); outline-offset: 2px; }
+/* "Turn the trackers on & off": the On/Off pills turn into checkboxes while #trackers has data-selecting (set by the script, or by ?onoff=1) */
+.ft-slot { flex: 0 0 2.6rem; display: flex; justify-content: center; align-items: center; }
+.ft-check, .ft-onoff-bar { display: none; }
+#trackers[data-selecting] .ft-check { display: inline-block; }
+#trackers[data-selecting] .ft-status, #trackers[data-selecting] .ft-onoff-start { display: none; }
+#trackers[data-selecting] .ft-onoff-bar { display: flex; }
+.ft-onoff-bar { flex-wrap: wrap; gap: 0.5rem; margin: 0; }
+.ft-onoff-tools { margin-bottom: 0.6rem; }
+.ft-needs-js { display: none; } /* Select all / none need the script: it adds ft-js to <html> */
+.ft-js .ft-needs-js { display: inline-block; }
 /* An unchecked radio or checkbox stays easy to see: Bootstrap's own border is very pale (worse at night). The secondary colour has a day and a night value. */
 .form-check-input:not(:checked):not(:focus) { border-color: var(--bs-secondary-color); }
 .ft-section-note { font-weight: 400; font-size: 0.85rem; opacity: 0.85; margin-left: 0.5rem; }
