@@ -210,6 +210,13 @@ describe('the user pages', () => {
     expect(off.body).not.toContain('confirmName');
   });
 
+  it('show the current email address in a read-only field on the email page', async () => {
+    const admin = await loginAs(ADMIN);
+    const res = await admin.get(`/admin/users/${ids[TARGET]}/email`);
+    expect(res.body).toContain(`id="current-email" class="form-control" type="text" value="${TARGET}@example.com" readonly`);
+    expect((await admin.get(`/admin/users/${ids[NO_MAIL]}/email`)).body).toContain('value="not set" readonly');
+  });
+
   it('show Unlock instead of Lock for a locked user', async () => {
     const admin = await loginAs(ADMIN);
     await pool.query('UPDATE users SET is_locked_out = true WHERE id = $1', [ids[NO_MAIL]]);

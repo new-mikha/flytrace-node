@@ -267,6 +267,11 @@ function SectionBody({ section, target, errors, values }: { section: SectionSlug
         <Change slug="email" errors={errors}>
           <p>A confirmation link goes to the <i>new</i> address. The address changes when somebody opens it.</p>
           <form method="post" action={act(target, 'email')}>
+            <div class="mb-3">
+              <label for="current-email" class="form-label">Current email address</label>
+              <input id="current-email" class="form-control" type="text" value={target.email ?? 'not set'} readonly />
+              {target.email && !target.emailConfirmed && <div class="form-text">Not confirmed yet.</div>}
+            </div>
             <Field name="email" label="New email address" type="email" autocomplete="off" value={errors.form === 'email' ? values.email : undefined}
                    error={here('email', 'email')} />
             <ConfirmName slug="email" target={target} errors={errors} />
