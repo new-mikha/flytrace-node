@@ -74,6 +74,9 @@ simulated client its own `remoteAddress`.
   prefers). The server puts Bootstrap's `data-bs-theme` on `<html>` (an `onSend` hook in `app.ts`), `app.js` switches it
   in place, `/theme` does it without JavaScript. Our own colours get a `[data-bs-theme="dark"]` variant in `flytrace.css`:
   do the same for any new hard-coded colour.
+- Signed-in home page: "Show others' public groups" (admins: "Show others' groups", which also lists unlisted groups, marked) is a plain link
+  to `/?others=1#others`; the list (`listOthersGroups`: not mine, two or more trackers, same recent-week window as the public maps, `&all=1` for
+  everything) appears under a "Hide ..." button. Anonymous visitors keep the public maps with the in-place swap.
 - Page changes cross-fade through CSS view transitions (`@view-transition`, duration in `flytrace.css`).
 - Check layout changes at phone (about 380 px), tablet and desktop widths, and clean up any temporary test page.
 

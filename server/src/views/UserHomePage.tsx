@@ -20,13 +20,21 @@
 
 import type { CurrentUser } from '../auth/service.ts';
 import type { UserEventsList } from '../repo/events.ts';
-import type { UserGroupsList } from '../repo/groups.ts';
+import type { PublicGroupsList, UserGroupsList } from '../repo/groups.ts';
+import { MoreMaps } from './HomePage.tsx';
 import { Layout } from './Layout.tsx';
+import { PublicGroupsTable } from './PublicGroupsTable.tsx';
 import { UserEventsTable } from './UserEventsTable.tsx';
 import { UserGroupsTable } from './UserGroupsTable.tsx';
 
 /** The home page of a signed-in user. Their pilot groups, and their events when they use the multiple-events mode. */
-export function UserHomePage({ user, path, list, events, now }: { user: CurrentUser; path: string; list: UserGroupsList; events: UserEventsList; now: Date }) {
+export function UserHomePage({ user, path, list, events, others, now }: {
+  user: CurrentUser; path: string; list: UserGroupsList; events: UserEventsList; now: Date;
+  /** Other people's groups, when "Show others' groups" is on (`/?others=1`). */
+  others?: { list: PublicGroupsList; showAll: boolean } | null;
+}) {
+  const admin = user.roles.includes('Admins');
+  const what = admin ? "others' groups" : "others' public groups"; // admins also get the unlisted ones
   return (
     <Layout title="Home" user={user} path={path} card="wide">
       <section class="ft-section">
@@ -55,9 +63,24 @@ export function UserHomePage({ user, path, list, events, now }: { user: CurrentU
           </p>
         </section>
       )}
-      <p class="mt-4 mb-0">
-        <a class="btn btn-outline-secondary" href="/?others=1">Show others' public groups</a>
-      </p>
+      {others ? (
+        <>
+          <p class="mt-4 mb-0">
+            <a class="btn btn-outline-secondary" href="/"><i class="fa-regular fa-eye-slash fa-fw" aria-hidden="true"></i> Hide {what}</a>
+          </p>
+          <section class="ft-section mt-4" id="others">
+            <h5 class="ft-section-title"><i class="fa-solid fa-earth-europe ft-heading-icon" aria-hidden="true"></i> {admin ? "Others' groups" : "Others' public groups"}</h5>
+            <PublicGroupsTable groups={others.list.groups} total={others.list.total} now={now} caption={admin ? "Others' groups" : "Others' public groups"}
+                               empty={admin ? 'Nobody else has groups yet.' : 'Nobody else has public groups yet.'} />
+          </section>
+          <MoreMaps showAll={others.showAll} total={others.list.total} shown={others.list.groups.length} swap={false} noun="groups"
+                    recentHref="/?others=1#others" allHref="/?others=1&all=1#others" />
+        </>
+      ) : (
+        <p class="mt-4 mb-0">
+          <a class="btn btn-outline-secondary" href="/?others=1#others"><i class="fa-regular fa-eye fa-fw" aria-hidden="true"></i> Show {what}</a>
+        </p>
+      )}
     </Layout>
   );
 }

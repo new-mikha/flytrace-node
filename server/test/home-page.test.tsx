@@ -29,9 +29,9 @@ import { renderDocument } from '../src/views/render.tsx';
 process.env.TZ = 'UTC'; // the times on pages follow the process's zone
 const now = new Date('2026-03-05T12:00:00Z');
 const groups: PublicGroup[] = [
-  { id: 7, name: '<b>Cup</b> & "Co"', owner: 'ann', trackers: 3, views: 42, newestCoordTs: new Date('2026-03-05T11:30:00Z') },
-  { id: 8, name: 'Old one', owner: 'bob', trackers: 2, views: 1, newestCoordTs: new Date('2026-03-01T10:00:00Z') },
-  { id: 9, name: 'Never moved', owner: 'cy', trackers: 2, views: 0, newestCoordTs: null },
+  { id: 7, name: '<b>Cup</b> & "Co"', owner: 'ann', trackers: 3, views: 42, newestCoordTs: new Date('2026-03-05T11:30:00Z'), unlisted: false },
+  { id: 8, name: 'Old one', owner: 'bob', trackers: 2, views: 1, newestCoordTs: new Date('2026-03-01T10:00:00Z'), unlisted: false },
+  { id: 9, name: 'Never moved', owner: 'cy', trackers: 2, views: 0, newestCoordTs: null, unlisted: false },
 ];
 
 const render = (user: CurrentUser | null, list = groups, extra: { total?: number; showAll?: boolean } = {}) =>
@@ -255,6 +255,53 @@ describe('user home page (my pilot groups)', () => {
     const html = render(user, []);
     expect(html).toContain("You don't have any pilot groups yet.");
     expect(html).not.toContain('ft-table');
+  });
+});
+
+describe("user home page: others' groups", () => {
+  const user: CurrentUser = { id: 'u1', username: 'ann', roles: [] };
+  const admin: CurrentUser = { id: 'u2', username: 'root', roles: ['Admins'] };
+  const list = { groups: [...groups, { id: 10, name: 'Hidden one', owner: 'dee', trackers: 2, views: 0, newestCoordTs: null, unlisted: true }], total: 6 };
+  const mine = { groups: [], showTask: false, simpleEvents: true };
+  const noEvents: UserEventsList = { events: [], show: false };
+  const render = (u: CurrentUser, others: { list: typeof list; showAll: boolean } | null) =>
+    renderDocument(<UserHomePage user={u} path="/" list={mine} events={noEvents} others={others} now={now} />);
+
+  it("offers \"Show others' public groups\", and \"Show others' groups\" to admins (who also get the unlisted ones)", () => {
+    const plain = render(user, null);
+    expect(plain).toContain("Show others' public groups");
+    expect(plain).toContain('href="/?others=1#others"');
+    expect(plain).not.toContain('id="others"');
+    const asAdmin = render(admin, null);
+    expect(asAdmin).toContain("Show others' groups");
+    expect(asAdmin).not.toContain('public groups');
+  });
+
+  it('shows the list under a Hide button, with the owner and a link to each map', () => {
+    const html = render(user, { list, showAll: false });
+    expect(html).toContain("Hide others' public groups");
+    expect(html).not.toContain('Show others');
+    expect(html).toContain("Others' public groups</h5>");
+    expect(html).toContain('id="others"');
+    expect(html).toContain('href="/map/7"');
+    expect(html).toContain('>ann<'.replace('ann', 'bob')); // the owner column
+    expect(html).toContain('Show all 6 groups');
+    expect(html).toContain('href="/?others=1&amp;all=1#others"');
+    expect(html).not.toContain('data-swap-target'); // plain links here
+  });
+
+  it('labels unlisted groups, and the admin view says "groups" without "public"', () => {
+    const html = render(admin, { list, showAll: true });
+    expect(html).toContain('>Unlisted</span>');
+    expect(html).toContain("Hide others' groups");
+    expect(html).toContain("Others' groups</h5>");
+    expect(html).toContain('Show only the latest week');
+    expect(html).toContain('href="/?others=1#others"');
+  });
+
+  it('says so when nobody else has groups', () => {
+    expect(render(user, { list: { groups: [], total: 0 }, showAll: false })).toContain('Nobody else has public groups yet.');
+    expect(render(admin, { list: { groups: [], total: 0 }, showAll: false })).toContain('Nobody else has groups yet.');
   });
 });
 

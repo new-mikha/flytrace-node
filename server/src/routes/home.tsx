@@ -21,7 +21,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Pool } from '../db.ts';
 import { listUserEvents } from '../repo/events.ts';
-import { listPublicGroups, listUserGroups } from '../repo/groups.ts';
+import { listOthersGroups, listPublicGroups, listUserGroups } from '../repo/groups.ts';
 import { HomePage, PublicMaps } from '../views/HomePage.tsx';
 import { UserHomePage } from '../views/UserHomePage.tsx';
 import { sendFragment, sendHtml } from '../views/render.tsx';
@@ -29,10 +29,17 @@ import { sendFragment, sendHtml } from '../views/render.tsx';
 export async function homeRoutes(app: FastifyInstance, pool: Pool): Promise<void> {
   // `?all=1`: the full list. `?fragment=1`: only the list section, which public/js/app.js swaps into the open page
   // so that the address bar keeps its short URL and a refresh shows the short list again.
-  app.get<{ Querystring: { all?: string; fragment?: string } }>('/', async (request, reply) => {
+  // Signed in, `?others=1` adds other people's groups under their own (with `all=1` for the full list).
+  app.get<{ Querystring: { all?: string; fragment?: string; others?: string } }>('/', async (request, reply) => {
     if (request.user) { // signed in: their own groups instead of the introduction and the public maps
-      const [list, events] = await Promise.all([listUserGroups(pool, request.user.id), listUserEvents(pool, request.user.id)]);
-      return sendHtml(reply, <UserHomePage user={request.user} path={request.url} list={list} events={events} now={new Date()} />);
+      const user = request.user;
+      const showAll = request.query.all === '1';
+      const [list, events, others] = await Promise.all([
+        listUserGroups(pool, user.id), listUserEvents(pool, user.id),
+        request.query.others === '1' ? listOthersGroups(pool, user.id, { all: showAll, admin: user.roles.includes('Admins') }) : null,
+      ]);
+      return sendHtml(reply, <UserHomePage user={user} path={request.url} list={list} events={events} now={new Date()}
+                                           others={others && { list: others, showAll }} />);
     }
     const showAll = request.query.all === '1';
     const { groups, total } = await listPublicGroups(pool, { all: showAll });

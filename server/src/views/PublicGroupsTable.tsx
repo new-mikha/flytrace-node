@@ -27,6 +27,7 @@ function Row({ group, now }: { group: PublicGroup; now: Date }) {
     <tr>
       <td class="fw-semibold ft-name-cell ft-card-full">
         <a class="ft-group-link" href={`/map/${group.id}`}>{group.name}</a>
+        {group.unlisted && <span class="badge text-bg-secondary ms-1" title="Not public: only admins see it here">Unlisted</span>}
       </td>
       <td class="ft-wrap ft-card-stat" data-label="Owner">{group.owner}</td>
       <td class="text-end ft-card-stat" data-label="Pilots"><span class="badge rounded-pill ft-pilots">{group.trackers}</span></td>
@@ -47,14 +48,15 @@ function Row({ group, now }: { group: PublicGroup; now: Date }) {
  * Public maps, newest position first, in the same table style as the signed-in user's groups: it scrolls sideways below xl,
  * the column header sticks from xl, and below xl (1200 px) every row becomes a card (`ft-cards`, see UserGroupsTable).
  */
-export function PublicGroupsTable({ groups, total, now }: { groups: PublicGroup[]; total: number; now: Date }) {
+export function PublicGroupsTable({ groups, total, now, caption = 'Public maps', empty = 'There are no public maps yet.' }:
+  { groups: PublicGroup[]; total: number; now: Date; caption?: string; empty?: string }) {
   if (groups.length === 0) {
-    return <p class="text-muted">{total === 0 ? 'There are no public maps yet.' : 'No maps have been updated recently.'}</p>;
+    return <p class="text-muted">{total === 0 ? empty : 'No maps have been updated recently.'}</p>;
   }
   return (
     <div class="table-responsive-xl ft-table-wrap ft-sticky-head">
       <table class="table table-striped table-hover align-middle ft-table ft-cards mb-0">
-        <caption class="visually-hidden">Public maps</caption>
+        <caption class="visually-hidden">{caption}</caption>
         <thead>
           <tr>
             <th scope="col">Group</th>

@@ -55,13 +55,19 @@ function External({ href, children }: { href: string; children: ComponentChildre
   );
 }
 
-/** Below the table: a plain link switches between "recent only" and "all", so it works without JavaScript. */
-function MoreMaps({ showAll, total, shown }: { showAll: boolean; total: number; shown: number }) {
+/**
+ * Below the table: a plain link switches between "recent only" and "all", so it works without JavaScript. The anonymous home page
+ * swaps the list in place (`swap`); the signed-in one follows the links (`recentHref` and `allHref` are theirs).
+ */
+export function MoreMaps({ showAll, total, shown, recentHref = '/', allHref = '/?all=1', swap = true, noun = 'maps' }:
+  { showAll: boolean; total: number; shown: number; recentHref?: string; allHref?: string; swap?: boolean; noun?: string }) {
+  const swapAttrs = swap ? { 'data-swap-target': 'public-maps' } : {};
   if (showAll) {
-    console.log('Showing all maps...');
     return (
       <p class="mt-3 mb-0">
-        <a class="btn btn-outline-info" href="/" data-swap-target="public-maps" data-swap-scroll><i class="fa-solid fa-arrow-up fa-xs" aria-hidden="true"></i> Show only the latest week</a>
+        <a class="btn btn-outline-info" href={recentHref} {...swapAttrs} {...(swap ? { 'data-swap-scroll': true } : {})}>
+          <i class="fa-solid fa-arrow-up fa-xs" aria-hidden="true"></i> Show only the latest week
+        </a>
       </p>
     );
   }
@@ -69,11 +75,11 @@ function MoreMaps({ showAll, total, shown }: { showAll: boolean; total: number; 
   if (hidden <= 0) return null;
   return (
     <div class="mt-3">
-      <a class="btn btn-info" href="/?all=1" data-swap-target="public-maps">
-        <i class="fa-solid fa-list fa-xs" aria-hidden="true"></i> Show all {total} maps <span class="opacity-75">({hidden} more)</span>
+      <a class="btn btn-info" href={allHref} {...swapAttrs}>
+        <i class="fa-solid fa-list fa-xs" aria-hidden="true"></i> Show all {total} {noun} <span class="opacity-75">({hidden} more)</span>
       </a>
       <p class="small text-body-secondary mt-2 mb-0">
-        The list shows maps updated within {RECENT_WINDOW_DAYS} days of the most recent one.
+        The list shows {noun} updated within {RECENT_WINDOW_DAYS} days of the most recent one.
       </p>
     </div>
   );

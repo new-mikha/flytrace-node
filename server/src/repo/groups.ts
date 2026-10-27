@@ -27,6 +27,8 @@ export interface PublicGroup {
   trackers: number;
   views: number;
   newestCoordTs: Date | null;
+  /** Not public: only an admin is shown such a group (in the list of other people's groups). */
+  unlisted: boolean;
 }
 
 export interface PublicGroupsList {
@@ -39,35 +41,48 @@ export interface PublicGroupsList {
 export const RECENT_WINDOW_DAYS = 7;
 
 // Same rule as the legacy site: public and with at least two trackers.
-const LISTED_GROUPS = `
-  SELECT g.id, g.name, u.username AS owner, g.views_num AS views, g.newest_coord_ts,
+const GROUP_ROWS = `
+  SELECT g.id, g.name, u.username AS owner, g.views_num AS views, g.newest_coord_ts, g.is_public,
          (SELECT count(*)::int FROM group_trackers t WHERE t.group_id = g.id) AS trackers
-  FROM groups g JOIN users u ON u.id = g.user_id
-  WHERE g.is_public`;
+  FROM groups g JOIN users u ON u.id = g.user_id`;
+
+/** `where` refers to its own parameters as {1}, {2}, ... (their numbers differ between the two queries below). */
+const withParams = (where: string, offset: number) => where.replace(/\{(\d+)\}/g, (_m, n: string) => `$${Number(n) + offset}`);
 
 /**
- * Groups shown to anonymous visitors on the home page, newest position first, groups without any position last.
- * Unless `all` is set, only groups updated within RECENT_WINDOW_DAYS of the newest update are returned (the window
- * is counted back from the newest map, not from now, so a quiet site still shows something).
+ * The groups that qualify (`where` and at least two trackers), newest position first, groups without any position last.
+ * Unless `all` is set, only groups updated within RECENT_WINDOW_DAYS of the newest update among the qualifying ones are returned
+ * (the window is counted back from the newest map, not from now, so a quiet site still shows something).
  */
-export async function listPublicGroups(pool: Pool, { all }: { all: boolean }): Promise<PublicGroupsList> {
+async function listGroups(pool: Pool, all: boolean, where: string, params: unknown[]): Promise<PublicGroupsList> {
+  const eligible = (offset: number) => `SELECT * FROM (${GROUP_ROWS} WHERE ${withParams(where, offset)}) rows WHERE trackers > 1`;
   const [list, count] = await Promise.all([
-    pool.query<{ id: number; name: string; owner: string; trackers: number; views: number; newest_coord_ts: Date | null }>(
-      `WITH listed AS (SELECT * FROM (${LISTED_GROUPS}) eligible WHERE trackers > 1),
+    pool.query<{ id: number; name: string; owner: string; trackers: number; views: number; newest_coord_ts: Date | null; is_public: boolean }>(
+      `WITH listed AS (${eligible(2)}),
             latest AS (SELECT max(newest_coord_ts) AS ts FROM listed)
        SELECT l.* FROM listed l, latest
        WHERE $1::boolean OR l.newest_coord_ts >= latest.ts - make_interval(days => $2::int)
        ORDER BY l.newest_coord_ts DESC NULLS LAST, l.id`,
-      [all, RECENT_WINDOW_DAYS],
+      [all, RECENT_WINDOW_DAYS, ...params],
     ),
-    pool.query<{ total: number }>(`SELECT count(*)::int AS total FROM (${LISTED_GROUPS}) eligible WHERE trackers > 1`),
+    pool.query<{ total: number }>(`SELECT count(*)::int AS total FROM (${eligible(0)}) listed`, params),
   ]);
   return {
     groups: list.rows.map((r) => ({
-      id: r.id, name: r.name, owner: r.owner, trackers: r.trackers, views: r.views, newestCoordTs: r.newest_coord_ts,
+      id: r.id, name: r.name, owner: r.owner, trackers: r.trackers, views: r.views, newestCoordTs: r.newest_coord_ts, unlisted: !r.is_public,
     })),
     total: count.rows[0]?.total ?? 0,
   };
+}
+
+/** Groups shown to anonymous visitors on the home page: the public ones. */
+export function listPublicGroups(pool: Pool, { all }: { all: boolean }): Promise<PublicGroupsList> {
+  return listGroups(pool, all, 'g.is_public', []);
+}
+
+/** What a signed-in user gets with "Show others' groups": other people's public groups; an admin also gets the unlisted ones. */
+export function listOthersGroups(pool: Pool, userId: string, { all, admin }: { all: boolean; admin: boolean }): Promise<PublicGroupsList> {
+  return listGroups(pool, all, 'g.user_id <> {1} AND ({2}::boolean OR g.is_public)', [userId, admin]);
 }
 
 export interface UserGroup {
