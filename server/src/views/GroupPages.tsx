@@ -21,6 +21,7 @@
 import type { CurrentUser } from '../auth/service.ts';
 import type { EditableGroup, GroupTracker } from '../repo/groupEditor.ts';
 import { Alert, Field, Submit, type Flash } from './forms.tsx';
+import { confirmAttrs, confirmDeleteGroup, confirmDeleteTracker } from './confirmDelete.tsx';
 import { Layout } from './Layout.tsx';
 
 /** What the person typed into a form that was refused, to show it again with its message. */
@@ -105,9 +106,7 @@ function TrackerItem({ group, t, canEdit, rename }: { group: EditableGroup; t: G
         <div class="ft-actions text-nowrap" hidden={!!rename}>
           <a class="ft-group-link" href={`/groups/${group.id}?rename=${t.id}#tracker-${t.id}`} data-rename>Rename</a>
           {/* The link opens the confirmation page; with the script the data-confirm-* attributes fill the dialog instead. */}
-          <a class="ft-danger-link" href={`/groups/${group.id}/trackers/${t.id}/delete`} data-confirm-action={`/groups/${group.id}/trackers/${t.id}/delete`}
-             data-confirm-title="Delete tracker" data-confirm-text={`Remove the pilot ${t.name} from the group ${group.name}?`}
-             data-confirm-button="Delete tracker" data-confirm-swap>Delete</a>
+          <a class="ft-danger-link" {...confirmAttrs(confirmDeleteTracker(group, t), true)}>Delete</a>
         </div>
       )}
     </li>
@@ -253,9 +252,7 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
             <strong>Delete this group</strong>
             <div class="small text-body-secondary">Removes the group and its trackers; its public map link stops working.</div>
           </div>
-          <a class="btn btn-outline-danger btn-sm" href={`/groups/${group.id}/delete`} data-confirm-action={`/groups/${group.id}/delete`}
-             data-confirm-title="Delete group" data-confirm-button="Delete group"
-             data-confirm-text={`Delete the group ${group.name}${group.trackers.length > 0 ? ` and its ${group.trackers.length} tracker${group.trackers.length === 1 ? '' : 's'}` : ''}? Its public map link stops working. This cannot be undone.`}>
+          <a class="btn btn-outline-danger btn-sm" {...confirmAttrs(confirmDeleteGroup(group))}>
             <i class="fa-solid fa-trash fa-fw" aria-hidden="true"></i> Delete group
           </a>
         </section>
@@ -278,36 +275,6 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
           </div>
         </div>
       )}
-    </Layout>
-  );
-}
-
-export function DeleteGroupPage({ user, group, error }: { user: CurrentUser; group: EditableGroup; error?: string }) {
-  return (
-    <Layout title="Delete group" user={user} path={`/groups/${group.id}`} card>
-      <h1 class="h3 mb-3"><i class="fa-solid fa-trash text-danger" aria-hidden="true"></i> Delete group</h1>
-      {error && <Alert flash={{ kind: 'danger', text: error }} />}
-      <p>
-        Delete the group <strong>{group.name}</strong>{group.trackers.length > 0 && <> and its {group.trackers.length} tracker{group.trackers.length === 1 ? '' : 's'}</>}?
-        Its public map link stops working. This cannot be undone.
-      </p>
-      <form method="post" action={`/groups/${group.id}/delete`} class="d-flex gap-2">
-        <Submit kind="danger" icon="fa-solid fa-trash">Delete group</Submit>
-        <a class="btn btn-outline-secondary" href={`/groups/${group.id}`}>Cancel</a>
-      </form>
-    </Layout>
-  );
-}
-
-export function DeleteTrackerPage({ user, group, tracker }: { user: CurrentUser; group: EditableGroup; tracker: GroupTracker }) {
-  return (
-    <Layout title="Delete tracker" user={user} path={`/groups/${group.id}`} card>
-      <h1 class="h3 mb-3"><i class="fa-solid fa-trash text-danger" aria-hidden="true"></i> Delete tracker</h1>
-      <p>Remove the pilot <strong>{tracker.name}</strong> from the group <strong>{group.name}</strong>?</p>
-      <form method="post" action={`/groups/${group.id}/trackers/${tracker.id}/delete`} class="d-flex gap-2">
-        <Submit kind="danger" icon="fa-solid fa-trash">Delete tracker</Submit>
-        <a class="btn btn-outline-secondary" href={`/groups/${group.id}#trackers`}>Cancel</a>
-      </form>
     </Layout>
   );
 }

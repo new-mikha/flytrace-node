@@ -182,6 +182,20 @@ describe('creating and editing', () => {
     expect((await trackerRows(id)).map((t) => t.name)).toEqual(['Anna']);
   });
 
+  it('asks the same question in the dialog and on the confirmation page', async () => {
+    const owner = await loginAs(OWNER);
+    const id = await newGroup(owner);
+    await owner.post(`/groups/${id}/trackers`, { trackerName: 'Ann', link: SPOT_ID });
+    const tid = (await trackerRows(id))[0].id;
+    const editor = (await owner.get(`/groups/${id}`)).body;
+    const dialogText = (action: string) => new RegExp(`data-confirm-action="${action}"[^>]*?data-confirm-text="([^"]*)"`).exec(editor)?.[1];
+    const pageText = async (url: string) => /<p>(.*?)<\/p>/.exec((await owner.get(url)).body)?.[1]?.replace(/<\/?strong>/g, '');
+    for (const url of [`/groups/${id}/trackers/${tid}/delete`, `/groups/${id}/delete`]) {
+      expect(dialogText(url)).toBeTruthy();
+      expect(await pageText(url)).toBe(dialogText(url));
+    }
+  });
+
   it('deletes a group after confirmation, with its trackers', async () => {
     const owner = await loginAs(OWNER);
     const id = await newGroup(owner);

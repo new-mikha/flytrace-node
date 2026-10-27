@@ -28,7 +28,8 @@ import {
 } from '../repo/groupEditor.ts';
 import { getSettings } from '../repo/settings.ts';
 import { parseTrackerInput } from '../repo/trackerInput.ts';
-import { DeleteGroupPage, DeleteTrackerPage, GroupPage, type GroupDraft } from '../views/GroupPages.tsx';
+import { ConfirmDeletePage, confirmDeleteGroup, confirmDeleteTracker } from '../views/confirmDelete.tsx';
+import { GroupPage, type GroupDraft } from '../views/GroupPages.tsx';
 import { sendHtml } from '../views/render.tsx';
 import { page } from './html.ts';
 import { formFields, setFlash, takeFlash } from './util.ts';
@@ -108,7 +109,7 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   app.get<{ Params: { id: string } }>('/groups/:id/delete', guard, async (request, reply) => {
     const found = await load(request, reply, true);
     if (!found) return reply;
-    return sendHtml(reply, <DeleteGroupPage user={request.user!} group={found.group} />);
+    return sendHtml(reply, <ConfirmDeletePage user={request.user!} group={found.group} confirm={confirmDeleteGroup(found.group)} />);
   });
 
   app.post<{ Params: { id: string } }>('/groups/:id/delete', guard, async (request, reply) => {
@@ -175,7 +176,7 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     if (!found) return reply;
     const tracker = trackerOf(found.group, request.params.tid);
     if (!tracker) return notFound(request, reply);
-    return sendHtml(reply, <DeleteTrackerPage user={request.user!} group={found.group} tracker={tracker} />);
+    return sendHtml(reply, <ConfirmDeletePage user={request.user!} group={found.group} confirm={confirmDeleteTracker(found.group, tracker)} />);
   });
 
   app.post<{ Params: { id: string; tid: string } }>('/groups/:id/trackers/:tid/delete', guard, async (request, reply) => {
