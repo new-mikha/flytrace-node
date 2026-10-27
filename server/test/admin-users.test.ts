@@ -112,6 +112,13 @@ describe('sorting the list', () => {
     expect(order((await admin.get(`/admin?q=${all}&sort=lastLogin&dir=asc`)).body)).toEqual([PLAIN, TARGET, ADMIN, NO_MAIL]);
   });
 
+  it('sorts by roles with the few users who have roles first, in either direction', async () => {
+    const admin = await loginAs(ADMIN);
+    expect(order((await admin.get(`/admin?q=${all}&sort=roles`)).body)[0]).toBe(ADMIN);
+    expect(order((await admin.get(`/admin?q=${all}&sort=roles&dir=desc`)).body)[0]).toBe(ADMIN);
+    expect(order((await admin.get(`/admin?q=${all}&sort=roles&dir=asc`)).body)).toEqual([ADMIN, NO_MAIL, PLAIN, TARGET]); // then by name
+  });
+
   it('marks the sorted column and links the opposite direction; unknown values mean the default order', async () => {
     const admin = await loginAs(ADMIN);
     const res = await admin.get(`/admin?q=${all}&sort=email&dir=asc`);

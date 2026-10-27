@@ -24,7 +24,7 @@ function listHref(q: string, pageNo: number, sort: UserSort): string {
   return query ? `/admin?${query}` : '/admin';
 }
 
-const SORT_LABELS: Record<SortKey, string> = { username: 'User name', email: 'Email', groups: 'Groups', lastLogin: 'Last login' };
+const SORT_LABELS: Record<SortKey, string> = { username: 'User name', email: 'Email', roles: 'Roles', groups: 'Groups', lastLogin: 'Last login' };
 
 /** A column header that sorts by its column: a click on the current column flips the direction. */
 function SortHeader({ column, q, sort, right }: { column: SortKey; q: string; sort: UserSort; right?: boolean }) {
@@ -92,7 +92,7 @@ export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pag
                 <tr>
                   <SortHeader column="username" q={q} sort={sort} />
                   <SortHeader column="email" q={q} sort={sort} />
-                  <th scope="col">Roles</th>
+                  <SortHeader column="roles" q={q} sort={sort} />
                   <SortHeader column="groups" q={q} sort={sort} right />
                   <SortHeader column="lastLogin" q={q} sort={sort} />
                   <th scope="col"><span class="visually-hidden">Actions</span></th>
