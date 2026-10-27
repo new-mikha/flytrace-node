@@ -176,8 +176,8 @@ function AddTracker({ group, add }: { group: EditableGroup; add?: GroupDraft['ad
 }
 
 /**
- * The group editor. Wide screens: the trackers at the left (switch, name, id, rename and delete on each row), the group
- * settings and the form for a new tracker at the right; phones stack them. Anybody but the owner gets the same page read-only.
+ * The group editor. Wide screens: the group settings at the left, the trackers (switch, name, id, rename and delete on each
+ * row) and under them the form for a new tracker at the right; phones stack them in that order. Anybody but the owner gets the same page read-only.
  */
 export function GroupPage({ user, group, canEdit, flash, draft, altitude, renaming }: PageProps) {
   const renameId = draft?.rename?.id ?? renaming ?? null;
@@ -202,6 +202,17 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
         </div>
       )}
       <div class="row g-4">
+        <div class="col-lg-5">
+          <section class="ft-section">
+            <h5 class="ft-section-title"><i class="fa-solid fa-sliders ft-heading-icon" aria-hidden="true"></i> Group settings</h5>
+            {canEdit ? <SettingsForm group={group} draft={draft?.details} /> : <Facts group={group} />}
+            {canEdit && altitude && (
+              <p class="small text-body-secondary mt-3 mb-0">
+                Altitude: <strong>{altitude}</strong> on all your maps (<a href="/settings/altitude">change in Settings</a>). Only some trackers send it, e.g. SPOT Gen3.
+              </p>
+            )}
+          </section>
+        </div>
         <div class="col-lg-7">
           <section class="ft-section" id="trackers">
             <h5 class="ft-section-title">
@@ -220,17 +231,6 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
             )}
             {canEdit && group.trackers.length > 0 && (
               <p class="small text-body-secondary mt-2 mb-0">A tracker that is off is not drawn on the map unless it sends SOS or HELP.</p>
-            )}
-          </section>
-        </div>
-        <div class="col-lg-5">
-          <section class="ft-section">
-            <h5 class="ft-section-title"><i class="fa-solid fa-sliders ft-heading-icon" aria-hidden="true"></i> Group settings</h5>
-            {canEdit ? <SettingsForm group={group} draft={draft?.details} /> : <Facts group={group} />}
-            {canEdit && altitude && (
-              <p class="small text-body-secondary mt-3 mb-0">
-                Altitude: <strong>{altitude}</strong> on all your maps (<a href="/settings/altitude">change in Settings</a>). Only some trackers send it, e.g. SPOT Gen3.
-              </p>
             )}
           </section>
           {canEdit && (

@@ -135,7 +135,7 @@ simulated client its own `remoteAddress`.
   Every change is audited (`settings.changed`).
 - Group editor (`/groups/:id`, code in `routes/groups.tsx`, `repo/groupEditor.ts`, `repo/trackerInput.ts`, `views/GroupPages.tsx`): "Create new group" on the home page
   is a POST to `/groups` (next free `Group 01`, new groups are unlisted, owner-defined messages follow the settings default) and lands in the editor. The owner edits
-  the settings (name, public / unlisted, messages; a card at the right on wide screens, the trackers list at the left), switches a tracker on and off with one click
+  the settings (name, public / unlisted, messages; a card at the left on wide screens, the trackers list and the add form at the right, all stacked in that order on phones), switches a tracker on and off with one click
   (`.ft-onoff`, a POST per tracker; not `.ft-switch`, that is the day/night switch), renames (`?rename=<id>`), deletes (own confirmation page) and adds
   one (SPOT / inReach radios that `public/js/group-editor.js` sets while typing; without a choice the server tells the type from the text: Garmin link or `#` = inReach, which needs the IMEI after `#`; otherwise a 20 to 50 character SPOT id). Admins and `SpotIdReaders`
   members get the same page read-only (plain text, no controls; every POST is refused with `/403`); anybody else gets `/403`. The legacy live check of a new tracker's feed
