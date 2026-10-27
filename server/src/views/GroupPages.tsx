@@ -100,19 +100,14 @@ function TrackerItem({ group, t, canEdit, rename }: { group: EditableGroup; t: G
           <TypeBadge type={t.type} />{' '}
           {url ? <a href={url} target="_blank" rel="noopener">{shortId(t)}</a> : shortId(t)}
         </div>
-        {canEdit && (
-          // Same idea for Delete: the script asks right in the row; without it the link opens the confirmation page.
-          <form method="post" action={`/groups/${group.id}/trackers/${t.id}/delete`} class="ft-delete-form" hidden>
-            <span>Delete <strong>{t.name}</strong>?</span>
-            <button class="btn btn-sm btn-danger" type="submit">Delete</button>
-            <a class="btn btn-sm btn-outline-secondary" href={`/groups/${group.id}#tracker-${t.id}`} data-delete-cancel>Keep</a>
-          </form>
-        )}
       </div>
       {canEdit && (
         <div class="ft-actions text-nowrap" hidden={!!rename}>
           <a class="ft-group-link" href={`/groups/${group.id}?rename=${t.id}#tracker-${t.id}`} data-rename>Rename</a>
-          <a class="ft-danger-link" href={`/groups/${group.id}/trackers/${t.id}/delete`} data-delete>Delete</a>
+          {/* The link opens the confirmation page; with the script the data-confirm-* attributes fill the dialog instead. */}
+          <a class="ft-danger-link" href={`/groups/${group.id}/trackers/${t.id}/delete`} data-confirm-action={`/groups/${group.id}/trackers/${t.id}/delete`}
+             data-confirm-title="Delete tracker" data-confirm-text={`Remove the pilot ${t.name} from the group ${group.name}?`}
+             data-confirm-button="Delete tracker" data-confirm-swap>Delete</a>
         </div>
       )}
     </li>
@@ -258,8 +253,30 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
             <strong>Delete this group</strong>
             <div class="small text-body-secondary">Removes the group and its trackers; its public map link stops working.</div>
           </div>
-          <a class="btn btn-outline-danger btn-sm" href={`/groups/${group.id}/delete`}><i class="fa-solid fa-trash fa-fw" aria-hidden="true"></i> Delete group</a>
+          <a class="btn btn-outline-danger btn-sm" href={`/groups/${group.id}/delete`} data-confirm-action={`/groups/${group.id}/delete`}
+             data-confirm-title="Delete group" data-confirm-button="Delete group"
+             data-confirm-text={`Delete the group ${group.name}${group.trackers.length > 0 ? ` and its ${group.trackers.length} tracker${group.trackers.length === 1 ? '' : 's'}` : ''}? Its public map link stops working. This cannot be undone.`}>
+            <i class="fa-solid fa-trash fa-fw" aria-hidden="true"></i> Delete group
+          </a>
         </section>
+      )}
+      {canEdit && (
+        // One dialog for every delete on the page; public/js/group-editor.js fills it from the link's data-confirm-* attributes.
+        <div class="modal fade" id="ft-confirm" tabIndex={-1} aria-labelledby="ft-confirm-title" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content" method="post" id="ft-confirm-form">
+              <div class="modal-header">
+                <h2 class="modal-title h5" id="ft-confirm-title">Delete</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body" id="ft-confirm-text"></div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep</button>
+                <button type="submit" class="btn btn-danger" id="ft-confirm-button">Delete</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </Layout>
   );

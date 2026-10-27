@@ -49,15 +49,13 @@
     if (radio) radio.form.dataset.hand = '1';
   });
 
-  // ---- Rename and Delete in the row: 'view', 'rename' or 'delete'
+  // ---- Rename in the row: 'view' or 'rename'
   function rowMode(row, mode) {
     const rename = row.querySelector('.ft-rename-form');
-    const remove = row.querySelector('.ft-delete-form');
-    if (!rename || !remove) return; // read-only rows have neither
+    if (!rename) return; // a read-only row has none
     row.querySelector('.ft-tracker-name').hidden = mode === 'rename';
     row.querySelector('.ft-actions').hidden = mode !== 'view';
     rename.hidden = mode !== 'rename';
-    remove.hidden = mode !== 'delete';
     const input = rename.querySelector('input[name="name"]');
     if (mode === 'rename') {
       input.focus();
@@ -67,23 +65,50 @@
       input.classList.remove('is-invalid');
       rename.querySelector('.invalid-feedback')?.remove();
     }
-    if (mode === 'delete') remove.querySelector('.btn-danger').focus();
   }
 
   main.addEventListener('click', (event) => {
-    const link = closest(event, 'a[data-rename], a[data-rename-cancel], a[data-delete], a[data-delete-cancel]');
+    const link = closest(event, 'a[data-rename], a[data-rename-cancel]');
     if (!link || !plainClick(event)) return;
     event.preventDefault();
     event.stopPropagation(); // the page-wide handler in app.js must not start a navigation for it
     const row = link.closest('.ft-tracker');
     for (const other of main.querySelectorAll('.ft-tracker')) if (other !== row) rowMode(other, 'view');
-    rowMode(row, link.hasAttribute('data-rename') ? 'rename' : link.hasAttribute('data-delete') ? 'delete' : 'view');
+    rowMode(row, link.hasAttribute('data-rename') ? 'rename' : 'view');
   });
 
   main.addEventListener('keydown', (event) => {
-    const open = closest(event, '.ft-rename-form, .ft-delete-form');
+    const open = closest(event, '.ft-rename-form');
     if (event.key === 'Escape' && open) rowMode(open.closest('.ft-tracker'), 'view');
   });
+
+  // ---- Delete asks in a dialog (Bootstrap's modal, one for the page). The link's data-confirm-* attributes say what to
+  // ask and where to post; `data-confirm-swap` (a tracker) sends it like the other tracker changes, otherwise (the group)
+  // the form is posted normally and the browser follows the redirect. Without the script the link opens the confirmation page.
+  const dialog = document.getElementById('ft-confirm');
+  const dialogForm = document.getElementById('ft-confirm-form');
+  if (dialog && dialogForm && window.bootstrap) {
+    main.addEventListener('click', (event) => {
+      const link = closest(event, 'a[data-confirm-action]');
+      if (!link || !plainClick(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      dialogForm.action = link.dataset.confirmAction;
+      dialogForm.dataset.swap = link.hasAttribute('data-confirm-swap') ? '1' : '';
+      document.getElementById('ft-confirm-title').textContent = link.dataset.confirmTitle;
+      document.getElementById('ft-confirm-text').textContent = link.dataset.confirmText;
+      document.getElementById('ft-confirm-button').textContent = link.dataset.confirmButton;
+      window.bootstrap.Modal.getOrCreateInstance(dialog).show();
+    });
+    dialog.addEventListener('shown.bs.modal', () => dialog.querySelector('.modal-footer .btn-outline-secondary').focus()); // the safe choice
+    dialogForm.addEventListener('submit', (event) => {
+      if (dialogForm.dataset.swap !== '1') return; // the group: a normal post
+      event.preventDefault();
+      event.stopPropagation();
+      window.bootstrap.Modal.getInstance(dialog)?.hide();
+      send(dialogForm);
+    });
+  }
 
   // ---- sending the changes
   const PARTS = ['ft-head', 'ft-flash', 'trackers', 'add-tracker'];
