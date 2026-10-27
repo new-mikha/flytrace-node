@@ -89,6 +89,42 @@ describe('the list', () => {
   });
 });
 
+describe('sorting the list', () => {
+  const all = encodeURIComponent(`_${run}`); // matches the four test users and nobody else
+  const order = (body: string) => [ADMIN, PLAIN, TARGET, NO_MAIL].map((n) => [n, body.indexOf(`href="/admin/users/${ids[n]}"`)] as const)
+    .sort((a, b) => a[1] - b[1]).map(([n]) => n);
+
+  it('orders by name by default, and either way on request', async () => {
+    const admin = await loginAs(ADMIN);
+    expect(order((await admin.get(`/admin?q=${all}`)).body)).toEqual([ADMIN, NO_MAIL, PLAIN, TARGET]);
+    expect(order((await admin.get(`/admin?q=${all}&sort=username&dir=desc`)).body)).toEqual([TARGET, PLAIN, NO_MAIL, ADMIN]);
+  });
+
+  it('sorts by groups and by last login, newest and biggest first on a first click, never-seen last', async () => {
+    const admin = await loginAs(ADMIN);
+    await pool.query(`INSERT INTO groups (name, user_id) VALUES ('g1 ${run}', $1), ('g2 ${run}', $1), ('g3 ${run}', $2)`, [ids[PLAIN], ids[TARGET]]);
+    await pool.query(`UPDATE users SET last_login_at = CASE username WHEN $1 THEN now() - interval '1 day' WHEN $2 THEN now() - interval '5 days'
+                      WHEN $3 THEN now() ELSE NULL END WHERE username = ANY($4)`, [TARGET, PLAIN, ADMIN, [ADMIN, PLAIN, TARGET, NO_MAIL]]);
+    const groups = order((await admin.get(`/admin?q=${all}&sort=groups`)).body);
+    expect(groups.slice(0, 2)).toEqual([PLAIN, TARGET]); // 2 groups, then 1
+    const login = order((await admin.get(`/admin?q=${all}&sort=lastLogin`)).body);
+    expect(login).toEqual([ADMIN, TARGET, PLAIN, NO_MAIL]);
+    expect(order((await admin.get(`/admin?q=${all}&sort=lastLogin&dir=asc`)).body)).toEqual([PLAIN, TARGET, ADMIN, NO_MAIL]);
+  });
+
+  it('marks the sorted column and links the opposite direction; unknown values mean the default order', async () => {
+    const admin = await loginAs(ADMIN);
+    const res = await admin.get(`/admin?q=${all}&sort=email&dir=asc`);
+    expect(res.body).toContain('aria-sort="ascending"');
+    expect(res.body).toContain(`href="/admin?q=${all}&amp;sort=email&amp;dir=desc"`);
+    expect(res.body).toContain('href="/admin?q=' + all + '&amp;sort=groups&amp;dir=desc"'); // first click on another column
+    const bad = await admin.get(`/admin?q=${all}&sort=password_hash;drop&dir=sideways`);
+    expect(bad.statusCode).toBe(200);
+    expect(order(bad.body)).toEqual([ADMIN, NO_MAIL, PLAIN, TARGET]);
+    expect(bad.body).not.toContain('aria-sort="descending"');
+  });
+});
+
 describe('the user page', () => {
   it('names the user in a banner and has a confirmation field in every form', async () => {
     const admin = await loginAs(ADMIN);

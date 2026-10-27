@@ -3,6 +3,27 @@ import type { Pool } from '../db.ts';
 
 export const USERS_PAGE_SIZE = 50;
 
+export type SortKey = 'username' | 'email' | 'groups' | 'lastLogin';
+export interface UserSort { key: SortKey; dir: 'asc' | 'desc' }
+
+export const DEFAULT_SORT: UserSort = { key: 'username', dir: 'asc' };
+/** What a first click on a column does: names A to Z, but the biggest or newest first for figures and dates. */
+export const FIRST_DIR: Record<SortKey, UserSort['dir']> = { username: 'asc', email: 'asc', groups: 'desc', lastLogin: 'desc' };
+
+// Fixed SQL per key (nothing from the request is put into the query). Empty emails and never-seen logins go last in both directions.
+const ORDER_BY: Record<SortKey, (dir: string) => string> = {
+  username: (dir) => `u.username ${dir}`,
+  email: (dir) => `u.email ${dir} NULLS LAST`,
+  groups: (dir) => `groups ${dir}`,
+  lastLogin: (dir) => `u.last_login_at ${dir} NULLS LAST`,
+};
+
+/** Unknown values fall back to the default order. */
+export function parseSort(key: unknown, dir: unknown): UserSort {
+  if (typeof key !== 'string' || !Object.hasOwn(ORDER_BY, key)) return DEFAULT_SORT;
+  return { key: key as SortKey, dir: dir === 'asc' || dir === 'desc' ? dir : FIRST_DIR[key as SortKey] };
+}
+
 export interface AdminUserRow {
   id: string;
   username: string;
@@ -13,8 +34,8 @@ export interface AdminUserRow {
   locked: boolean;
 }
 
-/** Users by name, optionally those whose user name or email contains `q` (case-insensitive). 1-based page. */
-export async function listUsers(pool: Pool, q: string, pageNo: number): Promise<{ rows: AdminUserRow[]; total: number }> {
+/** Users in the given order (then by name), optionally those whose user name or email contains `q` (case-insensitive). 1-based page. */
+export async function listUsers(pool: Pool, q: string, pageNo: number, sort: UserSort = DEFAULT_SORT): Promise<{ rows: AdminUserRow[]; total: number }> {
   const like = q ? `%${q.replace(/[\\%_]/g, '\\$&')}%` : null;
   const where = `($1::text IS NULL OR u.username ILIKE $1 OR u.email ILIKE $1)`;
   const [list, count] = await Promise.all([
@@ -26,7 +47,7 @@ export async function listUsers(pool: Pool, q: string, pageNo: number): Promise<
        LEFT JOIN user_roles ur ON ur.user_id = u.id
        LEFT JOIN roles r ON r.id = ur.role_id
        WHERE ${where}
-       GROUP BY u.id ORDER BY u.username LIMIT $2 OFFSET $3`,
+       GROUP BY u.id ORDER BY ${ORDER_BY[sort.key](sort.dir)}, u.username LIMIT $2 OFFSET $3`,
       [like, USERS_PAGE_SIZE, (pageNo - 1) * USERS_PAGE_SIZE]),
     pool.query<{ n: number }>(`SELECT count(*)::int AS n FROM users u WHERE ${where}`, [like]),
   ]);

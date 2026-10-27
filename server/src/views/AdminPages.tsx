@@ -1,6 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import type { CurrentUser } from '../auth/service.ts';
-import type { AdminUserRow, ManagedUser } from '../repo/adminUsers.ts';
+import { DEFAULT_SORT, FIRST_DIR, type AdminUserRow, type ManagedUser, type SortKey, type UserSort } from '../repo/adminUsers.ts';
 import { formatTimestamp } from './format.ts';
 import { Alert, Field, Submit, type Flash } from './forms.tsx';
 import { Layout } from './Layout.tsx';
@@ -12,12 +12,30 @@ export type AdminErrors = Record<string, string | undefined>;
 
 // ---- the list ----
 
-function pageHref(q: string, pageNo: number): string {
+const isDefaultSort = (sort: UserSort) => sort.key === DEFAULT_SORT.key && sort.dir === DEFAULT_SORT.dir;
+
+/** The list's address; what is still the default (first page, name A to Z) is left out. */
+function listHref(q: string, pageNo: number, sort: UserSort): string {
   const params = new URLSearchParams();
   if (q) params.set('q', q);
+  if (!isDefaultSort(sort)) { params.set('sort', sort.key); params.set('dir', sort.dir); }
   if (pageNo > 1) params.set('page', String(pageNo));
   const query = params.toString();
   return query ? `/admin?${query}` : '/admin';
+}
+
+const SORT_LABELS: Record<SortKey, string> = { username: 'User name', email: 'Email', groups: 'Groups', lastLogin: 'Last login' };
+
+/** A column header that sorts by its column: a click on the current column flips the direction. */
+function SortHeader({ column, q, sort, right }: { column: SortKey; q: string; sort: UserSort; right?: boolean }) {
+  const active = sort.key === column;
+  const next: UserSort = { key: column, dir: active ? (sort.dir === 'asc' ? 'desc' : 'asc') : FIRST_DIR[column] };
+  const icon = !active ? 'fa-sort' : sort.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+  return (
+    <th scope="col" class={right ? 'text-end' : undefined} aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}>
+      <a class="ft-sort" href={listHref(q, 1, next)}>{SORT_LABELS[column]} <i class={`fa-solid ${icon} ft-sort-icon${active ? ' active' : ''}`} aria-hidden="true"></i></a>
+    </th>
+  );
 }
 
 function UserRow({ u }: { u: AdminUserRow }) {
@@ -37,8 +55,8 @@ function UserRow({ u }: { u: AdminUserRow }) {
   );
 }
 
-export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pageSize }: Common & {
-  q: string; users: AdminUserRow[]; total: number; pageNo: number; pageSize: number;
+export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pageSize, sort }: Common & {
+  q: string; users: AdminUserRow[]; total: number; pageNo: number; pageSize: number; sort: UserSort;
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
   return (
@@ -47,22 +65,36 @@ export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pag
         <h5 class="ft-section-title"><i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> Users</h5>
         <Alert flash={flash} />
         <form method="get" action="/admin" class="ft-search" role="search">
+          {!isDefaultSort(sort) && <><input type="hidden" name="sort" value={sort.key} /><input type="hidden" name="dir" value={sort.dir} /></>}
           <input class="form-control" type="search" name="q" value={q} maxlength={100} placeholder="Part of a user name or email" aria-label="Search users" />
           <button class="btn btn-primary" type="submit">Search</button>
           {q && <a class="btn btn-outline-secondary" href="/admin">Clear</a>}
         </form>
         <p class="text-body-secondary mt-2">{total} {total === 1 ? 'user' : 'users'}{q && <> matching <b>{q}</b></>}</p>
+        {/* The column headers are hidden while the table is cards (below 1200 px), so there the order is chosen here. */}
+        <form method="get" action="/admin" class="d-xl-none d-flex flex-wrap align-items-center gap-2 mb-3">
+          {q && <input type="hidden" name="q" value={q} />}
+          <label class="text-body-secondary" for="sort-by">Sort by</label>
+          <select id="sort-by" name="sort" class="form-select form-select-sm w-auto">
+            {(Object.keys(SORT_LABELS) as SortKey[]).map((k) => <option value={k} selected={k === sort.key}>{SORT_LABELS[k]}</option>)}
+          </select>
+          <select name="dir" class="form-select form-select-sm w-auto" aria-label="Direction">
+            <option value="asc" selected={sort.dir === 'asc'}>ascending</option>
+            <option value="desc" selected={sort.dir === 'desc'}>descending</option>
+          </select>
+          <button class="btn btn-outline-secondary btn-sm" type="submit">Sort</button>
+        </form>
         {users.length > 0 && (
           <div class="table-responsive-xl ft-table-wrap ft-sticky-head">
             <table class="table table-striped table-hover align-middle ft-table ft-cards mb-0">
               <caption class="visually-hidden">Users</caption>
               <thead>
                 <tr>
-                  <th scope="col">User</th>
-                  <th scope="col">Email</th>
+                  <SortHeader column="username" q={q} sort={sort} />
+                  <SortHeader column="email" q={q} sort={sort} />
                   <th scope="col">Roles</th>
-                  <th scope="col" class="text-end">Groups</th>
-                  <th scope="col">Last login</th>
+                  <SortHeader column="groups" q={q} sort={sort} right />
+                  <SortHeader column="lastLogin" q={q} sort={sort} />
                   <th scope="col"><span class="visually-hidden">Actions</span></th>
                 </tr>
               </thead>
@@ -72,9 +104,9 @@ export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pag
         )}
         {pages > 1 && (
           <nav class="d-flex justify-content-between align-items-center mt-3" aria-label="Pages">
-            {pageNo > 1 ? <a class="btn btn-outline-secondary" href={pageHref(q, pageNo - 1)}>Previous</a> : <span></span>}
+            {pageNo > 1 ? <a class="btn btn-outline-secondary" href={listHref(q, pageNo - 1, sort)}>Previous</a> : <span></span>}
             <span class="text-body-secondary">Page {pageNo} of {pages}</span>
-            {pageNo < pages ? <a class="btn btn-outline-secondary" href={pageHref(q, pageNo + 1)}>Next</a> : <span></span>}
+            {pageNo < pages ? <a class="btn btn-outline-secondary" href={listHref(q, pageNo + 1, sort)}>Next</a> : <span></span>}
           </nav>
         )}
       </section>

@@ -6,7 +6,7 @@ import { canUseEmail, disableTwoFactor, emailSchema, endSessions, setPassword } 
 import { requireRole } from '../auth/guards.ts';
 import type { Pool } from '../db.ts';
 import type { MailService } from '../mail/service.ts';
-import { getManagedUser, listUsers, setEmailConfirmed, setLocked, USERS_PAGE_SIZE, type ManagedUser } from '../repo/adminUsers.ts';
+import { getManagedUser, listUsers, parseSort, setEmailConfirmed, setLocked, USERS_PAGE_SIZE, type ManagedUser } from '../repo/adminUsers.ts';
 import { AdminUserPage, AdminUsersPage, type AdminErrors } from '../views/AdminPages.tsx';
 import { sendHtml } from '../views/render.tsx';
 import { passwordErrors } from './identity.tsx';
@@ -20,11 +20,12 @@ export async function adminRoutes(app: FastifyInstance, pool: Pool, mail: MailSe
   const recipientOf = (t: ManagedUser) => (t.email ? { id: t.id, username: t.username, email: t.email } : null);
   const about = (t: ManagedUser) => ({ target: t.username, targetId: t.id });
 
-  app.get<{ Querystring: { q?: string; page?: string } }>('/admin', guard, async (request, reply) => {
+  app.get<{ Querystring: { q?: string; page?: string; sort?: string; dir?: string } }>('/admin', guard, async (request, reply) => {
     const q = (request.query.q ?? '').trim().slice(0, 100);
     const pageNo = Math.max(1, Math.floor(Number(request.query.page)) || 1);
-    const { rows, total } = await listUsers(pool, q, pageNo);
-    return sendHtml(reply, <AdminUsersPage {...common(request)} q={q} users={rows} total={total} pageNo={pageNo} pageSize={USERS_PAGE_SIZE} />);
+    const sort = parseSort(request.query.sort, request.query.dir);
+    const { rows, total } = await listUsers(pool, q, pageNo, sort);
+    return sendHtml(reply, <AdminUsersPage {...common(request)} q={q} users={rows} total={total} pageNo={pageNo} pageSize={USERS_PAGE_SIZE} sort={sort} />);
   });
 
   app.get<{ Params: { id: string } }>('/admin/users/:id', guard, async (request, reply) => {
