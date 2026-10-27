@@ -22,9 +22,14 @@ export async function adminRoutes(app: FastifyInstance, pool: Pool, mail: MailSe
 
   app.get<{ Querystring: { q?: string; page?: string; sort?: string; dir?: string } }>('/admin', guard, async (request, reply) => {
     const q = (request.query.q ?? '').trim().slice(0, 100);
-    const pageNo = Math.max(1, Math.floor(Number(request.query.page)) || 1);
+    let pageNo = Math.max(1, Math.floor(Number(request.query.page)) || 1);
     const sort = parseSort(request.query.sort, request.query.dir);
-    const { rows, total } = await listUsers(pool, q, pageNo, sort);
+    let { rows, total } = await listUsers(pool, q, pageNo, sort);
+    const lastPage = Math.max(1, Math.ceil(total / USERS_PAGE_SIZE));
+    if (pageNo > lastPage) { // a typed page number past the end shows the last page
+      pageNo = lastPage;
+      ({ rows, total } = await listUsers(pool, q, pageNo, sort));
+    }
     return sendHtml(reply, <AdminUsersPage {...common(request)} q={q} users={rows} total={total} pageNo={pageNo} pageSize={USERS_PAGE_SIZE} sort={sort} />);
   });
 

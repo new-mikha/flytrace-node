@@ -132,6 +132,53 @@ describe('sorting the list', () => {
   });
 });
 
+describe('the paginator', () => {
+  const q = encodeURIComponent('__test_pg_'); // the 55 users made below: two pages
+  const rowsIn = (body: string) => (body.match(/<td class="fw-semibold/g) ?? []).length;
+
+  beforeAll(async () => {
+    await pool.query(`INSERT INTO users (username, password_hash) SELECT '__test_pg_' || lpad(i::text, 2, '0') || '_${run}', 'x' FROM generate_series(1, 55) i`);
+  });
+
+  it('shows the count and the first page, with First and Prev greyed out', async () => {
+    const admin = await loginAs(ADMIN);
+    const res = await admin.get(`/admin?q=${q}`);
+    expect(res.body).toContain('>55 users<');
+    expect(rowsIn(res.body)).toBe(50);
+    expect(res.body).toContain('class="form-control form-control-sm ft-page-input" type="number" name="page" min="1" max="2" value="1"');
+    expect(res.body).toContain('>of 2<');
+    expect(res.body.match(/class="page-item disabled"/g)).toHaveLength(2);
+    expect(res.body).toContain(`href="/admin?q=${q}&amp;page=2"`);
+    expect(res.body).not.toContain('Previous');
+  });
+
+  it('goes to the second page and the last page, and keeps the order', async () => {
+    const admin = await loginAs(ADMIN);
+    const res = await admin.get(`/admin?q=${q}&page=2`);
+    expect(rowsIn(res.body)).toBe(5);
+    expect(res.body).toContain('value="2"');
+    expect(res.body.match(/class="page-item disabled"/g)).toHaveLength(2); // Next and Last
+    expect(res.body).toContain(`href="/admin?q=${q}" aria-label="First"`); // First = page 1 without a page parameter
+    const desc = await admin.get(`/admin?q=${q}&sort=username&dir=desc&page=2`);
+    expect(desc.body).toContain('name="sort" value="username"');
+    expect(desc.body).toContain(`href="/admin?q=${q}&amp;sort=username&amp;dir=desc"`);
+  });
+
+  it('puts a page number outside the range back in it', async () => {
+    const admin = await loginAs(ADMIN);
+    const past = await admin.get(`/admin?q=${q}&page=99`);
+    expect(rowsIn(past.body)).toBe(5);
+    expect(past.body).toContain('value="2"');
+    for (const page of ['0', '-3', 'abc']) expect((await admin.get(`/admin?q=${q}&page=${page}`)).body).toContain('value="1"');
+  });
+
+  it('has no paginator when everything fits on one page', async () => {
+    const admin = await loginAs(ADMIN);
+    const res = await admin.get(`/admin?q=${encodeURIComponent(`_plain_${run}`)}&page=1&sort=email`);
+    expect(res.body).not.toContain('Page number');
+  });
+});
+
 describe('the user page', () => {
   it('names the user in a banner and has a confirmation field in every form', async () => {
     const admin = await loginAs(ADMIN);

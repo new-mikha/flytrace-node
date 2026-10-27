@@ -55,6 +55,50 @@ function UserRow({ u }: { u: AdminUserRow }) {
   );
 }
 
+/** One step of the paginator: a link, or a greyed-out stand-in when there is nowhere to go. Words show from 768 px up, icons always. */
+function PageStep({ href, icon, label, iconAfter }: { href: string | null; icon: string; label: string; iconAfter?: boolean }) {
+  const content = (
+    <>
+      {!iconAfter && <i class={`fa-solid ${icon} fa-xs`} aria-hidden="true"></i>}
+      <span class="d-none d-md-inline"> {label} </span>
+      {iconAfter && <i class={`fa-solid ${icon} fa-xs`} aria-hidden="true"></i>}
+    </>
+  );
+  return href
+    ? <li class="page-item"><a class="page-link" href={href} aria-label={label}>{content}</a></li>
+    : <li class="page-item disabled"><span class="page-link" aria-disabled="true">{content}</span></li>;
+}
+
+/** "N users" and << First | < Prev | Page [n] of N | Next > | Last >> in one bar that stays under the search box. */
+function PagerBar({ q, sort, total, pageNo, pages }: { q: string; sort: UserSort; total: number; pageNo: number; pages: number }) {
+  const to = (n: number) => listHref(q, n, sort);
+  return (
+    <div class="ft-pager-bar">
+      <span class="text-body-secondary text-nowrap">{total} {total === 1 ? 'user' : 'users'}</span>
+      {pages > 1 && (
+        <nav class="d-flex align-items-center gap-2" aria-label="Pages">
+          <ul class="pagination pagination-sm mb-0">
+            <PageStep href={pageNo > 1 ? to(1) : null} icon="fa-angles-left" label="First" />
+            <PageStep href={pageNo > 1 ? to(pageNo - 1) : null} icon="fa-angle-left" label="Prev" />
+          </ul>
+          <form method="get" action="/admin" class="d-flex align-items-center gap-1 text-body-secondary text-nowrap">
+            {q && <input type="hidden" name="q" value={q} />}
+            {!isDefaultSort(sort) && <><input type="hidden" name="sort" value={sort.key} /><input type="hidden" name="dir" value={sort.dir} /></>}
+            <label for="page-no" class="d-none d-sm-inline">Page</label>
+            <input id="page-no" class="form-control form-control-sm ft-page-input" type="number" name="page" min={1} max={pages} value={pageNo}
+                   inputmode="numeric" aria-label="Page number" />
+            <span>of {pages}</span>
+          </form>
+          <ul class="pagination pagination-sm mb-0">
+            <PageStep href={pageNo < pages ? to(pageNo + 1) : null} icon="fa-angle-right" label="Next" iconAfter />
+            <PageStep href={pageNo < pages ? to(pages) : null} icon="fa-angles-right" label="Last" iconAfter />
+          </ul>
+        </nav>
+      )}
+    </div>
+  );
+}
+
 export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pageSize, sort }: Common & {
   q: string; users: AdminUserRow[]; total: number; pageNo: number; pageSize: number; sort: UserSort;
 }) {
@@ -70,9 +114,9 @@ export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pag
           <button class="btn btn-primary" type="submit">Search</button>
           {q && <a class="btn btn-outline-secondary" href="/admin">Clear</a>}
         </form>
-        <p class="text-body-secondary mt-2">{total} {total === 1 ? 'user' : 'users'}{q && <> matching <b>{q}</b></>}</p>
+        <PagerBar q={q} sort={sort} total={total} pageNo={pageNo} pages={pages} />
         {/* The column headers are hidden while the table is cards (below 1200 px), so there the order is chosen here. */}
-        <form method="get" action="/admin" class="d-xl-none d-flex flex-wrap align-items-center gap-2 mb-3">
+        <form method="get" action="/admin" class="d-xl-none d-flex flex-wrap align-items-center gap-2 my-2">
           {q && <input type="hidden" name="q" value={q} />}
           <label class="text-body-secondary" for="sort-by">Sort by</label>
           <select id="sort-by" name="sort" class="form-select form-select-sm w-auto">
@@ -101,13 +145,6 @@ export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pag
               <tbody>{users.map((u) => <UserRow key={u.id} u={u} />)}</tbody>
             </table>
           </div>
-        )}
-        {pages > 1 && (
-          <nav class="d-flex justify-content-between align-items-center mt-3" aria-label="Pages">
-            {pageNo > 1 ? <a class="btn btn-outline-secondary" href={listHref(q, pageNo - 1, sort)}>Previous</a> : <span></span>}
-            <span class="text-body-secondary">Page {pageNo} of {pages}</span>
-            {pageNo < pages ? <a class="btn btn-outline-secondary" href={listHref(q, pageNo + 1, sort)}>Next</a> : <span></span>}
-          </nav>
         )}
       </section>
     </Layout>

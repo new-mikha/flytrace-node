@@ -247,7 +247,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
    screens, which scroll the table sideways, keep a plain header. */
 @media (min-width: 1200px) {
   .ft-table-wrap.ft-sticky-head { overflow: clip; }
-  .ft-sticky-head thead { position: sticky; top: calc(var(--ft-nav-h) + var(--ft-title-h) + var(--ft-search-h, 0rem)); z-index: 2; }
+  .ft-sticky-head thead { position: sticky; top: calc(var(--ft-nav-h) + var(--ft-title-h) + var(--ft-search-h, 0rem) + var(--ft-pager-h, 0rem)); z-index: 2; }
 }
 
 /* A column header that sorts (admin user list): plain white text like the other headers, with a small arrow that is faint until
@@ -259,7 +259,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 /* A search box that stays in view right under the section title (admin user list). The section sets --ft-search-h so that the
    column header of its table sticks under the box. Edge to edge of the panel and opaque, so that rows do not show through. */
-.ft-has-search { --ft-search-h: 3.4rem; }
+.ft-has-search { --ft-search-h: 3.4rem; --ft-pager-h: 2.6rem; }
 .ft-search {
   position: sticky;
   top: calc(var(--ft-nav-h) + var(--ft-title-h));
@@ -273,6 +273,23 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   background: #fff;
 }
 [data-bs-theme="dark"] .ft-search { background: #111827; }
+
+/* The row under the search box: the count at the left, the paginator at the right, also sticky (admin user list). */
+.ft-pager-bar {
+  position: sticky;
+  top: calc(var(--ft-nav-h) + var(--ft-title-h) + var(--ft-search-h));
+  z-index: 3;
+  height: var(--ft-pager-h);
+  margin: 0 calc(-1 * var(--ft-pad-x));
+  padding: 0 var(--ft-pad-x);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: #fff;
+}
+[data-bs-theme="dark"] .ft-pager-bar { background: #111827; }
+.ft-page-input { width: 3.75rem; text-align: center; padding-inline: 0.25rem; }
 
 /* Cards: below xl (1200 px: phones, tablets, anything where the table would need to scroll sideways) each row of a `.ft-cards` table becomes a card that fits the screen width, so nothing
    scrolls sideways. From top to bottom: the name and the line under it (`.ft-card-full`, no labels), the figures in three equal

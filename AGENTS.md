@@ -127,7 +127,7 @@ simulated client its own `remoteAddress`.
   `views/SettingsShell.tsx`: wide screens show the list at the left of every page, phones show `/settings` as the list alone (label,
   description, current value) and each page alone with a way back. Altitude "kilometers" is stored as `m` (legacy: the map shows km).
   Every change is audited (`settings.changed`).
-- User management for admins (role `Admins`, the "Admin" link in the bar): `/admin` lists and searches users (sortable by clicking a column header: server-side, `?sort=username|email|roles|groups|lastLogin&dir=asc|desc`, a "Sort by" row replaces the headers on cards; an experiment that may spread to the other tables), `/admin/users/:id` shows one with
+- User management for admins (role `Admins`, the "Admin" link in the bar): `/admin` lists and searches users (sortable by clicking a column header: server-side, `?sort=username|email|roles|groups|lastLogin&dir=asc|desc`, a "Sort by" row replaces the headers on cards; an experiment that may spread to the other tables), a sticky bar under the search box holds the user count and the paginator (First, Prev, Page [n] of N, Next, Last; 50 per page, a page number past the end shows the last page), `/admin/users/:id` shows one with
   one form per change (lock / unlock, password reset link, set password, email change by confirmation link, mark email confirmed, log out
   everywhere, turn off two-factor). Every form needs the target's user name typed in, an admin cannot change their own account there, and each
   change is audited (`admin.*`). Code: `server/src/routes/admin.tsx`, `views/AdminPages.tsx`, `repo/adminUsers.ts`. Roles are not editable yet.
