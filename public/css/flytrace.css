@@ -419,6 +419,15 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 .ft-pilots { background: var(--ft-sun); color: #7c2d12; min-width: 2rem; }
 
+/* Group editor: the tracker type badges (orange S for SPOT, blue i for inReach, as in the legacy site), the owner's read-only facts */
+.ft-type-badge { min-width: 1.6rem; font-weight: 700; }
+.ft-type-S { background: #f59e0b; color: #1c1917; }
+.ft-type-G, .ft-type-T { background: #3b82f6; color: #fff; }
+.ft-tracker-id { white-space: nowrap; } /* an id never breaks into pieces: on a phone the table scrolls sideways instead */
+.ft-group-facts dt { font-weight: 600; margin-top: 0.6rem; }
+.ft-group-facts dt:first-child { margin-top: 0; }
+.ft-group-facts dd { margin-bottom: 0; }
+
 .ft-age {
   display: inline-block;
   margin-top: 0.1rem;

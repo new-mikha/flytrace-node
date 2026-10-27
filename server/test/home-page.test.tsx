@@ -244,10 +244,10 @@ describe('user home page (my pilot groups)', () => {
 
   it('has a Create new group button, and a button for others\' public groups, below the table', () => {
     const html = render(user);
-    expect(html).toContain('href="/groups/new"');
+    expect(html).toMatch(/<form[^>]*action="\/groups"[^>]*>/);
     expect(html).toContain('Create new group');
     expect(html).toContain("Show others' public groups");
-    expect(html.indexOf('/groups/new')).toBeGreaterThan(html.indexOf('/map/9'));
+    expect(html.indexOf('action="/groups"')).toBeGreaterThan(html.indexOf('/map/9'));
     expect(render(user, [])).toContain('Create new group'); // also when there are no groups yet
   });
 

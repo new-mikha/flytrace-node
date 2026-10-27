@@ -25,6 +25,7 @@ import { listOthersGroups, listPublicGroups, listUserGroups } from '../repo/grou
 import { HomePage, PublicMaps } from '../views/HomePage.tsx';
 import { UserHomePage } from '../views/UserHomePage.tsx';
 import { sendFragment, sendHtml } from '../views/render.tsx';
+import { takeFlash } from './util.ts';
 
 export async function homeRoutes(app: FastifyInstance, pool: Pool): Promise<void> {
   // `?all=1`: the full list. `?fragment=1`: only the list section, which public/js/app.js swaps into the open page
@@ -39,7 +40,7 @@ export async function homeRoutes(app: FastifyInstance, pool: Pool): Promise<void
         request.query.others === '1' ? listOthersGroups(pool, user.id, { all: showAll, admin: user.roles.includes('Admins') }) : null,
       ]);
       return sendHtml(reply, <UserHomePage user={user} path={request.url} list={list} events={events} now={new Date()}
-                                           others={others && { list: others, showAll }} />);
+                                           others={others && { list: others, showAll }} flash={takeFlash(request)} />);
     }
     const showAll = request.query.all === '1';
     const { groups, total } = await listPublicGroups(pool, { all: showAll });

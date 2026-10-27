@@ -22,14 +22,15 @@ import type { CurrentUser } from '../auth/service.ts';
 import type { UserEventsList } from '../repo/events.ts';
 import type { PublicGroupsList, UserGroupsList } from '../repo/groups.ts';
 import { MoreMaps } from './HomePage.tsx';
+import { Alert, type Flash } from './forms.tsx';
 import { Layout } from './Layout.tsx';
 import { PublicGroupsTable } from './PublicGroupsTable.tsx';
 import { UserEventsTable } from './UserEventsTable.tsx';
 import { UserGroupsTable } from './UserGroupsTable.tsx';
 
 /** The home page of a signed-in user. Their pilot groups, and their events when they use the multiple-events mode. */
-export function UserHomePage({ user, path, list, events, others, now }: {
-  user: CurrentUser; path: string; list: UserGroupsList; events: UserEventsList; now: Date;
+export function UserHomePage({ user, path, list, events, others, now, flash }: {
+  user: CurrentUser; path: string; list: UserGroupsList; events: UserEventsList; now: Date; flash?: Flash | null;
   /** Other people's groups, when "Show others' groups" is on (`/?others=1`). */
   others?: { list: PublicGroupsList; showAll: boolean } | null;
 }) {
@@ -37,12 +38,13 @@ export function UserHomePage({ user, path, list, events, others, now }: {
   const what = admin ? "others' groups" : "others' public groups"; // admins also get the unlisted ones
   return (
     <Layout title="Home" user={user} path={path} card="wide">
+      <Alert flash={flash} />
       <section class="ft-section">
         <h5 class="ft-section-title"><i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> My pilot groups</h5>
         <UserGroupsTable list={list} now={now} admin={user.roles.includes('Admins')} />
-        <p class="mt-3 mb-0">
-          <a class="btn btn-primary" href="/groups/new"><i class="fa-solid fa-plus fa-fw" aria-hidden="true"></i> Create new group</a>
-        </p>
+        <form class="mt-3 mb-0" method="post" action="/groups">
+          <button class="btn btn-primary" type="submit"><i class="fa-solid fa-plus fa-fw" aria-hidden="true"></i> Create new group</button>
+        </form>
       </section>
       {!events.show && (
         <p class="small text-body-secondary mt-3 mb-0">
