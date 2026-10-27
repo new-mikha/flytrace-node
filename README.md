@@ -40,3 +40,6 @@ protocol), plus the current migration status and the remaining work. Read it bef
 Flytrace is free software under the GNU Affero General Public License, version 3 or (at your option) any later version
 (`LICENSE`), the same as the original ASP.NET site. Every source file (`.ts`, `.tsx`, `.js`, `.css`, `.sql`, `.sh`) starts with the
 license header; copy it from any file when adding one (a test checks that).
+
+The license applies to the whole repository including its history: commits made before the `LICENSE` file was added are licensed
+under the same terms.
