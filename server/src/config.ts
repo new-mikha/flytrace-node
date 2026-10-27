@@ -21,7 +21,7 @@ const schema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  // Time zone for log times and any other local-time output, e.g. Europe/Berlin. Unset: the host's time zone.
+  // Time zone for log times and for the times shown on pages, e.g. Europe/Berlin. Unset: the host's time zone.
   LOG_TIMEZONE: optional(z.string().refine(isTimeZone, 'must be a time zone name such as Europe/Berlin or UTC')),
   // Comma-separated usernames to skip when importing the legacy dump.
   LEGACY_EXCLUDE_USERS: z.string().default(''),

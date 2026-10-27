@@ -84,7 +84,7 @@ simulated client its own `remoteAddress`.
 - Never log secrets: passwords, codes, recovery codes, tokens, session ids, query strings, typed login names
   (people paste passwords there). Mask emails with `maskEmail`. Production logs are JSON; development uses pino-pretty.
 - Log times are in the host's time zone, or in `LOG_TIMEZONE` (.env, e.g. `Europe/Berlin`), which sets `TZ` at startup
-  (`index.ts`). Production lines carry ISO times with the offset. Pages print times in UTC explicitly, so they are unaffected.
+  (`index.ts`). Production lines carry ISO times with the offset. Times on pages (`views/format.ts`, `formatTimestamp`) use the same zone, show its name (`UTC`, `GMT+11`) and add the year when it is not the current one.
 - When you start a test server, set `SMTP_HOST=` on its command line so that it does not send real email through
   the owner's SMTP account (it reads the owner's `.env`).
 

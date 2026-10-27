@@ -13,7 +13,7 @@ function Row({ group, now }: { group: PublicGroup; now: Date }) {
       <td class="text-nowrap ft-card-full">
         {group.newestCoordTs && (
           <>
-            <div>{formatTimestamp(group.newestCoordTs)}</div>
+            <div>{formatTimestamp(group.newestCoordTs, now)}</div>
             {age?.recent && <div class="ft-age">{age.text}</div>}
           </>
         )}

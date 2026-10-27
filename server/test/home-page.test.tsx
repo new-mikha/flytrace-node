@@ -6,6 +6,7 @@ import type { UserEventsList } from '../src/repo/events.ts';
 import { UserHomePage } from '../src/views/UserHomePage.tsx';
 import { renderDocument } from '../src/views/render.tsx';
 
+process.env.TZ = 'UTC'; // the times on pages follow the process's zone
 const now = new Date('2026-03-05T12:00:00Z');
 const groups: PublicGroup[] = [
   { id: 7, name: '<b>Cup</b> & "Co"', owner: 'ann', trackers: 3, views: 42, newestCoordTs: new Date('2026-03-05T11:30:00Z') },

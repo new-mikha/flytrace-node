@@ -3,7 +3,7 @@ import { loadConfig } from './config.ts';
 import { createPool } from './db.ts';
 
 const config = loadConfig();
-// Node reads TZ for local time, so this moves the log times (and only them: pages print UTC explicitly).
+// Node reads TZ for local time, so this moves the log times and the times shown on pages (`views/format.ts`).
 if (config.LOG_TIMEZONE) process.env.TZ = config.LOG_TIMEZONE;
 const app = await buildApp(config, createPool(config.DATABASE_URL));
 
