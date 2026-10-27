@@ -140,6 +140,7 @@ describe("GET / (signed in): others' groups", () => {
     expect(closed).toContain("Show others' public groups");
     expect(closed).toContain(`Mine ${run}`); // in "My pilot groups"
     expect(closed).not.toContain(`Newest ${run}`);
+    expect((await get('/?others=1')).body).not.toContain('Definition'); // admins only
 
     const open = (await get('/?others=1')).body;
     expect(open).toContain("Hide others' public groups");
@@ -170,6 +171,7 @@ describe("GET / (signed in): others' groups", () => {
     expect(html).toContain(`Private ${run}`);
     expect(html).toContain('>Unlisted</span>');
     expect(html).toContain(`Mine ${run}`); // someone else's group, to the admin
+    expect(html).toMatch(/href="\/groups\/\d+">Definition<\/a>/);
     expect(html).not.toContain(`Single ${run}`); // still needs two trackers
   });
 

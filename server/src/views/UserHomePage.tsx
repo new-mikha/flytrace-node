@@ -71,7 +71,7 @@ export function UserHomePage({ user, path, list, events, others, now }: {
           <section class="ft-section mt-4" id="others">
             <h5 class="ft-section-title"><i class="fa-solid fa-earth-europe ft-heading-icon" aria-hidden="true"></i> {admin ? "Others' groups" : "Others' public groups"}</h5>
             <PublicGroupsTable groups={others.list.groups} total={others.list.total} now={now} caption={admin ? "Others' groups" : "Others' public groups"}
-                               empty={admin ? 'Nobody else has groups yet.' : 'Nobody else has public groups yet.'} />
+                               empty={admin ? 'Nobody else has groups yet.' : 'Nobody else has public groups yet.'} definition={admin} />
           </section>
           <MoreMaps showAll={others.showAll} total={others.list.total} shown={others.list.groups.length} swap={false} noun="groups"
                     recentHref="/?others=1#others" allHref="/?others=1&all=1#others" />

@@ -21,7 +21,7 @@
 import type { PublicGroup } from '../repo/groups.ts';
 import { formatAge, formatTimestamp } from './format.ts';
 
-function Row({ group, now }: { group: PublicGroup; now: Date }) {
+function Row({ group, now, definition }: { group: PublicGroup; now: Date; definition: boolean }) {
   const age = group.newestCoordTs ? formatAge(group.newestCoordTs, now) : null;
   return (
     <tr>
@@ -40,16 +40,21 @@ function Row({ group, now }: { group: PublicGroup; now: Date }) {
         )}
       </td>
       <td class="text-end ft-card-stat" data-label="Views">{group.views}</td>
+      {definition && (
+        <td class="text-end text-nowrap ft-card-link ft-actions">
+          <a class="ft-group-link" href={`/groups/${group.id}`}>Definition</a>
+        </td>
+      )}
     </tr>
   );
 }
 
 /**
- * Public maps, newest position first, in the same table style as the signed-in user's groups: it scrolls sideways below xl,
+ * Public maps, newest position first (`definition`: admins get a second link per group, to its definition, in an extra column), in the same table style as the signed-in user's groups: it scrolls sideways below xl,
  * the column header sticks from xl, and below xl (1200 px) every row becomes a card (`ft-cards`, see UserGroupsTable).
  */
-export function PublicGroupsTable({ groups, total, now, caption = 'Public maps', empty = 'There are no public maps yet.' }:
-  { groups: PublicGroup[]; total: number; now: Date; caption?: string; empty?: string }) {
+export function PublicGroupsTable({ groups, total, now, caption = 'Public maps', empty = 'There are no public maps yet.', definition = false }:
+  { groups: PublicGroup[]; total: number; now: Date; caption?: string; empty?: string; definition?: boolean }) {
   if (groups.length === 0) {
     return <p class="text-muted">{total === 0 ? empty : 'No maps have been updated recently.'}</p>;
   }
@@ -64,10 +69,11 @@ export function PublicGroupsTable({ groups, total, now, caption = 'Public maps',
             <th scope="col" class="text-end">Pilots</th>
             <th scope="col">Updated</th>
             <th scope="col" class="text-end">Views</th>
+            {definition && <th scope="col"><span class="visually-hidden">Actions</span></th>}
           </tr>
         </thead>
         <tbody>
-          {groups.map((group) => <Row key={group.id} group={group} now={now} />)}
+          {groups.map((group) => <Row key={group.id} group={group} now={now} definition={definition} />)}
         </tbody>
       </table>
     </div>
