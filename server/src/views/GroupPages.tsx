@@ -26,18 +26,18 @@ import { Layout } from './Layout.tsx';
 /** What the person typed into a form that was refused, to show it again with its message. */
 export interface GroupDraft {
   details?: { name: string; isPublic: boolean; showMessages: boolean; error?: string };
-  add?: { name: string; link: string; nameError?: string; linkError?: string };
+  add?: { name: string; link: string; type?: string; nameError?: string; linkError?: string };
   rename?: { id: number; name: string; error?: string };
 }
 
 interface PageProps {
   user: CurrentUser;
   group: EditableGroup;
-  /** The owner changes things; an admin or a SpotIdReaders member only looks (the controls are shown as plain text). */
+  /** The owner changes things; an admin or a SpotIdReaders member only looks (no controls at all, the values are plain text). */
   canEdit: boolean;
   flash?: Flash | null;
   draft?: GroupDraft;
-  /** The owner's altitude setting label, shown as information under the details (owner only). */
+  /** The owner's altitude setting, shown as information (owner only). */
   altitude?: string;
   /** Tracker being renamed (`?rename=`), when no draft says so. */
   renaming?: number | null;
@@ -61,176 +61,193 @@ function TypeBadge({ type }: { type: GroupTracker['type'] }) {
   return <span class={`badge ft-type-badge ft-type-${type}`} title={label}>{type === 'G' ? 'i' : type}<span class="visually-hidden"> {label}</span></span>;
 }
 
-function TrackerRow({ group, t, index, canEdit, rename }: { group: EditableGroup; t: GroupTracker; index: number; canEdit: boolean; rename?: GroupDraft['rename'] }) {
-  const off = t.isOn ? '' : ' text-decoration-line-through text-body-secondary';
-  const url = feedUrl(t);
+/** On or off in one click (a form of its own, so it works without JavaScript). Not the owner: a plain pill. */
+function Switch({ group, t, canEdit }: { group: EditableGroup; t: GroupTracker; canEdit: boolean }) {
+  if (!canEdit) return <span class={`badge ${t.isOn ? 'text-bg-success' : 'text-bg-secondary'}`}>{t.isOn ? 'On' : 'Off'}</span>;
   return (
-    <tr>
-      <td class="text-body-secondary">{index}</td>
-      <td class={`text-center${off}`}>
-        {canEdit
-          ? <input class="form-check-input" type="checkbox" name="on" value={t.id} checked={t.isOn} form="ft-onoff-form" aria-label={`${t.name} on`} />
-          : (t.isOn ? 'On' : 'Off')}
-      </td>
-      <td class={off}>
-        {rename ? (
-          <>
-            <input class={`form-control form-control-sm${rename.error ? ' is-invalid' : ''}`} name="name" value={rename.name} maxlength={50} required
-                   form="ft-rename-form" aria-label="Pilot name" autofocus />
-            {rename.error && <div class="invalid-feedback d-block">{rename.error}</div>}
-          </>
-        ) : t.name}
-      </td>
-      <td class={`ft-tracker-id${off}`}>
-        <TypeBadge type={t.type} />{' '}
-        {url ? <a href={url} target="_blank" rel="noopener">{shortId(t)}</a> : shortId(t)}
-      </td>
-      {canEdit && (
-        <td class="text-end text-nowrap ft-actions">
-          {rename ? (
-            <>
-              <button class="btn btn-sm btn-primary" type="submit" form="ft-rename-form">Update</button>
-              <a class="ft-group-link" href={`/groups/${group.id}#trackers`}>Cancel</a>
-            </>
-          ) : (
-            <>
-              <a class="ft-group-link" href={`/groups/${group.id}?rename=${t.id}#trackers`}>Rename</a>
-              <a class="ft-danger-link" href={`/groups/${group.id}/trackers/${t.id}/delete`}>Delete</a>
-            </>
-          )}
-        </td>
-      )}
-    </tr>
-  );
-}
-
-function Details({ group, canEdit, draft }: { group: EditableGroup; canEdit: boolean; draft?: GroupDraft['details'] }) {
-  const v = draft ?? { name: group.name, isPublic: group.isPublic, showMessages: group.showMessages };
-  if (!canEdit) {
-    return (
-      <dl class="ft-group-facts mb-0">
-        <dt>Group name</dt><dd>{group.name}</dd>
-        <dt>Owner</dt><dd>{group.owner}</dd>
-        <dt>Visibility</dt>
-        <dd>{group.isPublic ? 'On the homepage: anyone can see its public map link there (when the group has 2 or more pilots).' : 'Unlisted: the map link is shared only with the people the owner wants to watch it.'}</dd>
-        <dt>Owner-defined messages</dt><dd>{group.showMessages ? 'Shown' : 'Not shown'} for OK, CUSTOM and HELP markers.</dd>
-      </dl>
-    );
-  }
-  return (
-    <form method="post" action={`/groups/${group.id}`} class="ft-form">
-      <Field name="name" label="Group name" value={v.name} maxlength={256} error={draft?.error} />
-      <fieldset class="mb-3">
-        <legend class="form-label fs-6">How others discover the group</legend>
-        <div class="form-check mb-2">
-          <input class="form-check-input" type="radio" name="visibility" id="g-public" value="public" checked={v.isPublic} />
-          <label class="form-check-label" for="g-public"><strong>On the homepage</strong>: anyone can see its public map link on the homepage.</label>
-          <div class="form-text mt-0">The link is listed once the group has 2 or more pilots.</div>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="visibility" id="g-unlisted" value="unlisted" checked={!v.isPublic} />
-          <label class="form-check-label" for="g-unlisted"><strong>Unlisted</strong>: share the map link only with the people you want to watch it.</label>
-          <div class="form-text mt-0">Site admins can see the group anyway.</div>
-        </div>
-      </fieldset>
-      <fieldset class="mb-3">
-        <legend class="form-label fs-6">Owner-defined messages for OK, CUSTOM and HELP markers</legend>
-        <div class="form-check mb-2">
-          <input class="form-check-input" type="radio" name="messages" id="g-msg-show" value="show" checked={v.showMessages} />
-          <label class="form-check-label" for="g-msg-show"><strong>Show</strong> owner-defined messages for this group.</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="messages" id="g-msg-hide" value="hide" checked={!v.showMessages} />
-          <label class="form-check-label" for="g-msg-hide"><strong>Do not show</strong> owner-defined messages for this group.</label>
-        </div>
-      </fieldset>
-      <Submit icon="fa-solid fa-check">Save details</Submit>
+    <form method="post" action={`/groups/${group.id}/trackers/${t.id}/switch`} class="ft-onoff-form">
+      <input type="hidden" name="on" value={t.isOn ? '0' : '1'} />
+      <button class="ft-onoff" type="submit" role="switch" aria-checked={t.isOn ? 'true' : 'false'}
+              aria-label={`${t.name} is ${t.isOn ? 'on' : 'off'}`} title={t.isOn ? 'On: click to turn off' : 'Off: click to turn on'}>
+        <span class="ft-onoff-knob"></span>
+      </button>
     </form>
   );
 }
 
-/** The group editor: details, the trackers (on/off, rename, delete) and the form to add one. Read-only for anybody but the owner. */
+function TrackerItem({ group, t, canEdit, rename }: { group: EditableGroup; t: GroupTracker; canEdit: boolean; rename?: GroupDraft['rename'] }) {
+  const url = feedUrl(t);
+  const muted = t.isOn ? '' : ' ft-tracker-off';
+  return (
+    <li class={`list-group-item ft-tracker${muted}`} id={`tracker-${t.id}`}>
+      <Switch group={group} t={t} canEdit={canEdit} />
+      <div class="ft-tracker-main">
+        {rename ? (
+          <form method="post" action={`/groups/${group.id}/trackers/${t.id}/rename`} class="d-flex flex-wrap gap-2 align-items-start">
+            <div>
+              <input class={`form-control form-control-sm${rename.error ? ' is-invalid' : ''}`} name="name" value={rename.name} maxlength={50} required
+                     aria-label="Pilot name" autofocus />
+              {rename.error && <div class="invalid-feedback">{rename.error}</div>}
+            </div>
+            <button class="btn btn-sm btn-primary" type="submit">Update</button>
+            <a class="btn btn-sm btn-outline-secondary" href={`/groups/${group.id}#tracker-${t.id}`}>Cancel</a>
+          </form>
+        ) : <div class="ft-tracker-name">{t.name}</div>}
+        <div class="ft-tracker-id small">
+          <TypeBadge type={t.type} />{' '}
+          {url ? <a href={url} target="_blank" rel="noopener">{shortId(t)}</a> : shortId(t)}
+        </div>
+      </div>
+      {canEdit && !rename && (
+        <div class="ft-actions text-nowrap">
+          <a class="ft-group-link" href={`/groups/${group.id}?rename=${t.id}#tracker-${t.id}`}>Rename</a>
+          <a class="ft-danger-link" href={`/groups/${group.id}/trackers/${t.id}/delete`}>Delete</a>
+        </div>
+      )}
+    </li>
+  );
+}
+
+function Facts({ group }: { group: EditableGroup }) {
+  return (
+    <dl class="ft-group-facts mb-0">
+      <dt>Group name</dt><dd>{group.name}</dd>
+      <dt>Owner</dt><dd>{group.owner}</dd>
+      <dt>Visibility</dt>
+      <dd>{group.isPublic ? 'On the homepage: anyone can see its public map link there (when the group has 2 or more pilots).' : 'Unlisted: the map link is shared only with the people the owner wants to watch it.'}</dd>
+      <dt>Owner-defined messages</dt><dd>{group.showMessages ? 'Shown' : 'Not shown'} for OK, CUSTOM and HELP markers.</dd>
+    </dl>
+  );
+}
+
+function Choice({ name, value, id, checked, label, help }: { name: string; value: string; id: string; checked: boolean; label: string; help?: string }) {
+  return (
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="radio" name={name} id={id} value={value} checked={checked} />
+      <label class="form-check-label" for={id}><strong>{label}</strong></label>
+      {help && <div class="form-text mt-0">{help}</div>}
+    </div>
+  );
+}
+
+function SettingsForm({ group, draft }: { group: EditableGroup; draft?: GroupDraft['details'] }) {
+  const v = draft ?? { name: group.name, isPublic: group.isPublic, showMessages: group.showMessages };
+  return (
+    <form method="post" action={`/groups/${group.id}`} class="ft-form">
+      <Field name="name" label="Group name" value={v.name} maxlength={256} error={draft?.error} />
+      <fieldset class="mb-3">
+        <legend class="form-label fs-6">Who can find the map</legend>
+        <Choice name="visibility" value="public" id="g-public" checked={v.isPublic} label="On the homepage"
+                help="Anyone can see its public map link there, once the group has 2 or more pilots." />
+        <Choice name="visibility" value="unlisted" id="g-unlisted" checked={!v.isPublic} label="Unlisted"
+                help="Share the map link only with the people you want to watch it. Site admins can see it anyway." />
+      </fieldset>
+      <fieldset class="mb-3">
+        <legend class="form-label fs-6">Owner-defined messages</legend>
+        <Choice name="messages" value="show" id="g-msg-show" checked={v.showMessages} label="Show" help="Messages for OK, CUSTOM and HELP markers appear on this group's map." />
+        <Choice name="messages" value="hide" id="g-msg-hide" checked={!v.showMessages} label="Do not show" />
+      </fieldset>
+      <Submit icon="fa-solid fa-check">Save settings</Submit>
+    </form>
+  );
+}
+
+function AddTracker({ group, add }: { group: EditableGroup; add?: GroupDraft['add'] }) {
+  return (
+    <form method="post" action={`/groups/${group.id}/trackers`} class="ft-form" id="ft-add-tracker">
+      <Field name="trackerName" label="Pilot name" value={add?.name ?? ''} maxlength={50} error={add?.nameError} />
+      <Field name="link" label="SPOT or inReach page" value={add?.link ?? ''} maxlength={445} error={add?.linkError}
+             help="A SPOT shared page link or its ID, or an inReach KML feed link or its ID followed by # and the device's IMEI." />
+      <fieldset class="mb-3">
+        <legend class="form-label fs-6">Tracker type</legend>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="type" id="g-type-s" value="S" checked={add?.type === 'S'} />
+          <label class="form-check-label" for="g-type-s">SPOT</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="type" id="g-type-g" value="G" checked={add?.type === 'G'} />
+          <label class="form-check-label" for="g-type-g">inReach</label>
+        </div>
+        <div class="form-text">Chosen for you as you type the link; change it if it is wrong.</div>
+      </fieldset>
+      <Submit icon="fa-solid fa-plus">Add tracker</Submit>
+    </form>
+  );
+}
+
+/**
+ * The group editor. Wide screens: the trackers at the left (switch, name, id, rename and delete on each row), the group
+ * settings and the form for a new tracker at the right; phones stack them. Anybody but the owner gets the same page read-only.
+ */
 export function GroupPage({ user, group, canEdit, flash, draft, altitude, renaming }: PageProps) {
   const renameId = draft?.rename?.id ?? renaming ?? null;
-  const add = draft?.add;
+  const on = group.trackers.filter((t) => t.isOn).length;
   return (
-    <Layout title={group.name} user={user} path={`/groups/${group.id}`} card="wide">
+    <Layout title={group.name} user={user} path={`/groups/${group.id}`} card="wide" scripts={canEdit ? ['group-editor.js'] : undefined}>
       <p class="mb-2"><a class="ft-group-link" href="/"><i class="fa-solid fa-arrow-left fa-xs" aria-hidden="true"></i> My groups</a></p>
-      <h1 class="h3 mb-3">
-        {group.name}{' '}
-        <a class="fs-6 ms-2 ft-group-link" href={`/map/${group.id}`} target="_blank" rel="noopener">
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <h1 class="h3 mb-0 me-2 ft-wrap">{group.name}</h1>
+        <span class={`badge ${group.isPublic ? 'text-bg-success' : 'text-bg-secondary'}`}>
+          <i class={`fa-solid ${group.isPublic ? 'fa-house' : 'fa-eye-slash'} fa-xs`} aria-hidden="true"></i> {group.isPublic ? 'On the homepage' : 'Unlisted'}
+        </span>
+        <span class="badge ft-pilots">{group.trackers.length} {group.trackers.length === 1 ? 'pilot' : 'pilots'}</span>
+        <a class="btn btn-outline-primary btn-sm ms-md-auto" href={`/map/${group.id}`} target="_blank" rel="noopener">
           Public map <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
         </a>
-      </h1>
+      </div>
       <Alert flash={flash} />
       {!canEdit && (
         <div class="alert alert-info" role="note">
           <i class="fa-solid fa-eye me-1" aria-hidden="true"></i> This group belongs to <strong>{group.owner}</strong>. You can look at it, but not change it.
         </div>
       )}
-      <section class="ft-section">
-        <h5 class="ft-section-title"><i class="fa-solid fa-sliders ft-heading-icon" aria-hidden="true"></i> Details</h5>
-        <Details group={group} canEdit={canEdit} draft={draft?.details} />
-        {canEdit && (
-          <p class="mt-3 mb-0">
-            <a class="btn btn-outline-danger btn-sm" href={`/groups/${group.id}/delete`}><i class="fa-solid fa-trash fa-fw" aria-hidden="true"></i> Delete the whole group</a>
-          </p>
-        )}
-        {canEdit && altitude && (
-          <p class="small text-body-secondary mt-3 mb-0">
-            Altitude display: <strong>{altitude}</strong> for all your groups (change it in <a href="/settings/altitude">Settings</a>).
-            Altitude is available only for selected tracker models, e.g. SPOT Gen3, and is sometimes missing even for those.
-          </p>
-        )}
-      </section>
-
-      <section class="ft-section" id="trackers">
-        <h5 class="ft-section-title"><i class="fa-solid fa-location-dot ft-heading-icon" aria-hidden="true"></i> Trackers in the group</h5>
-        {group.trackers.length === 0 ? <p class="text-body-secondary">The group has no trackers yet.</p> : (
-          <div class="table-responsive">
-            <table class="table table-striped align-middle ft-table mb-0">
-              <caption class="visually-hidden">Trackers in the group</caption>
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col" class="text-center">On/Off</th>
-                  <th scope="col">Pilot name</th>
-                  <th scope="col">Tracker ID</th>
-                  {canEdit && <th scope="col"><span class="visually-hidden">Actions</span></th>}
-                </tr>
-              </thead>
-              <tbody>
-                {group.trackers.map((t, i) => (
-                  <TrackerRow key={t.id} group={group} t={t} index={i + 1} canEdit={canEdit}
-                              rename={renameId === t.id ? (draft?.rename ?? { id: t.id, name: t.name }) : undefined} />
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <section class="ft-section" id="trackers">
+            <h5 class="ft-section-title">
+              <i class="fa-solid fa-location-dot ft-heading-icon" aria-hidden="true"></i> Trackers
+              {group.trackers.length > 0 && <span class="ft-section-note">{on} of {group.trackers.length} on</span>}
+            </h5>
+            {group.trackers.length === 0 ? (
+              <p class="text-body-secondary mb-0">{canEdit ? 'No trackers yet. Add the first one with the form.' : 'The group has no trackers yet.'}</p>
+            ) : (
+              <ul class="list-group list-group-flush ft-trackers">
+                {group.trackers.map((t) => (
+                  <TrackerItem key={t.id} group={group} t={t} canEdit={canEdit}
+                               rename={canEdit && renameId === t.id ? (draft?.rename ?? { id: t.id, name: t.name }) : undefined} />
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {canEdit && group.trackers.length > 0 && (
-          <>
-            <form id="ft-onoff-form" method="post" action={`/groups/${group.id}/trackers/on-off`} class="mt-3">
-              <Submit kind="outline-primary" icon="fa-solid fa-power-off">Save on/off</Submit>
-              <span class="small text-body-secondary ms-2">A tracker that is off is not drawn on the map unless it sends SOS or HELP.</span>
-            </form>
-            {renameId !== null && <form id="ft-rename-form" method="post" action={`/groups/${group.id}/trackers/${renameId}/rename`}></form>}
-          </>
-        )}
-      </section>
-
+              </ul>
+            )}
+            {canEdit && group.trackers.length > 0 && (
+              <p class="small text-body-secondary mt-2 mb-0">A tracker that is off is not drawn on the map unless it sends SOS or HELP.</p>
+            )}
+          </section>
+        </div>
+        <div class="col-lg-5">
+          <section class="ft-section">
+            <h5 class="ft-section-title"><i class="fa-solid fa-sliders ft-heading-icon" aria-hidden="true"></i> Group settings</h5>
+            {canEdit ? <SettingsForm group={group} draft={draft?.details} /> : <Facts group={group} />}
+            {canEdit && altitude && (
+              <p class="small text-body-secondary mt-3 mb-0">
+                Altitude: <strong>{altitude}</strong> on all your maps (<a href="/settings/altitude">change in Settings</a>). Only some trackers send it, e.g. SPOT Gen3.
+              </p>
+            )}
+          </section>
+          {canEdit && (
+            <section class="ft-section" id="add-tracker">
+              <h5 class="ft-section-title"><i class="fa-solid fa-plus ft-heading-icon" aria-hidden="true"></i> Add a tracker</h5>
+              <AddTracker group={group} add={draft?.add} />
+            </section>
+          )}
+        </div>
+      </div>
       {canEdit && (
-        <section class="ft-section" id="add-tracker">
-          <h5 class="ft-section-title"><i class="fa-solid fa-plus ft-heading-icon" aria-hidden="true"></i> Add tracker to the group</h5>
-          <form method="post" action={`/groups/${group.id}/trackers`} class="ft-form">
-            <Field name="trackerName" label="Pilot name" value={add?.name ?? ''} maxlength={50} error={add?.nameError} />
-            <Field name="link" label="SPOT or inReach page" value={add?.link ?? ''} maxlength={445} error={add?.linkError}
-                   help={<>
-                     SPOT shared page, or the SPOT ID part of the link, or the inReach KML feed or page, or the inReach ID part of the link.
-                     For inReach, add the device's IMEI after a # sign. The type (SPOT or inReach) is told from what you enter.
-                   </>} />
-            <Submit icon="fa-solid fa-plus">Add tracker</Submit>
-          </form>
+        <section class="ft-danger-zone mt-4">
+          <div>
+            <strong>Delete this group</strong>
+            <div class="small text-body-secondary">Removes the group and its trackers; its public map link stops working.</div>
+          </div>
+          <a class="btn btn-outline-danger btn-sm" href={`/groups/${group.id}/delete`}><i class="fa-solid fa-trash fa-fw" aria-hidden="true"></i> Delete group</a>
         </section>
       )}
     </Layout>

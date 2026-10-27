@@ -93,6 +93,12 @@ describe('parseTrackerInput', () => {
     expect(parseTrackerInput('Phillm')).toHaveProperty('error');
     expect(parseTrackerInput('garmin.com/Feed/Share/Phillm')).toHaveProperty('error');
   });
+  it('follows the chosen type', () => {
+    expect(parseTrackerInput(SPOT_ID, 'S')).toMatchObject({ type: 'S' });
+    expect(parseTrackerInput('short', 'S')).toHaveProperty('error');
+    expect(parseTrackerInput(`${SPOT_ID}#300434031769290`, 'G')).toMatchObject({ type: 'G' });
+    expect(parseTrackerInput(SPOT_ID, 'G')).toHaveProperty('error'); // no IMEI
+  });
   it('refuses nonsense and overlong text', () => {
     expect(parseTrackerInput('a b c')).toHaveProperty('error');
     expect(parseTrackerInput('x'.repeat(500))).toHaveProperty('error');
@@ -109,8 +115,8 @@ describe('creating and editing', () => {
     expect((await groupRow(b)).name).toBe('Group 02');
     const page = await owner.get(`/groups/${a}`);
     expect(page.statusCode).toBe(200);
-    expect(page.body).toContain('Save details');
-    expect(page.body).toContain('Add tracker');
+    expect(page.body).toContain('Save settings');
+    expect(page.body).toContain('Add a tracker');
     expect(page.body).toContain('Created');
   });
 
@@ -137,7 +143,10 @@ describe('creating and editing', () => {
     expect(bad.statusCode).toBe(422);
     expect(bad.body).toContain('IMEI');
     expect((await owner.post(`/groups/${id}/trackers`, { trackerName: '', link: SPOT_ID })).statusCode).toBe(422);
-    expect((await owner.post(`/groups/${id}/trackers`, { trackerName: 'Ann', link: SPOT_ID })).statusCode).toBe(302);
+    const wrong = await owner.post(`/groups/${id}/trackers`, { trackerName: 'Ann', link: SPOT_ID, type: 'G' });
+    expect(wrong.statusCode).toBe(422);
+    expect(wrong.body).toContain('checked'); // the chosen type is kept
+    expect((await owner.post(`/groups/${id}/trackers`, { trackerName: 'Ann', link: SPOT_ID, type: 'S' })).statusCode).toBe(302);
     expect((await owner.post(`/groups/${id}/trackers`, { trackerName: 'Bob', link: 'Phillm#300434031769290' })).statusCode).toBe(302);
     const sameName = await owner.post(`/groups/${id}/trackers`, { trackerName: 'Ann', link: 'Other#300434031769291' });
     expect(sameName.statusCode).toBe(422);
@@ -153,9 +162,12 @@ describe('creating and editing', () => {
     expect((await owner.post(`/groups/${id}/trackers/${ann.id}/rename`, { name: 'Anna' })).statusCode).toBe(302);
     expect((await trackerRows(id))[0].name).toBe('Anna');
 
-    await owner.post(`/groups/${id}/trackers/on-off`, { on: String(bob.id) });
+    await owner.post(`/groups/${id}/trackers/${ann.id}/switch`, { on: '0' });
     expect((await trackerRows(id)).map((t) => t.is_on)).toEqual([false, true]);
-    expect((await owner.get(`/groups/${id}`)).body).toContain('text-decoration-line-through');
+    expect((await owner.get(`/groups/${id}`)).body).toContain('ft-tracker-off');
+    await owner.post(`/groups/${id}/trackers/${ann.id}/switch`, { on: '1' });
+    expect((await trackerRows(id)).map((t) => t.is_on)).toEqual([true, true]);
+    await owner.post(`/groups/${id}/trackers/${ann.id}/switch`, { on: '0' });
 
     expect((await owner.get(`/groups/${id}/trackers/${bob.id}/delete`)).body).toContain('Delete tracker');
     await owner.post(`/groups/${id}/trackers/${bob.id}/delete`);
@@ -186,11 +198,11 @@ describe('who may open a group', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toContain(OWNER);
       expect(res.body).toContain(SPOT_ID); // they see the tracker ids
-      expect(res.body).not.toContain('Save details');
-      expect(res.body).not.toContain('Add tracker');
+      expect(res.body).not.toContain('Save settings');
+      expect(res.body).not.toContain('Add a tracker');
       expect(res.body).not.toContain('Rename');
-      expect(res.body).not.toContain('type="checkbox"');
-      for (const url of [`/groups/${id}`, `/groups/${id}/delete`, `/groups/${id}/trackers`, `/groups/${id}/trackers/on-off`,
+      expect(res.body).not.toContain('role="switch"');
+      for (const url of [`/groups/${id}`, `/groups/${id}/delete`, `/groups/${id}/trackers`, `/groups/${id}/trackers/${tid}/switch`,
                          `/groups/${id}/trackers/${tid}/rename`, `/groups/${id}/trackers/${tid}/delete`]) {
         expect((await viewer.post(url, { name: 'Hacked', visibility: 'public', messages: 'show', trackerName: 'X', link: SPOT_ID })).headers.location).toBe('/403');
       }

@@ -32,17 +32,21 @@ const INREACH = /^\s*?(?:(?:[^\s#?&]+\.)?garmin\.com\/(?:[^\s#?&]+\/)*)??(?<id>[
 
 export const MAX_FOREIGN_ID = 445;
 
-/** The tracker type is told from the text: a Garmin address or a `#` means inReach, otherwise a 20 to 50 character id is SPOT. */
-export function parseTrackerInput(input: string): ParsedTracker | { error: string } {
+/**
+ * `type` is what the person chose; without it the type is told from the text: a Garmin address or a `#` means inReach,
+ * otherwise a 20 to 50 character id is SPOT.
+ */
+export function parseTrackerInput(input: string, type?: 'S' | 'G'): ParsedTracker | { error: string } {
   const text = input.trim();
   if (text.length > MAX_FOREIGN_ID) return { error: 'That link is too long.' };
-  const inReach = /garmin\.com|#/i.test(text);
+  const inReach = type ? type === 'G' : /garmin\.com|#/i.test(text);
   if (!inReach) {
     const spot = SPOT.exec(text);
     if (spot) return { type: 'S', foreignId: spot[1]! };
+    if (type) return { error: 'That does not look like a SPOT Shared Page link or ID (20 to 50 letters and digits).' };
   }
   const m = INREACH.exec(text);
-  if (!m?.groups?.id) return { error: "We cannot recognize that as a SPOT Shared Page link or ID, or as an inReach feed link." };
+  if (!m?.groups?.id) return { error: 'We cannot recognize that as a SPOT Shared Page link or ID, or as an inReach feed link.' };
   if (!m.groups.imei) {
     return { error: `An inReach feed needs the device's IMEI after a # sign, e.g. ${m.groups.id}#300434031769290.` };
   }

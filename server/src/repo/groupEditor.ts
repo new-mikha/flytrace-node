@@ -143,10 +143,10 @@ export async function deleteTracker(pool: Pool, groupId: number, trackerId: numb
   });
 }
 
-/** Switches trackers on or off: the ids in `on` are on, every other tracker of the group is off. */
-export async function setTrackersOn(pool: Pool, groupId: number, on: number[]): Promise<void> {
+/** Switches one tracker on or off (a tracker that is off is not drawn on the map unless it sends SOS or HELP). */
+export async function setTrackerOn(pool: Pool, groupId: number, trackerId: number, on: boolean): Promise<void> {
   await withTransaction(pool, async (c) => {
     await bump(c, groupId);
-    await c.query('UPDATE group_trackers SET is_on = (id = ANY($2::int[])) WHERE group_id = $1', [groupId, on]);
+    await c.query('UPDATE group_trackers SET is_on = $3 WHERE id = $2 AND group_id = $1', [groupId, trackerId, on]);
   });
 }

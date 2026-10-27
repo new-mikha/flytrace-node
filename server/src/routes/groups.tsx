@@ -24,7 +24,7 @@ import { audit } from '../audit.ts';
 import { requireLogin } from '../auth/guards.ts';
 import type { Pool } from '../db.ts';
 import {
-  addTracker, createGroup, deleteGroup, deleteTracker, getGroup, renameTracker, setTrackersOn, updateGroup, type EditableGroup,
+  addTracker, createGroup, deleteGroup, deleteTracker, getGroup, renameTracker, setTrackerOn, updateGroup, type EditableGroup,
 } from '../repo/groupEditor.ts';
 import { getSettings } from '../repo/settings.ts';
 import { parseTrackerInput } from '../repo/trackerInput.ts';
@@ -124,12 +124,12 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     const found = await load(request, reply, true);
     if (!found) return reply;
     const { group } = found;
-    const f = formFields(request, 'trackerName', 'link');
+    const f = formFields(request, 'trackerName', 'link', 'type');
     const name = f.trackerName.trim();
-    const add = { name, link: f.link };
+    const add = { name, link: f.link, type: f.type };
     if (!name) return show(request, reply, group, { add: { ...add, nameError: 'Enter the pilot name.' } });
     if (name.length > 50) return show(request, reply, group, { add: { ...add, nameError: 'The pilot name is too long (50 characters at most).' } });
-    const parsed = parseTrackerInput(f.link);
+    const parsed = parseTrackerInput(f.link, f.type === 'S' || f.type === 'G' ? f.type : undefined);
     if ('error' in parsed) return show(request, reply, group, { add: { ...add, linkError: parsed.error } });
     const dup = await addTracker(pool, group.id, name, parsed, f.link);
     if (dup === 'name') return show(request, reply, group, { add: { ...add, nameError: 'This group already has a pilot with such name.' } });
@@ -139,17 +139,17 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return back(request, reply, group, `Added ${name}.`, '#trackers');
   });
 
-  app.post<{ Params: { id: string } }>('/groups/:id/trackers/on-off', guard, async (request, reply) => {
+  // The switch on a tracker's row: it sends the state the person wants (`on=1` or `on=0`).
+  app.post<{ Params: { id: string; tid: string } }>('/groups/:id/trackers/:tid/switch', guard, async (request, reply) => {
     const found = await load(request, reply, true);
     if (!found) return reply;
     const { group } = found;
-    const raw = (request.body as { on?: unknown } | undefined)?.on;
-    const ids = (Array.isArray(raw) ? raw : raw === undefined ? [] : [raw]).map(Number).filter(Number.isSafeInteger);
-    const before = group.trackers.filter((t) => t.isOn).map((t) => t.id);
-    await setTrackersOn(pool, group.id, ids);
-    const after = group.trackers.filter((t) => ids.includes(t.id)).map((t) => t.id);
-    audit(request, 'tracker.on-off', 'Trackers switched on and off', { groupId: group.id, on: after.length, off: group.trackers.length - after.length, changed: before.length !== after.length || before.some((id) => !after.includes(id)) });
-    return back(request, reply, group, 'Saved.', '#trackers');
+    const tracker = /^\d+$/.test(request.params.tid) ? group.trackers.find((t) => t.id === Number(request.params.tid)) : undefined;
+    if (!tracker) return notFound(request, reply);
+    const on = formFields(request, 'on').on === '1';
+    await setTrackerOn(pool, group.id, tracker.id, on);
+    audit(request, 'tracker.switched', `Pilot switched ${on ? 'on' : 'off'}`, { groupId: group.id, trackerId: tracker.id, pilot: tracker.name, on });
+    return reply.redirect(`/groups/${group.id}#tracker-${tracker.id}`, 302);
   });
 
   app.post<{ Params: { id: string; tid: string } }>('/groups/:id/trackers/:tid/rename', guard, async (request, reply) => {
