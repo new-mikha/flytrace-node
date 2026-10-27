@@ -77,6 +77,7 @@ simulated client its own `remoteAddress`.
 - Signed-in home page: "Show others' public groups" (admins: "Show others' groups", which also lists unlisted groups, marked) is a plain link
   to `/?others=1#others`; the list (`listOthersGroups`: not mine, two or more trackers, same recent-week window as the public maps, `&all=1` for
   everything) appears under a "Hide ..." button. Admins get one more column there (a "Definition" link to `/groups/:id`); the group name always links to the map. Anonymous visitors keep the public maps with the in-place swap.
+- Unchecked radios and checkboxes get a visible border (`.form-check-input:not(:checked)` in `flytrace.css`, from Bootstrap's `--bs-secondary-color`, so it follows the theme): Bootstrap's own is too pale.
 - Page changes cross-fade through CSS view transitions (`@view-transition`, duration in `flytrace.css`).
 - Check layout changes at phone (about 380 px), tablet and desktop widths, and clean up any temporary test page.
 
