@@ -112,8 +112,8 @@ export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pag
           {q && <a class="btn btn-outline-secondary" href="/admin">Clear</a>}
         </form>
         <PagerBar q={q} sort={sort} total={total} pageNo={pageNo} pages={pages} />
-        {/* The column headers are hidden while the table is cards (below 1200 px), so there the order is chosen here. */}
-        <form method="get" action="/admin" class="d-xl-none d-flex flex-wrap align-items-center gap-2 my-2">
+        {/* The column headers are hidden while the table is cards (below 1200 px), so there the order is chosen here, in a bar that sticks like the others. */}
+        <form method="get" action="/admin" class="ft-sort-bar d-xl-none">
           {q && <input type="hidden" name="q" value={q} />}
           <label class="text-body-secondary" for="sort-by">Sort by</label>
           <select id="sort-by" name="sort" class="form-select form-select-sm w-auto">

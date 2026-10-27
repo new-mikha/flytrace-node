@@ -291,6 +291,22 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 [data-bs-theme="dark"] .ft-pager-bar { background: #111827; }
 .ft-page-input { width: 3.75rem; text-align: center; padding-inline: 0.25rem; }
 
+/* Below 1200 px the table is cards without column headers: the "Sort by" row replaces them and sticks under the paginator bar. */
+.ft-sort-bar {
+  position: sticky;
+  top: calc(var(--ft-nav-h) + var(--ft-title-h) + var(--ft-search-h) + var(--ft-pager-h));
+  z-index: 3;
+  height: 2.75rem;
+  margin: 0 calc(-1 * var(--ft-pad-x)) 0.5rem;
+  padding: 0 var(--ft-pad-x);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+}
+[data-bs-theme="dark"] .ft-sort-bar { background: #111827; }
+.ft-sort-bar select { min-width: 0; }
+
 /* Cards: below xl (1200 px: phones, tablets, anything where the table would need to scroll sideways) each row of a `.ft-cards` table becomes a card that fits the screen width, so nothing
    scrolls sideways. From top to bottom: the name and the line under it (`.ft-card-full`, no labels), the figures in three equal
    columns with their label above (`.ft-card-stat`), the `data-label`led full-width line (`.ft-card-task`, `.ft-card-hide` leaves it
