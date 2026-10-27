@@ -2,7 +2,8 @@ import type { ComponentChildren } from 'preact';
 import type { CurrentUser } from '../auth/service.ts';
 import type { ManagedUser } from '../repo/adminUsers.ts';
 import { formatTimestamp } from './format.ts';
-import { Alert, Field, Submit, type Flash } from './forms.tsx';
+import { MIN_PASSWORD_LENGTH } from '../auth/accounts.ts';
+import { Alert, ConfirmPasswordHints, EmailHints, Field, PasswordHints, Submit, type Flash } from './forms.tsx';
 import { Layout } from './Layout.tsx';
 
 interface Common { user: CurrentUser; path: string; flash?: Flash | null }
@@ -129,7 +130,7 @@ function UserShell({ user, path, flash, target, section, children }: Common & { 
   const own = target.id === user.id;
   const title = section ? `${SECTIONS[section].label(target)} - ${target.username}` : `User ${target.username}`;
   return (
-    <Layout title={title} user={user} path={path} card="wide">
+    <Layout title={title} user={user} path={path} card="wide" scripts={section === 'email' || section === 'password' ? ['live-hints.js'] : undefined}>
       <p class="mb-2"><a href="/admin"><i class="fa-solid fa-arrow-left fa-xs" aria-hidden="true"></i> All users</a></p>
       <Alert flash={flash} />
       {own
@@ -254,9 +255,12 @@ function SectionBody({ section, target, errors, values }: { section: SectionSlug
       return (
         <Change slug="password" errors={errors}>
           <p>Takes effect at once and logs {target.username} out everywhere. You have to tell them the password yourself.</p>
-          <form method="post" action={act(target, 'password')}>
-            <Field name="password" label="New password" type="password" autocomplete="new-password" error={here('password', 'password')} />
-            <Field name="confirmPassword" label="New password again" type="password" autocomplete="new-password" error={here('password', 'confirmPassword')} />
+          <form method="post" action={act(target, 'password')} class="ft-form" data-live-validate data-min-password={MIN_PASSWORD_LENGTH}
+                data-forbidden={[target.username, target.email ?? ''].filter(Boolean).join(',')} novalidate>
+            <Field name="password" label="New password" type="password" autocomplete="new-password" error={here('password', 'password')}
+                   hints={<PasswordHints theirs />} />
+            <Field name="confirmPassword" label="New password again" type="password" autocomplete="new-password" error={here('password', 'confirmPassword')}
+                   hints={<ConfirmPasswordHints />} />
             <ConfirmName slug="password" target={target} errors={errors} />
             <Submit kind="danger" icon="fa-solid fa-key">Set password of {target.username}</Submit>
           </form>
@@ -266,14 +270,14 @@ function SectionBody({ section, target, errors, values }: { section: SectionSlug
       return (
         <Change slug="email" errors={errors}>
           <p>A confirmation link goes to the <i>new</i> address. The address changes when somebody opens it.</p>
-          <form method="post" action={act(target, 'email')}>
+          <form method="post" action={act(target, 'email')} class="ft-form" data-live-validate data-current-email={target.email ?? ''} novalidate>
             <div class="mb-3">
               <label for="current-email" class="form-label">Current email address</label>
               <input id="current-email" class="form-control" type="text" value={target.email ?? 'not set'} readonly />
               {target.email && !target.emailConfirmed && <div class="form-text">Not confirmed yet.</div>}
             </div>
             <Field name="email" label="New email address" type="email" autocomplete="off" value={errors.form === 'email' ? values.email : undefined}
-                   error={here('email', 'email')} />
+                   error={here('email', 'email')} hints={<EmailHints different theirs />} />
             <ConfirmName slug="email" target={target} errors={errors} />
             <Submit kind="danger" icon="fa-regular fa-paper-plane">Ask {target.username} to confirm</Submit>
           </form>

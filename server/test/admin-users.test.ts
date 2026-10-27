@@ -217,6 +217,24 @@ describe('the user pages', () => {
     expect((await admin.get(`/admin/users/${ids[NO_MAIL]}/email`)).body).toContain('value="not set" readonly');
   });
 
+  it('give the email and password forms the standard live tips, and no other page loads the script', async () => {
+    const admin = await loginAs(ADMIN);
+    const email = (await admin.get(`/admin/users/${ids[TARGET]}/email`)).body;
+    expect(email).toContain('data-live-validate');
+    expect(email).toContain(`data-current-email="${TARGET}@example.com"`);
+    expect(email).toContain('data-hints="email"');
+    expect(email).toContain('This is their current email address');
+    expect(email).toContain('live-hints.js');
+    const password = (await admin.get(`/admin/users/${ids[TARGET]}/password`)).body;
+    expect(password).toContain('data-live-validate');
+    expect(password).toContain('data-min-password="6"');
+    expect(password).toContain(`data-forbidden="${TARGET},${TARGET}@example.com"`);
+    expect(password).toContain('data-hints="password"');
+    expect(password).toContain('data-hints="confirmPassword"');
+    expect(password).toContain('not be the same as their username or email');
+    expect((await admin.get(`/admin/users/${ids[TARGET]}/lock`)).body).not.toContain('live-hints.js');
+  });
+
   it('show Unlock instead of Lock for a locked user', async () => {
     const admin = await loginAs(ADMIN);
     await pool.query('UPDATE users SET is_locked_out = true WHERE id = $1', [ids[NO_MAIL]]);

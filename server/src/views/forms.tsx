@@ -108,10 +108,11 @@ export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
 
 // Checklists shared by every page that sets a password or an email address (see public/js/live-hints.js).
 
-export function PasswordHints() {
+/** `theirs`: an admin sets the password of somebody else ("their" instead of "your"). */
+export function PasswordHints({ theirs }: { theirs?: boolean } = {}) {
   return <Hints field="password" rules={[
     { rule: 'len', text: `The password must be at least ${MIN_PASSWORD_LENGTH} characters long` },
-    { rule: 'differs', text: 'The password must not be the same as your username or email' },
+    { rule: 'differs', text: `The password must not be the same as ${theirs ? 'their' : 'your'} username or email` },
   ]} />;
 }
 
@@ -119,11 +120,11 @@ export function ConfirmPasswordHints() {
   return <Hints field="confirmPassword" rules={[{ rule: 'match', text: 'The passwords do not match' }]} />;
 }
 
-/** `different`: the form is for changing an address, so it must differ from the current one. */
-export function EmailHints({ different }: { different?: boolean }) {
+/** `different`: the form is for changing an address, so it must differ from the current one (`theirs`: an admin changes it for somebody else). */
+export function EmailHints({ different, theirs }: { different?: boolean; theirs?: boolean }) {
   return <Hints field="email" rules={[
     { rule: 'format', text: 'Enter a valid email address, like name@example.com' },
-    ...(different ? [{ rule: 'different', text: 'This is your current email address: enter a new one' }] : []),
+    ...(different ? [{ rule: 'different', text: `This is ${theirs ? 'their' : 'your'} current email address: enter a new one` }] : []),
     { rule: 'free', text: 'This email address is already registered' },
   ]} />;
 }
