@@ -43,15 +43,15 @@ export function AdminUsersPage({ user, path, flash, q, users, total, pageNo, pag
   const pages = Math.max(1, Math.ceil(total / pageSize));
   return (
     <Layout title="Users" user={user} path={path} card="wide">
-      <section class="ft-section">
+      <section class="ft-section ft-has-search">
         <h5 class="ft-section-title"><i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> Users</h5>
         <Alert flash={flash} />
-        <form method="get" action="/admin" class="d-flex gap-2 mb-3" role="search">
+        <form method="get" action="/admin" class="ft-search" role="search">
           <input class="form-control" type="search" name="q" value={q} maxlength={100} placeholder="Part of a user name or email" aria-label="Search users" />
           <button class="btn btn-primary" type="submit">Search</button>
           {q && <a class="btn btn-outline-secondary" href="/admin">Clear</a>}
         </form>
-        <p class="text-body-secondary">{total} {total === 1 ? 'user' : 'users'}{q && <> matching <b>{q}</b></>}</p>
+        <p class="text-body-secondary mt-2">{total} {total === 1 ? 'user' : 'users'}{q && <> matching <b>{q}</b></>}</p>
         {users.length > 0 && (
           <div class="table-responsive-xl ft-table-wrap ft-sticky-head">
             <table class="table table-striped table-hover align-middle ft-table ft-cards mb-0">
