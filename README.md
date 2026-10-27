@@ -34,3 +34,9 @@ Without a dump: `npm run user:create -- alice secret Admins`.
 `docs/legacy-system.md` describes the original ASP.NET application in detail (data model, stored procedures, auth,
 every page and feature, the map client, the SPOT/inReach feed clients, the polling scheduler and the incremental-update
 protocol), plus the current migration status and the remaining work. Read it before porting any feature.
+
+## License
+
+Flytrace is free software under the GNU Affero General Public License, version 3 or (at your option) any later version
+(`LICENSE`), the same as the original ASP.NET site. Every source file (`.ts`, `.tsx`, `.js`, `.css`, `.sql`, `.sh`) starts with the
+license header; copy it from any file when adding one (a test checks that).

@@ -13,6 +13,9 @@ from a parent workspace folder.
 - "Revert" means undo only the most recent change; if it could mean more than that, ask which.
 - The owner usually has `npm run dev` (watch mode) running on port 3000. Never stop it: start your own test server
   on another port (`PORT=3100 npm run dev`) and kill only the process you started, never by port or process name.
+- License: AGPL-3.0-or-later (`LICENSE`, `package.json`). Every new source file (`.ts`, `.tsx`, `.js`, `.css`, `.sql`, `.sh`) starts with the
+  license header: copy it from any existing file (`//` comments; `#` in shell scripts, `--` in SQL, `/* */` in CSS; after a `#!` line in scripts), and keep the
+  years `2011-<current year>`. `server/test/license-headers.test.ts` fails when a file lacks it.
 - Keep numeric group, event and tracker IDs unchanged (nginx will later redirect the old `.aspx` URLs).
 - `db/legacy/dump/` holds production personal data (emails, password hashes) and is gitignored. Never print
   its contents or copy it elsewhere.
