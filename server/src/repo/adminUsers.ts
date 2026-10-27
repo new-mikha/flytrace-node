@@ -1,0 +1,94 @@
+import { endSessions } from '../auth/accounts.ts';
+import type { Pool } from '../db.ts';
+
+export const USERS_PAGE_SIZE = 50;
+
+export interface AdminUserRow {
+  id: string;
+  username: string;
+  email: string | null;
+  roles: string[];
+  groups: number;
+  lastLoginAt: Date | null;
+  locked: boolean;
+}
+
+/** Users by name, optionally those whose user name or email contains `q` (case-insensitive). 1-based page. */
+export async function listUsers(pool: Pool, q: string, pageNo: number): Promise<{ rows: AdminUserRow[]; total: number }> {
+  const like = q ? `%${q.replace(/[\\%_]/g, '\\$&')}%` : null;
+  const where = `($1::text IS NULL OR u.username ILIKE $1 OR u.email ILIKE $1)`;
+  const [list, count] = await Promise.all([
+    pool.query<{ id: string; username: string; email: string | null; roles: string[]; groups: number; last_login_at: Date | null; locked: boolean }>(
+      `SELECT u.id, u.username, u.email, u.last_login_at, u.is_locked_out AS locked,
+              COALESCE(array_agg(r.name::text) FILTER (WHERE r.name IS NOT NULL), '{}') AS roles,
+              (SELECT count(*) FROM groups g WHERE g.user_id = u.id)::int AS groups
+       FROM users u
+       LEFT JOIN user_roles ur ON ur.user_id = u.id
+       LEFT JOIN roles r ON r.id = ur.role_id
+       WHERE ${where}
+       GROUP BY u.id ORDER BY u.username LIMIT $2 OFFSET $3`,
+      [like, USERS_PAGE_SIZE, (pageNo - 1) * USERS_PAGE_SIZE]),
+    pool.query<{ n: number }>(`SELECT count(*)::int AS n FROM users u WHERE ${where}`, [like]),
+  ]);
+  return {
+    rows: list.rows.map((r) => ({
+      id: r.id, username: r.username, email: r.email, roles: r.roles, groups: r.groups, lastLoginAt: r.last_login_at, locked: r.locked,
+    })),
+    total: count.rows[0]!.n,
+  };
+}
+
+/** Everything the admin's user page shows about one user. Never the password hash or the two-factor secret. */
+export interface ManagedUser {
+  id: string;
+  username: string;
+  email: string | null;
+  emailConfirmed: boolean;
+  twoFactorEnabled: boolean;
+  locked: boolean;
+  approved: boolean;
+  roles: string[];
+  groups: number;
+  /** Logins that are valid right now (unexpired sessions). */
+  sessions: number;
+  createdAt: Date;
+  lastLoginAt: Date | null;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function getManagedUser(pool: Pool, id: string): Promise<ManagedUser | null> {
+  if (!UUID.test(id)) return null;
+  const { rows } = await pool.query<{
+    id: string; username: string; email: string | null; email_confirmed: boolean; two_factor_enabled: boolean;
+    is_locked_out: boolean; is_approved: boolean; roles: string[]; groups: number; sessions: number;
+    created_at: Date; last_login_at: Date | null;
+  }>(
+    `SELECT u.id, u.username, u.email, u.email_confirmed, u.two_factor_enabled, u.is_locked_out, u.is_approved,
+            u.created_at, u.last_login_at,
+            COALESCE(array_agg(r.name::text) FILTER (WHERE r.name IS NOT NULL), '{}') AS roles,
+            (SELECT count(*) FROM groups g WHERE g.user_id = u.id)::int AS groups,
+            (SELECT count(*) FROM sessions s WHERE s.sess->>'userId' = u.id::text AND s.expire > now())::int AS sessions
+     FROM users u
+     LEFT JOIN user_roles ur ON ur.user_id = u.id
+     LEFT JOIN roles r ON r.id = ur.role_id
+     WHERE u.id = $1
+     GROUP BY u.id`,
+    [id]);
+  const r = rows[0];
+  return !r ? null : {
+    id: r.id, username: r.username, email: r.email, emailConfirmed: r.email_confirmed, twoFactorEnabled: r.two_factor_enabled,
+    locked: r.is_locked_out, approved: r.is_approved, roles: r.roles, groups: r.groups, sessions: r.sessions,
+    createdAt: r.created_at, lastLoginAt: r.last_login_at,
+  };
+}
+
+/** Locking also ends the user's logins (the next request of an old session would be refused anyway). */
+export async function setLocked(pool: Pool, userId: string, locked: boolean): Promise<void> {
+  await pool.query('UPDATE users SET is_locked_out = $2 WHERE id = $1', [userId, locked]);
+  if (locked) await endSessions(pool, userId);
+}
+
+export async function setEmailConfirmed(pool: Pool, userId: string, confirmed: boolean): Promise<void> {
+  await pool.query('UPDATE users SET email_confirmed = $2 WHERE id = $1', [userId, confirmed]);
+}

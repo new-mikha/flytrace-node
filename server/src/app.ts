@@ -10,6 +10,7 @@ import { packageDir, projectRoot } from './paths.ts';
 import { createMailer, type Mailer } from './mail/mailer.ts';
 import { MailService } from './mail/service.ts';
 import { accountRoutes } from './routes/account.tsx';
+import { adminRoutes } from './routes/admin.tsx';
 import { settingsRoutes } from './routes/settings.tsx';
 import { homeRoutes } from './routes/home.tsx';
 import { identityRoutes } from './routes/identity.tsx';
@@ -81,10 +82,11 @@ export async function buildApp(config: Config, pool: Pool, mailer?: Mailer, logS
   app.decorate('mail', mail);
   await identityRoutes(app, pool, config, mail);
   await accountRoutes(app, pool, config, mail);
+  await adminRoutes(app, pool, mail);
   await settingsRoutes(app, pool);
   await themeRoutes(app);
   await homeRoutes(app, pool);
-  await pageRoutes(app, pool);
+  await pageRoutes(app);
 
   app.addHook('onClose', async () => {
     await mail.flush();
