@@ -179,32 +179,75 @@ describe('the paginator', () => {
   });
 });
 
-describe('the user page', () => {
-  it('names the user in a banner and has a confirmation field in every form', async () => {
+describe('the user pages', () => {
+  const sections = ['lock', 'reset-link', 'password', 'email', 'email-status', 'end-sessions', 'disable-2fa'];
+
+  it('name the user in a banner, and list every section with its current value', async () => {
     const admin = await loginAs(ADMIN);
     const res = await admin.get(`/admin/users/${ids[TARGET]}`);
     expect(res.statusCode).toBe(200);
     expect(res.body).toContain('Admin area');
     expect(res.body).toContain(`<b>${TARGET}</b>`);
-    const forms = res.body.match(/<form method="post" action="\/admin\/users\//g)!.length;
-    expect(res.body.match(/name="confirmName"/g)!.length).toBe(forms);
-    expect(res.body).not.toContain('Turn off two-factor login'); // it is not on for this user
+    for (const slug of sections) expect(res.body).toContain(`href="/admin/users/${ids[TARGET]}/${slug}"`);
+    expect(res.body).toContain('>Active<');
+    expect(res.body).toContain(`>${TARGET}@example.com<`);
+    expect(res.body).toContain('>Off<'); // two-factor
+    expect(res.body).not.toContain('confirmName'); // the forms are on the section pages
   });
 
-  it('has no forms for the admin\'s own account', async () => {
+  it('have one form each, with the typed-name field, and the list stays at the left', async () => {
+    const admin = await loginAs(ADMIN);
+    for (const slug of sections.filter((x) => x !== 'disable-2fa')) { // that one has no form while two-factor is off
+      const res = await admin.get(`/admin/users/${ids[TARGET]}/${slug}`);
+      expect(res.statusCode, slug).toBe(200);
+      expect(res.body.match(/<form method="post" action="\/admin\/users\//g), slug).toHaveLength(1);
+      expect(res.body.match(/name="confirmName"/g), slug).toHaveLength(1);
+      expect(res.body).toContain('ft-settings-list'); // the list of sections
+      expect(res.body).toContain('Admin area');
+    }
+    const off = await admin.get(`/admin/users/${ids[TARGET]}/disable-2fa`);
+    expect(off.body).toContain('not on for this user');
+    expect(off.body).not.toContain('confirmName');
+  });
+
+  it('show Unlock instead of Lock for a locked user', async () => {
+    const admin = await loginAs(ADMIN);
+    await pool.query('UPDATE users SET is_locked_out = true WHERE id = $1', [ids[NO_MAIL]]);
+    const res = await admin.get(`/admin/users/${ids[NO_MAIL]}/lock`);
+    expect(res.body).toContain(`action="/admin/users/${ids[NO_MAIL]}/unlock"`);
+    expect((await admin.get(`/admin/users/${ids[NO_MAIL]}`)).body).toContain('>Locked<');
+    await pool.query('UPDATE users SET is_locked_out = false WHERE id = $1', [ids[NO_MAIL]]);
+  });
+
+  it('have no forms for the admin\'s own account', async () => {
     const admin = await loginAs(ADMIN);
     const res = await admin.get(`/admin/users/${ids[ADMIN]}`);
     expect(res.body).toContain('This is your own account');
     expect(res.body).not.toContain('confirmName');
+    expect(res.body).not.toContain('ft-settings-list');
+    expect((await admin.get(`/admin/users/${ids[ADMIN]}/password`)).headers.location).toBe(`/admin/users/${ids[ADMIN]}`);
     const post = await admin.post(`/admin/users/${ids[ADMIN]}/lock`, { confirmName: ADMIN });
     expect(post.statusCode).toBe(302);
     expect((await userRow(ADMIN)).is_locked_out).toBe(false);
   });
 
-  it('goes back to the list for an unknown user', async () => {
+  it('go back to the list or the user when something is unknown', async () => {
     const admin = await loginAs(ADMIN);
     expect((await admin.get('/admin/users/not-a-uuid')).headers.location).toBe('/admin');
     expect((await admin.get('/admin/users/00000000-0000-4000-8000-000000000000')).headers.location).toBe('/admin');
+    expect((await admin.get('/admin/users/00000000-0000-4000-8000-000000000000/password')).headers.location).toBe('/admin');
+    expect((await admin.get(`/admin/users/${ids[TARGET]}/nonsense`)).headers.location).toBe(`/admin/users/${ids[TARGET]}`);
+    expect((await admin.get(`/admin/users/${ids[TARGET]}/unlock`)).headers.location).toBe(`/admin/users/${ids[TARGET]}`); // only POST
+  });
+
+  it('send a failed change back to its own page, and a successful one too', async () => {
+    const admin = await loginAs(ADMIN);
+    const bad = await admin.post(`/admin/users/${ids[TARGET]}/end-sessions`, { confirmName: 'x' });
+    expect(bad.statusCode).toBe(422);
+    expect(bad.body).toContain('Log out everywhere</h1>'); // the section page, with the list at the left
+    expect(bad.body).toContain('ft-settings-list');
+    const ok = await admin.post(`/admin/users/${ids[TARGET]}/end-sessions`, { confirmName: TARGET });
+    expect(ok.headers.location).toBe(`/admin/users/${ids[TARGET]}/end-sessions`);
   });
 });
 
@@ -309,7 +352,8 @@ describe('changes', () => {
     expect((await admin.post(url, { confirmName: TARGET })).statusCode).toBe(422);
 
     await pool.query(`UPDATE users SET two_factor_enabled = true, two_factor_secret = 'JBSWY3DPEHPK3PXP' WHERE id = $1`, [ids[TARGET]]);
-    expect((await admin.get(`/admin/users/${ids[TARGET]}`)).body).toContain('Turn off two-factor login');
+    expect((await admin.get(`/admin/users/${ids[TARGET]}/disable-2fa`)).body).toContain('Turn off for');
+    expect((await admin.get(`/admin/users/${ids[TARGET]}`)).body).toContain('>On<');
     expect((await admin.post(url, { confirmName: 'nope' })).statusCode).toBe(422);
     expect((await userRow(TARGET)).two_factor_enabled).toBe(true);
     expect((await admin.post(url, { confirmName: TARGET })).statusCode).toBe(302);

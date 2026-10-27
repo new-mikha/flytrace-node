@@ -7,7 +7,8 @@ import { requireRole } from '../auth/guards.ts';
 import type { Pool } from '../db.ts';
 import type { MailService } from '../mail/service.ts';
 import { getManagedUser, listUsers, parseSort, setEmailConfirmed, setLocked, USERS_PAGE_SIZE, type ManagedUser } from '../repo/adminUsers.ts';
-import { AdminUserPage, AdminUsersPage, type AdminErrors } from '../views/AdminPages.tsx';
+import { AdminUsersPage } from '../views/AdminPages.tsx';
+import { AdminUserIndexPage, AdminUserSectionPage, isSection, type AdminErrors, type SectionSlug } from '../views/AdminUserPages.tsx';
 import { sendHtml } from '../views/render.tsx';
 import { passwordErrors } from './identity.tsx';
 import { emailRateLimit, formFields, setFlash, strictRateLimit, takeFlash } from './util.ts';
@@ -36,7 +37,15 @@ export async function adminRoutes(app: FastifyInstance, pool: Pool, mail: MailSe
   app.get<{ Params: { id: string } }>('/admin/users/:id', guard, async (request, reply) => {
     const target = await getManagedUser(pool, request.params.id);
     if (!target) return reply.redirect('/admin', 302);
-    return sendHtml(reply, <AdminUserPage {...common(request)} target={target} errors={{}} values={{}} />);
+    return sendHtml(reply, <AdminUserIndexPage {...common(request)} target={target} />);
+  });
+
+  app.get<{ Params: { id: string; section: string } }>('/admin/users/:id/:section', guard, async (request, reply) => {
+    const target = await getManagedUser(pool, request.params.id);
+    if (!target) return reply.redirect('/admin', 302);
+    // an unknown section, or any section of the admin's own account (which has none), goes back to the user
+    if (!isSection(request.params.section) || target.id === request.user!.id) return reply.redirect(`/admin/users/${target.id}`, 302);
+    return sendHtml(reply, <AdminUserSectionPage {...common(request)} target={target} section={request.params.section} errors={{}} values={{}} />);
   });
 
   /**
@@ -50,10 +59,11 @@ export async function adminRoutes(app: FastifyInstance, pool: Pool, mail: MailSe
     app.post<{ Params: { id: string } }>(`/admin/users/:id/${slug}`, { ...guard, config: rate }, async (request, reply) => {
       const target = await getManagedUser(pool, request.params.id);
       if (!target) return reply.redirect('/admin', 302);
-      const back = `/admin/users/${target.id}`;
+      const section: SectionSlug = slug === 'unlock' ? 'lock' : (slug as SectionSlug); // the lock page posts to /lock or /unlock
+      const back = `/admin/users/${target.id}/${section}`;
       if (target.id === request.user!.id) {
         setFlash(request, 'danger', 'This is your own account. Use Settings to change it.');
-        return reply.redirect(back, 302);
+        return reply.redirect(`/admin/users/${target.id}`, 302);
       }
       const f: Fields = formFields(request, 'confirmName', ...fieldNames);
       const errors: AdminErrors = { form: slug, ...(await steps.validate?.(f, target)) };
@@ -62,7 +72,7 @@ export async function adminRoutes(app: FastifyInstance, pool: Pool, mail: MailSe
         audit(request, 'admin.confirm_failed', `Wrong user name typed to confirm "${slug}"`, { ...about(target), action: slug });
       }
       if (Object.entries(errors).some(([key, message]) => key !== 'form' && message)) {
-        return sendHtml(reply, <AdminUserPage {...common(request)} target={target} errors={errors} values={f} />, 422);
+        return sendHtml(reply, <AdminUserSectionPage {...common(request)} target={target} section={section} errors={errors} values={f} />, 422);
       }
       setFlash(request, 'success', await steps.execute(f, target, request));
       return reply.redirect(back, 302);
