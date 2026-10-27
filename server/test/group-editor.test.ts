@@ -157,7 +157,12 @@ describe('creating and editing', () => {
     expect(ann).toMatchObject({ name: 'Ann', tracker_type: 'S', foreign_id: SPOT_ID, is_on: true });
     expect(bob).toMatchObject({ tracker_type: 'G', foreign_id: 'share.garmin.com/Feed/Share/Phillm#300434031769290' });
 
-    expect((await owner.get(`/groups/${id}?rename=${ann.id}`)).body).toContain('Update');
+    // Every row carries its (hidden) rename form for the script to swap in; `?rename=` shows one without JavaScript.
+    const plain = (await owner.get(`/groups/${id}`)).body;
+    expect(plain.match(/class="ft-rename-form" hidden/g)).toHaveLength(2);
+    const renaming = (await owner.get(`/groups/${id}?rename=${ann.id}`)).body;
+    expect(renaming.match(/class="ft-rename-form" hidden/g)).toHaveLength(1);
+    expect(renaming).toContain('Update');
     expect((await owner.post(`/groups/${id}/trackers/${ann.id}/rename`, { name: 'Bob' })).statusCode).toBe(422);
     expect((await owner.post(`/groups/${id}/trackers/${ann.id}/rename`, { name: 'Anna' })).statusCode).toBe(302);
     expect((await trackerRows(id))[0].name).toBe('Anna');

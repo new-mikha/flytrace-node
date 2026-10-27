@@ -82,25 +82,28 @@ function TrackerItem({ group, t, canEdit, rename }: { group: EditableGroup; t: G
     <li class={`list-group-item ft-tracker${muted}`} id={`tracker-${t.id}`}>
       <Switch group={group} t={t} canEdit={canEdit} />
       <div class="ft-tracker-main">
-        {rename ? (
-          <form method="post" action={`/groups/${group.id}/trackers/${t.id}/rename`} class="d-flex flex-wrap gap-2 align-items-start">
+        <div class="ft-tracker-name" hidden={!!rename}>{t.name}</div>
+        {canEdit && (
+          // Always in the page, hidden until Rename: public/js/group-editor.js swaps it with the name without a request.
+          // Without JavaScript the Rename link reloads the page with `?rename=`, which renders it visible.
+          <form method="post" action={`/groups/${group.id}/trackers/${t.id}/rename`} class="ft-rename-form" hidden={!rename} data-name={t.name}>
             <div>
-              <input class={`form-control form-control-sm${rename.error ? ' is-invalid' : ''}`} name="name" value={rename.name} maxlength={50} required
-                     aria-label="Pilot name" autofocus />
-              {rename.error && <div class="invalid-feedback">{rename.error}</div>}
+              <input class={`form-control form-control-sm${rename?.error ? ' is-invalid' : ''}`} name="name" value={rename?.name ?? t.name} maxlength={50} required
+                     aria-label="Pilot name" autofocus={!!rename} />
+              {rename?.error && <div class="invalid-feedback">{rename.error}</div>}
             </div>
             <button class="btn btn-sm btn-primary" type="submit">Update</button>
-            <a class="btn btn-sm btn-outline-secondary" href={`/groups/${group.id}#tracker-${t.id}`}>Cancel</a>
+            <a class="btn btn-sm btn-outline-secondary" href={`/groups/${group.id}#tracker-${t.id}`} data-rename-cancel>Cancel</a>
           </form>
-        ) : <div class="ft-tracker-name">{t.name}</div>}
+        )}
         <div class="ft-tracker-id small">
           <TypeBadge type={t.type} />{' '}
           {url ? <a href={url} target="_blank" rel="noopener">{shortId(t)}</a> : shortId(t)}
         </div>
       </div>
-      {canEdit && !rename && (
-        <div class="ft-actions text-nowrap">
-          <a class="ft-group-link" href={`/groups/${group.id}?rename=${t.id}#tracker-${t.id}`}>Rename</a>
+      {canEdit && (
+        <div class="ft-actions text-nowrap" hidden={!!rename}>
+          <a class="ft-group-link" href={`/groups/${group.id}?rename=${t.id}#tracker-${t.id}`} data-rename>Rename</a>
           <a class="ft-danger-link" href={`/groups/${group.id}/trackers/${t.id}/delete`}>Delete</a>
         </div>
       )}
