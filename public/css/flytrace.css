@@ -643,7 +643,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-settings-list .list-group-item { display: flex; align-items: center; gap: 0.75rem; }
 .ft-settings-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
 .ft-settings-desc { font-size: 0.85rem; color: var(--bs-secondary-color); }
-.ft-settings-value { color: #0369a1; white-space: nowrap; max-width: 45%; overflow: hidden; text-overflow: ellipsis; }
+.ft-settings-value { color: #0369a1; flex: 0 0 auto; white-space: nowrap; max-width: 45%; overflow: hidden; text-overflow: ellipsis; }
 .ft-settings-chevron { color: var(--bs-secondary-color); }
 .ft-settings-back { display: inline-block; margin-bottom: 0.75rem; text-decoration: none; color: #0369a1; }
 @media (max-width: 767.98px) {
