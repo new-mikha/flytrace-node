@@ -30,7 +30,8 @@
   --ft-teal-dark: #0f766e;
   --ft-coral: #fb7185;
   --ft-sun: #fde68a;
-  --ft-panel: rgba(255, 255, 255, 0.94);
+  --ft-panel: rgba(238, 242, 247, 0.94); /* a light blue-grey, so white text boxes stand out */
+  --ft-panel-solid: #eef2f7; /* the same, opaque: for the sticky bars that must hide what scrolls under them */
   --ft-row: #ffffff; /* the two alternating card colours on phones (table rows on wide screens have their own, see .ft-table) */
   --ft-row-alt: #dbeefa;
   --ft-radius: 0.5rem;
@@ -250,7 +251,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   display: flex;
   align-items: center;
   font-weight: 600;
-  background: #fff; /* opaque: the panel colour is slightly see-through and rows would ghost through the title */
+  background: var(--ft-panel-solid); /* opaque: the panel colour is slightly see-through and rows would ghost through the title */
 }
 @media (min-width: 1200px) { [data-bs-theme="dark"] .ft-section-title { background: #111827; } }
 @media (max-width: 1199.98px) {
@@ -295,7 +296,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #fff;
+  background: var(--ft-panel-solid);
 }
 [data-bs-theme="dark"] .ft-search { background: #111827; }
 
@@ -311,7 +312,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  background: #fff;
+  background: var(--ft-panel-solid);
 }
 [data-bs-theme="dark"] .ft-pager-bar { background: #111827; }
 .ft-page-input { width: 3.75rem; text-align: center; padding-inline: 0.25rem; }
@@ -327,7 +328,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #fff;
+  background: var(--ft-panel-solid);
 }
 [data-bs-theme="dark"] .ft-sort-bar { background: #111827; }
 .ft-sort-bar select { min-width: 0; }
