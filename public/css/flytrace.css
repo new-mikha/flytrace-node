@@ -37,11 +37,11 @@
   --ft-frame-width: 1200px;
   --ft-nav-h: 3.7rem; /* height of the sticky menu bar */
   --ft-title-h: 2.75rem; /* height of a section title bar */
-  /* Scroll fog (see .ft-fog below): the settings to play with. */
-  --ft-fog-height: 1rem; /* how tall the strip is */
-  --ft-fog-rgb: 100 110 125; /* its colour (the night theme has its own below) */
-  --ft-fog-opacity: 0.5; /* how dense it is at full strength, where it meets the bar */
-  --ft-fog-ramp: 2rem; /* how far to scroll from the top (or to the bottom) for it to reach full strength */
+  /* Scroll shadow (see .ft-shadow below): the settings to play with. */
+  --ft-shadow-height: 1rem; /* how tall the strip is */
+  --ft-shadow-rgb: 100 110 125; /* its colour (the night theme has its own below) */
+  --ft-shadow-opacity: 0.5; /* how dense it is at full strength, where it meets the bar */
+  --ft-shadow-ramp: 2rem; /* how far to scroll from the top (or to the bottom) for it to reach full strength */
 }
 
 body {
@@ -649,20 +649,20 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 }
 [data-bs-theme="dark"] .ft-settings-group-title, [data-bs-theme="dark"] .ft-settings-value, [data-bs-theme="dark"] .ft-settings-back { color: #7dd3fc; }
 
-/* Scroll fog. Without scroll bars, a soft strip under the sticky bars (more above) and at the bottom of the screen (more below)
-   shows that the page continues. Dense at the bar, clear at the other edge. public/js/fog.js places the top strip under the
-   lowest stuck bar and sets the opacity of both: 0 at the end of the page, 1 after --ft-fog-ramp of scrolling.
+/* Scroll shadow. Without scroll bars, a soft strip under the sticky bars (more above) and at the bottom of the screen (more below)
+   shows that the page continues. Dense at the bar, clear at the other edge. public/js/shadow.js places the top strip under the
+   lowest stuck bar and sets the opacity of both: 0 at the end of the page, 1 after --ft-shadow-ramp of scrolling.
    The strips are not fixed to the screen: each hangs from a sticky, zero-height anchor in the page (the top one sticks to the top
    like the bars, the bottom one to the bottom), so when the page is pulled past its end (the rubber band of a Mac trackpad) they
    move together with the bars instead of staying behind. Above the content and the sticky bars of the page, below the menu bar,
    dialogs and the loading bar. */
-.ft-fog { position: sticky; height: 0; pointer-events: none; z-index: 10; }
-.ft-fog-top { top: 0; }
-.ft-fog-bottom { bottom: 0; }
-.ft-fog-strip { position: absolute; left: 0; right: 0; height: var(--ft-fog-height); opacity: 0; }
-.ft-fog-top .ft-fog-strip { top: 0; background: linear-gradient(to bottom, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
-.ft-fog-bottom .ft-fog-strip { bottom: 0; background: linear-gradient(to top, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
-[data-bs-theme="dark"] { --ft-fog-rgb: 148 163 184; }
+.ft-shadow { position: sticky; height: 0; pointer-events: none; z-index: 10; }
+.ft-shadow-top { top: 0; }
+.ft-shadow-bottom { bottom: 0; }
+.ft-shadow-strip { position: absolute; left: 0; right: 0; height: var(--ft-shadow-height); opacity: 0; }
+.ft-shadow-top .ft-shadow-strip { top: 0; background: linear-gradient(to bottom, rgb(var(--ft-shadow-rgb) / var(--ft-shadow-opacity)), rgb(var(--ft-shadow-rgb) / 0)); }
+.ft-shadow-bottom .ft-shadow-strip { bottom: 0; background: linear-gradient(to top, rgb(var(--ft-shadow-rgb) / var(--ft-shadow-opacity)), rgb(var(--ft-shadow-rgb) / 0)); }
+[data-bs-theme="dark"] { --ft-shadow-rgb: 148 163 184; }
 /* Phones: the cards are busier and there is no room to spare around them, so the strips are taller and denser. */
-@media (max-width: 767.98px) { :root { --ft-fog-height: 1.5rem; --ft-fog-opacity: 0.7; } }
-@media print { .ft-fog { display: none; } }
+@media (max-width: 767.98px) { :root { --ft-shadow-height: 1.5rem; --ft-shadow-opacity: 0.7; } }
+@media print { .ft-shadow { display: none; } }

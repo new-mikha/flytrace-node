@@ -242,12 +242,12 @@ describe('user home page (my pilot groups)', () => {
     expect(html).not.toContain('Dalby 2024');
   });
 
-  it('has the scroll fog (two strips and their script)', () => {
+  it('has the scroll shadow (two strips and their script)', () => {
     const html = render(user);
-    expect(html).toContain('class="ft-fog ft-fog-top"');
-    expect(html).toContain('class="ft-fog ft-fog-bottom"');
-    expect(html.match(/class="ft-fog-strip"/g)).toHaveLength(2);
-    expect(html).toContain('/assets/js/fog.js');
+    expect(html).toContain('class="ft-shadow ft-shadow-top"');
+    expect(html).toContain('class="ft-shadow ft-shadow-bottom"');
+    expect(html.match(/class="ft-shadow-strip"/g)).toHaveLength(2);
+    expect(html).toContain('/assets/js/shadow.js');
   });
 
   it('has a Create new group button, and a button for others\' public groups, below the table', () => {

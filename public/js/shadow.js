@@ -18,19 +18,19 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// Scroll fog: with no scroll bars to look at, a soft strip under the sticky bars says "there is more above" and a strip at the
+// Scroll shadow: with no scroll bars to look at, a soft strip under the sticky bars says "there is more above" and a strip at the
 // bottom of the screen says "there is more below". Each is invisible at its end of the page and reaches full strength after
-// `--ft-fog-ramp` of scrolling (all the settings are in flytrace.css). The two strips hang from sticky anchors in the page
-// (Layout `fog`), so they move with the sticky bars when the page is pulled past its end; this script only says where the top
+// `--ft-shadow-ramp` of scrolling (all the settings are in flytrace.css). The two strips hang from sticky anchors in the page
+// (Layout `shadow`), so they move with the sticky bars when the page is pulled past its end; this script only says where the top
 // strip starts and how strong each is.
 (() => {
-  const anchor = document.querySelector('.ft-fog-top');
-  const top = anchor?.querySelector('.ft-fog-strip');
-  const bottom = document.querySelector('.ft-fog-bottom .ft-fog-strip');
+  const anchor = document.querySelector('.ft-shadow-top');
+  const top = anchor?.querySelector('.ft-shadow-strip');
+  const bottom = document.querySelector('.ft-shadow-bottom .ft-shadow-strip');
   const frame = document.querySelector('.ft-navbar');
   if (!anchor || !top || !bottom || !frame) return;
 
-  // Everything that sticks at the top of the screen. The fog starts under the lowest one that is stuck right now: the menu bar, then
+  // Everything that sticks at the top of the screen. The shadow starts under the lowest one that is stuck right now: the menu bar, then
   // the section title, the search and sort rows, the column header of a table (each sticks at its own `top`).
   const STICKY = '.ft-navbar, .ft-section-title, .ft-sticky-head thead, .ft-search, .ft-pager-bar, .ft-sort-bar';
   const clamp = (n) => Math.min(1, Math.max(0, n));
@@ -39,7 +39,7 @@
 
   function update() {
     queued = false;
-    const ramp = Math.max(1, px(getComputedStyle(top).getPropertyValue('--ft-fog-ramp')) || 32);
+    const ramp = Math.max(1, px(getComputedStyle(top).getPropertyValue('--ft-shadow-ramp')) || 32);
     const y = window.scrollY;
     const max = document.documentElement.scrollHeight - document.documentElement.clientHeight; // not innerHeight: that one moves with a phone's address bar
 
