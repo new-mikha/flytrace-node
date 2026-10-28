@@ -30,11 +30,13 @@ interface LayoutProps {
   card?: boolean | 'medium' | 'wide';
   /** Extra scripts (paths under /assets/js/) for this page only. */
   scripts?: string[];
+  /** Scroll fog: soft strips under the sticky bars and at the bottom of the screen that show there is more to scroll (public/js/fog.js). */
+  fog?: boolean;
   children: ComponentChildren;
 }
 
 /** Page frame shared by every page: background, navigation bar and the "jumbotron" content panel. */
-export function Layout({ title, user, path, card, scripts, children }: LayoutProps) {
+export function Layout({ title, user, path, card, scripts, fog, children }: LayoutProps) {
   return (
     <html lang="en">
       <head>
@@ -54,8 +56,15 @@ export function Layout({ title, user, path, card, scripts, children }: LayoutPro
             <main class={card ? `ft-jumbotron ft-jumbotron-card${card === 'wide' ? ' ft-jumbotron-wide' : card === 'medium' ? ' ft-jumbotron-medium' : ''}` : 'ft-jumbotron'}>{children}</main>
           </div>
         </div>
+        {fog && (
+          <>
+            <div class="ft-fog ft-fog-top" aria-hidden="true"></div>
+            <div class="ft-fog ft-fog-bottom" aria-hidden="true"></div>
+          </>
+        )}
         <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>
         <script src="/assets/js/app.js" defer></script>
+        {fog && <script src="/assets/js/fog.js" defer></script>}
         {scripts?.map((src) => <script src={`/assets/js/${src}`} defer></script>)}
       </body>
     </html>

@@ -37,6 +37,11 @@
   --ft-frame-width: 1200px;
   --ft-nav-h: 3.7rem; /* height of the sticky menu bar */
   --ft-title-h: 2.75rem; /* height of a section title bar */
+  /* Scroll fog (see .ft-fog below): the settings to play with. */
+  --ft-fog-height: 1rem; /* how tall the strip is */
+  --ft-fog-rgb: 100 110 125; /* its colour (the night theme has its own below) */
+  --ft-fog-opacity: 0.5; /* how dense it is at full strength, where it meets the bar */
+  --ft-fog-ramp: 2rem; /* how far to scroll from the top (or to the bottom) for it to reach full strength */
 }
 
 body {
@@ -643,3 +648,13 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-settings-label { font-size: 1.05rem; }
 }
 [data-bs-theme="dark"] .ft-settings-group-title, [data-bs-theme="dark"] .ft-settings-value, [data-bs-theme="dark"] .ft-settings-back { color: #7dd3fc; }
+
+/* Scroll fog. Without scroll bars, a soft strip under the sticky bars (more above) and at the bottom of the screen (more below)
+   shows that the page continues. Dense at the bar, clear at the other edge. public/js/fog.js places the top strip under the
+   lowest stuck bar and sets the opacity of both: 0 at the end of the page, 1 after --ft-fog-ramp of scrolling. Above the content
+   and the sticky bars of the page, below the menu bar, dialogs and the loading bar. */
+.ft-fog { position: fixed; left: 0; width: 100%; height: var(--ft-fog-height); pointer-events: none; opacity: 0; z-index: 10; }
+.ft-fog-top { top: var(--ft-nav-h); background: linear-gradient(to bottom, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
+.ft-fog-bottom { bottom: 0; background: linear-gradient(to top, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
+[data-bs-theme="dark"] { --ft-fog-rgb: 148 163 184; }
+@media print { .ft-fog { display: none; } }

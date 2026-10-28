@@ -242,6 +242,13 @@ describe('user home page (my pilot groups)', () => {
     expect(html).not.toContain('Dalby 2024');
   });
 
+  it('has the scroll fog (two strips and their script)', () => {
+    const html = render(user);
+    expect(html).toContain('class="ft-fog ft-fog-top"');
+    expect(html).toContain('class="ft-fog ft-fog-bottom"');
+    expect(html).toContain('/assets/js/fog.js');
+  });
+
   it('has a Create new group button, and a button for others\' public groups, below the table', () => {
     const html = render(user);
     expect(html).toMatch(/<form[^>]*action="\/groups"[^>]*>/);
