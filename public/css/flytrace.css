@@ -450,6 +450,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-js .ft-needs-js { display: inline-block; }
 /* An unchecked radio or checkbox stays easy to see: Bootstrap's own border is very pale (worse at night). The secondary colour has a day and a night value. */
 .form-check-input:not(:checked):not(:focus) { border-color: var(--bs-secondary-color); }
+/* Text boxes: Bootstrap's 1px border is easy to miss until the box is focused. The eye button of the password fields matches. */
+.form-control, .form-select, .ft-pw-toggle { border-width: 2px; }
 .ft-section-note { font-weight: 400; font-size: 0.85rem; opacity: 0.85; margin-left: 0.5rem; }
 .ft-danger-zone { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.9rem 1rem; border: 1px solid var(--bs-danger-border-subtle); border-radius: 0.5rem; background: var(--bs-danger-bg-subtle); }
 .ft-group-facts dt { font-weight: 600; margin-top: 0.6rem; }
