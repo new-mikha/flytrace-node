@@ -663,4 +663,6 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-fog-top .ft-fog-strip { top: 0; background: linear-gradient(to bottom, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
 .ft-fog-bottom .ft-fog-strip { bottom: 0; background: linear-gradient(to top, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
 [data-bs-theme="dark"] { --ft-fog-rgb: 148 163 184; }
+/* Phones: the cards are busier and there is no room to spare around them, so the strips are taller and denser. */
+@media (max-width: 767.98px) { :root { --ft-fog-height: 1.5rem; --ft-fog-opacity: 0.7; } }
 @media print { .ft-fog { display: none; } }
