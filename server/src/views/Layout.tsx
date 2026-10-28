@@ -53,15 +53,11 @@ export function Layout({ title, user, path, card, scripts, fog, children }: Layo
         <div class="ft-bg">
           <div class="ft-frame">
             <Nav user={user} path={path} />
+            {fog && <div class="ft-fog ft-fog-top" aria-hidden="true"><div class="ft-fog-strip"></div></div>}
             <main class={card ? `ft-jumbotron ft-jumbotron-card${card === 'wide' ? ' ft-jumbotron-wide' : card === 'medium' ? ' ft-jumbotron-medium' : ''}` : 'ft-jumbotron'}>{children}</main>
+            {fog && <div class="ft-fog ft-fog-bottom" aria-hidden="true"><div class="ft-fog-strip"></div></div>}
           </div>
         </div>
-        {fog && (
-          <>
-            <div class="ft-fog ft-fog-top" aria-hidden="true"></div>
-            <div class="ft-fog ft-fog-bottom" aria-hidden="true"></div>
-          </>
-        )}
         <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>
         <script src="/assets/js/app.js" defer></script>
         {fog && <script src="/assets/js/fog.js" defer></script>}

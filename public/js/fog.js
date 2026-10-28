@@ -20,13 +20,15 @@
 
 // Scroll fog: with no scroll bars to look at, a soft strip under the sticky bars says "there is more above" and a strip at the
 // bottom of the screen says "there is more below". Each is invisible at its end of the page and reaches full strength after
-// `--ft-fog-ramp` of scrolling (all the settings are in flytrace.css). The two strips are in the page (Layout `fog`);
-// this script only places them and sets their strength.
+// `--ft-fog-ramp` of scrolling (all the settings are in flytrace.css). The two strips hang from sticky anchors in the page
+// (Layout `fog`), so they move with the sticky bars when the page is pulled past its end; this script only says where the top
+// strip starts and how strong each is.
 (() => {
-  const top = document.querySelector('.ft-fog-top');
-  const bottom = document.querySelector('.ft-fog-bottom');
-  const frame = document.querySelector('.ft-navbar'); // the strips are as wide as the card, like the bars
-  if (!top || !bottom || !frame) return;
+  const anchor = document.querySelector('.ft-fog-top');
+  const top = anchor?.querySelector('.ft-fog-strip');
+  const bottom = document.querySelector('.ft-fog-bottom .ft-fog-strip');
+  const frame = document.querySelector('.ft-navbar');
+  if (!anchor || !top || !bottom || !frame) return;
 
   // Everything that sticks at the top of the screen. The fog starts under the lowest one that is stuck right now: the menu bar, then
   // the section title, the search and sort rows, the column header of a table (each sticks at its own `top`).
@@ -49,11 +51,7 @@
       if (rect.top <= parseFloat(getComputedStyle(el).top) + 1 && rect.bottom > edge) edge = rect.bottom; // stuck, or being pushed out
     }
 
-    for (const strip of [top, bottom]) {
-      strip.style.left = `${box.left}px`;
-      strip.style.width = `${box.width}px`;
-    }
-    top.style.top = `${edge}px`;
+    top.style.top = `${edge - anchor.getBoundingClientRect().top}px`; // from the anchor, which sticks to the top of the screen like the bars
     top.style.opacity = String(clamp(y / ramp));
     bottom.style.opacity = String(max - y < 1 ? 0 : clamp((max - y) / ramp)); // exactly at the end: gone
   }

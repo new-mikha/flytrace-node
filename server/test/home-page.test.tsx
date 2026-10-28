@@ -246,6 +246,7 @@ describe('user home page (my pilot groups)', () => {
     const html = render(user);
     expect(html).toContain('class="ft-fog ft-fog-top"');
     expect(html).toContain('class="ft-fog ft-fog-bottom"');
+    expect(html.match(/class="ft-fog-strip"/g)).toHaveLength(2);
     expect(html).toContain('/assets/js/fog.js');
   });
 

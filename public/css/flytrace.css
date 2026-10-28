@@ -651,10 +651,16 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 
 /* Scroll fog. Without scroll bars, a soft strip under the sticky bars (more above) and at the bottom of the screen (more below)
    shows that the page continues. Dense at the bar, clear at the other edge. public/js/fog.js places the top strip under the
-   lowest stuck bar and sets the opacity of both: 0 at the end of the page, 1 after --ft-fog-ramp of scrolling. Above the content
-   and the sticky bars of the page, below the menu bar, dialogs and the loading bar. */
-.ft-fog { position: fixed; left: 0; width: 100%; height: var(--ft-fog-height); pointer-events: none; opacity: 0; z-index: 10; }
-.ft-fog-top { top: var(--ft-nav-h); background: linear-gradient(to bottom, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
-.ft-fog-bottom { bottom: 0; background: linear-gradient(to top, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
+   lowest stuck bar and sets the opacity of both: 0 at the end of the page, 1 after --ft-fog-ramp of scrolling.
+   The strips are not fixed to the screen: each hangs from a sticky, zero-height anchor in the page (the top one sticks to the top
+   like the bars, the bottom one to the bottom), so when the page is pulled past its end (the rubber band of a Mac trackpad) they
+   move together with the bars instead of staying behind. Above the content and the sticky bars of the page, below the menu bar,
+   dialogs and the loading bar. */
+.ft-fog { position: sticky; height: 0; pointer-events: none; z-index: 10; }
+.ft-fog-top { top: 0; }
+.ft-fog-bottom { bottom: 0; }
+.ft-fog-strip { position: absolute; left: 0; right: 0; height: var(--ft-fog-height); opacity: 0; }
+.ft-fog-top .ft-fog-strip { top: 0; background: linear-gradient(to bottom, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
+.ft-fog-bottom .ft-fog-strip { bottom: 0; background: linear-gradient(to top, rgb(var(--ft-fog-rgb) / var(--ft-fog-opacity)), rgb(var(--ft-fog-rgb) / 0)); }
 [data-bs-theme="dark"] { --ft-fog-rgb: 148 163 184; }
 @media print { .ft-fog { display: none; } }
