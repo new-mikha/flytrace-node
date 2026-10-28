@@ -22,6 +22,7 @@
 //  - the SPOT / inReach radios follow the tracker link while it is typed, until the person picks one;
 //  - Rename and Delete open in the row itself (the server renders both forms hidden in every row);
 //  - "Turn the trackers on & off" opens the checkboxes in place, with Select all, Select none and Cancel;
+//  - the Save, Update and Add buttons stay disabled until the form holds something to send (see `guard`);
 //  - the changes to the trackers (on/off, rename, add, delete) are sent with fetch and the parts of the page that changed
 //    (the header, the message, the list, the add form) are swapped for those of the answer: no page load, no flicker.
 // The server stays the only place with rules: it answers with the whole page (refused changes come back with their errors).
@@ -67,6 +68,7 @@
       input.classList.remove('is-invalid');
       rename.querySelector('.invalid-feedback')?.remove();
     }
+    guard();
   }
 
   main.addEventListener('click', (event) => {
@@ -91,6 +93,7 @@
       for (const c of checks()) c.checked = c.dataset.was === '1'; // what a cancelled selection left behind is dropped
       section.querySelector('.ft-onoff-start')?.focus();
     }
+    guard();
   }
 
   main.addEventListener('click', (event) => {
@@ -100,7 +103,10 @@
     event.stopPropagation();
     if (button.hasAttribute('data-onoff-start')) selecting(true);
     else if (button.hasAttribute('data-onoff-cancel')) selecting(false);
-    else for (const c of checks()) c.checked = button.hasAttribute('data-onoff-all');
+    else {
+      for (const c of checks()) c.checked = button.hasAttribute('data-onoff-all');
+      guard();
+    }
   });
 
   main.addEventListener('keydown', (event) => {
@@ -138,6 +144,22 @@
     });
   }
 
+  // ---- buttons wait for a change: a form with data-guard="changed" (a value or checkbox differs from what the page was
+  // rendered with) or "filled" (the add form: some text typed). A form that came back with errors stays open for a retry.
+  function guard() {
+    for (const form of main.querySelectorAll('form[data-guard]')) {
+      const button = form.querySelector('button[type="submit"]');
+      if (!button) continue;
+      const fields = [...form.elements].filter((e) => e.name && e.type !== 'hidden');
+      const ready = form.dataset.guard === 'filled'
+        ? fields.some((e) => e.type === 'text' && e.value.trim() !== '')
+        : fields.some((e) => (e.type === 'checkbox' || e.type === 'radio' ? e.checked !== e.defaultChecked : e.value !== e.defaultValue));
+      button.disabled = !(ready || form.querySelector('.is-invalid'));
+    }
+  }
+  main.addEventListener('input', guard);
+  main.addEventListener('change', guard);
+
   // ---- sending the changes
   const PARTS = ['ft-head', 'ft-flash', 'trackers', 'add-tracker'];
   let sending = false;
@@ -172,6 +194,7 @@
         const old = document.getElementById(id);
         if (fresh && old) old.replaceWith(document.importNode(fresh, true));
       }
+      guard();
       const bad = main.querySelector('#trackers .ft-rename-form:not([hidden]) input, #add-tracker .is-invalid');
       const row = rowId ? document.getElementById(rowId) : null;
       if (bad) bad.focus();
@@ -185,6 +208,8 @@
       sending = false;
     }
   }
+
+  guard();
 
   main.addEventListener('submit', (event) => {
     const form = event.target;

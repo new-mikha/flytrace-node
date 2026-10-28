@@ -163,6 +163,8 @@ describe('creating and editing', () => {
     expect(plain.match(/data-confirm-action="\/groups\/\d+\/trackers\/\d+\/delete"/g)).toHaveLength(2); // Delete opens the dialog (id="ft-confirm") with the script
     expect(plain).toMatch(/id="ft-confirm" tabindex="-1"/i); // the dialog Bootstrap opens
     for (const part of ['id="ft-head"', 'id="ft-flash"', 'id="trackers"', 'id="add-tracker"']) expect(plain).toContain(part); // what group-editor.js swaps
+    expect(plain.match(/data-guard="changed"/g)).toHaveLength(4); // settings, on/off and the two rename forms: their buttons wait for a change
+    expect(plain.match(/data-guard="filled"/g)).toHaveLength(1); // the add form: its button waits for some text
     const renaming = (await owner.get(`/groups/${id}?rename=${ann.id}`)).body;
     expect(renaming.match(/class="ft-rename-form" hidden/g)).toHaveLength(1);
     expect(renaming).toContain('Update');

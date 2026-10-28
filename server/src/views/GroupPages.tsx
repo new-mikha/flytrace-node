@@ -88,7 +88,7 @@ function OnOffTools({ group }: { group: EditableGroup }) {
       <a class="btn btn-outline-primary btn-sm ft-onoff-start" href={`/groups/${group.id}?onoff=1#trackers`} data-onoff-start>
         <i class="fa-solid fa-power-off fa-fw" aria-hidden="true"></i> Turn the trackers on &amp; off
       </a>
-      <form id="ft-onoff-form" method="post" action={`/groups/${group.id}/trackers/on-off`} class="ft-onoff-bar">
+      <form id="ft-onoff-form" method="post" action={`/groups/${group.id}/trackers/on-off`} class="ft-onoff-bar" data-guard="changed">
         <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-check fa-fw" aria-hidden="true"></i> Save changes</button>
         <button class="btn btn-outline-secondary btn-sm ft-needs-js" type="button" data-onoff-all>Select all</button>
         <button class="btn btn-outline-secondary btn-sm ft-needs-js" type="button" data-onoff-none>Select none</button>
@@ -109,7 +109,7 @@ function TrackerItem({ group, t, canEdit, rename }: { group: EditableGroup; t: G
         {canEdit && (
           // Always in the page, hidden until Rename: public/js/group-editor.js swaps it with the name without a request.
           // Without JavaScript the Rename link reloads the page with `?rename=`, which renders it visible.
-          <form method="post" action={`/groups/${group.id}/trackers/${t.id}/rename`} class="ft-rename-form" hidden={!rename} data-name={t.name}>
+          <form method="post" action={`/groups/${group.id}/trackers/${t.id}/rename`} class="ft-rename-form" hidden={!rename} data-name={t.name} data-guard="changed">
             <div>
               <input class={`form-control form-control-sm${rename?.error ? ' is-invalid' : ''}`} name="name" value={rename?.name ?? t.name} maxlength={50} required
                      aria-label="Pilot name" autofocus={!!rename} />
@@ -160,7 +160,7 @@ function Choice({ name, value, id, checked, label, help }: { name: string; value
 function SettingsForm({ group, draft }: { group: EditableGroup; draft?: GroupDraft['details'] }) {
   const v = draft ?? { name: group.name, isPublic: group.isPublic, showMessages: group.showMessages };
   return (
-    <form method="post" action={`/groups/${group.id}`} class="ft-form">
+    <form method="post" action={`/groups/${group.id}`} class="ft-form" data-guard="changed">
       <Field name="name" label="Group name" value={v.name} maxlength={256} error={draft?.error} />
       <fieldset class="mb-3">
         <legend class="form-label fs-6">Who can find the map</legend>
@@ -181,7 +181,7 @@ function SettingsForm({ group, draft }: { group: EditableGroup; draft?: GroupDra
 
 function AddTracker({ group, add }: { group: EditableGroup; add?: GroupDraft['add'] }) {
   return (
-    <form method="post" action={`/groups/${group.id}/trackers`} class="ft-form" id="ft-add-tracker">
+    <form method="post" action={`/groups/${group.id}/trackers`} class="ft-form" id="ft-add-tracker" data-guard="filled">
       <Field name="trackerName" label="Pilot name" value={add?.name ?? ''} maxlength={50} error={add?.nameError} />
       <Field name="link" label="SPOT or inReach page" value={add?.link ?? ''} maxlength={445} error={add?.linkError}
              help="A SPOT shared page link or its ID, or an inReach KML feed link or its ID followed by # and the device's IMEI." />
