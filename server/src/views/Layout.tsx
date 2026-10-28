@@ -30,13 +30,11 @@ interface LayoutProps {
   card?: boolean | 'medium' | 'wide';
   /** Extra scripts (paths under /assets/js/) for this page only. */
   scripts?: string[];
-  /** Scroll shadow: soft strips under the sticky bars and at the bottom of the screen that show there is more to scroll (public/js/shadow.js). */
-  shadow?: boolean;
   children: ComponentChildren;
 }
 
 /** Page frame shared by every page: background, navigation bar and the "jumbotron" content panel. */
-export function Layout({ title, user, path, card, scripts, shadow, children }: LayoutProps) {
+export function Layout({ title, user, path, card, scripts, children }: LayoutProps) {
   return (
     <html lang="en">
       <head>
@@ -53,14 +51,14 @@ export function Layout({ title, user, path, card, scripts, shadow, children }: L
         <div class="ft-bg">
           <div class="ft-frame">
             <Nav user={user} path={path} />
-            {shadow && <div class="ft-shadow ft-shadow-top" aria-hidden="true"><div class="ft-shadow-strip"></div></div>}
+            <div class="ft-shadow ft-shadow-top" aria-hidden="true"><div class="ft-shadow-strip"></div></div>
             <main class={card ? `ft-jumbotron ft-jumbotron-card${card === 'wide' ? ' ft-jumbotron-wide' : card === 'medium' ? ' ft-jumbotron-medium' : ''}` : 'ft-jumbotron'}>{children}</main>
-            {shadow && <div class="ft-shadow ft-shadow-bottom" aria-hidden="true"><div class="ft-shadow-strip"></div></div>}
+            <div class="ft-shadow ft-shadow-bottom" aria-hidden="true"><div class="ft-shadow-strip"></div></div>
           </div>
         </div>
         <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>
         <script src="/assets/js/app.js" defer></script>
-        {shadow && <script src="/assets/js/shadow.js" defer></script>}
+        <script src="/assets/js/shadow.js" defer></script>
         {scripts?.map((src) => <script src={`/assets/js/${src}`} defer></script>)}
       </body>
     </html>

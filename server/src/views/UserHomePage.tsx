@@ -37,7 +37,7 @@ export function UserHomePage({ user, path, list, events, others, now, flash }: {
   const admin = user.roles.includes('Admins');
   const what = admin ? "others' groups" : "others' public groups"; // admins also get the unlisted ones
   return (
-    <Layout title="Home" user={user} path={path} card="wide" shadow>
+    <Layout title="Home" user={user} path={path} card="wide">
       <Alert flash={flash} />
       <section class="ft-section">
         <h5 class="ft-section-title"><i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> My pilot groups</h5>
