@@ -187,7 +187,7 @@ function TaskSection({ group, task, canEdit }: { group: EditableGroup; task: Gro
   const showing = single && task.eventId !== null && task.eventId === task.defaultEventId;
   const todayTask = (text: string) => (task.eventId === null ? text : <a href={`/events/${task.eventId}`}>{text}</a>);
   return (
-    <section class="ft-section mt-4" id="task">
+    <section class="ft-section mt-4 ft-task" id="task">
       <h5 class="ft-section-title">
         <i class="fa-solid fa-flag-checkered ft-heading-icon" aria-hidden="true"></i> {single ? 'Task' : 'Event'}
         <span class="ft-section-note">optional</span>
@@ -212,7 +212,7 @@ function TaskSection({ group, task, canEdit }: { group: EditableGroup; task: Gro
       ) : (
         <>
           <p class={canEdit ? 'text-body-secondary' : undefined}>
-            A task can be added to the group's <a href={`/map/${group.id}`}>map</a>. It is the task of the event it uses:{' '}
+            A task can be added to the group's map. It is the task of the event it uses:{' '}
             {task.eventName === null ? <strong>none</strong> : <a href={`/events/${task.eventId}`}><strong>{task.eventName}</strong></a>}.
           </p>
           {canEdit && (
@@ -284,7 +284,7 @@ export function GroupPage({ user, group, canEdit, task, flash, draft, altitude, 
         </div>
       )}
       <div class="row g-4">
-        <div class="col-lg-5">
+        <div class="col-lg-5 ft-col-settings">
           <section class="ft-section" id="settings">
             <h5 class="ft-section-title"><i class="fa-solid fa-sliders ft-heading-icon" aria-hidden="true"></i> Group settings</h5>
             {canEdit ? <SettingsForm group={group} draft={draft?.details} /> : <Facts group={group} />}
@@ -296,7 +296,7 @@ export function GroupPage({ user, group, canEdit, task, flash, draft, altitude, 
           </section>
           <TaskSection group={group} task={task} canEdit={canEdit} />
         </div>
-        <div class="col-lg-7">
+        <div class="col-lg-7 ft-col-trackers">
           <section class="ft-section" id="trackers" data-selecting={selecting ? 'true' : undefined}>
             <h5 class="ft-section-title">
               <i class="fa-solid fa-location-dot ft-heading-icon" aria-hidden="true"></i> Trackers
