@@ -83,6 +83,7 @@ simulated client its own `remoteAddress`.
   (`required`, `pattern`, `type`, `maxlength`), no live tip is showing (`live-hints.js` also sets `form.ftValid`) and a typed confirmation `data-equals` matches. An edit form that starts with saved values (settings, group
   settings, rename, on/off) carries `data-guard="changed"` and also needs a value that differs from the rendered one (it stays open for a retry when it came back with errors); `data-guard="off"` opts out (the two login forms do: a password manager may fill them without the page seeing the values, so Log in is always enabled). Forms without fields
   (Log out, Delete, one-click confirmations) are left alone. Buttons carry no tick icon (it reads as "done"). New forms get this for free: make fields `required`/`pattern` as the server needs, and mark edit forms `changed`.
+- Keep the scroll position (`public/js/keep-scroll.js`, loaded by the group editor so far; the plan is every page once it has proved itself): a posted form comes back as a fresh page, so the script stores `scrollY` in `sessionStorage` on submit and puts the next load of the same address back there (not when the address has a `#hash`; forms sent in place never reach it). The message at the top is shown again as a toast (`.ft-toast`) when it is out of sight.
 - Page changes cross-fade through CSS view transitions (`@view-transition`, duration in `flytrace.css`).
 - Check layout changes at phone (about 380 px), tablet and desktop widths, and clean up any temporary test page.
 

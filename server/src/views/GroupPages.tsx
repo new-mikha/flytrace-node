@@ -265,7 +265,7 @@ export function GroupPage({ user, group, canEdit, task, flash, draft, altitude, 
   const renameId = draft?.rename?.id ?? renaming ?? null;
   const on = group.trackers.filter((t) => t.isOn).length;
   return (
-    <Layout title={group.name} user={user} path={`/groups/${group.id}`} card="wide" scripts={canEdit ? ['confirm-dialog.js', 'group-editor.js'] : undefined}>
+    <Layout title={group.name} user={user} path={`/groups/${group.id}`} card="wide" scripts={canEdit ? ['confirm-dialog.js', 'group-editor.js', 'keep-scroll.js'] : undefined}>
       <p class="mb-2"><a class="ft-group-link" href="/"><i class="fa-solid fa-arrow-left fa-xs" aria-hidden="true"></i> My groups</a></p>
       <div class="d-flex flex-wrap align-items-center gap-2 mb-3" id="ft-head">
         <h1 class="h3 mb-0 me-2 ft-wrap">{group.name}</h1>
