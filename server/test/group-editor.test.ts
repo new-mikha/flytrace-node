@@ -162,6 +162,9 @@ describe('creating and editing', () => {
     expect(plain.match(/class="ft-rename-form" hidden/g)).toHaveLength(2);
     expect(plain.match(/data-confirm-action="\/groups\/\d+\/trackers\/\d+\/delete"/g)).toHaveLength(2); // Delete opens the dialog (id="ft-confirm") with the script
     expect(plain).toMatch(/id="ft-confirm" tabindex="-1"/i); // the dialog Bootstrap opens
+    for (const swap of ['ft-head ft-flash settings', 'ft-flash task']) expect(plain).toContain(`data-swap="${swap}"`); // forms sent in place
+    for (const part of ['id="settings"', 'id="task"']) expect(plain).toContain(part);
+    expect(plain).toContain('/assets/js/swap.js');
     expect(plain).toContain('/assets/js/keep-scroll.js'); // a posted form comes back at the same scroll position
     const home = (await owner.get('/')).body; // the group list's Delete opens the same dialog
     expect(home).toContain(`data-confirm-action="/groups/${id}/delete"`);

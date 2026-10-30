@@ -162,7 +162,7 @@ function Choice({ name, value, id, checked, label, help }: { name: string; value
 function SettingsForm({ group, draft }: { group: EditableGroup; draft?: GroupDraft['details'] }) {
   const v = draft ?? { name: group.name, isPublic: group.isPublic, showMessages: group.showMessages };
   return (
-    <form method="post" action={`/groups/${group.id}`} class="ft-form" data-guard="changed">
+    <form method="post" action={`/groups/${group.id}`} class="ft-form" data-guard="changed" data-swap="ft-head ft-flash settings">
       <Field name="name" label="Group name" value={v.name} maxlength={256} error={draft?.error} />
       <fieldset class="mb-3">
         <legend class="form-label fs-6">Who can find the map</legend>
@@ -200,7 +200,7 @@ function TaskSection({ group, task, canEdit }: { group: EditableGroup; task: Gro
               : <>The group will show the {todayTask('Today Task')} on its map when the task is ready.</>}
           </p>
           {canEdit && (
-            <form method="post" action={`/groups/${group.id}/task`} class="ft-form" data-guard="changed">
+            <form method="post" action={`/groups/${group.id}/task`} class="ft-form" data-guard="changed" data-swap="ft-flash task">
               <div class="form-check mb-3">
                 <input class="form-check-input" type="checkbox" name="show" id="g-task-show" value="1" checked={showing} />
                 <label class="form-check-label" for="g-task-show">Display the Today Task on the group's map</label>
@@ -216,7 +216,7 @@ function TaskSection({ group, task, canEdit }: { group: EditableGroup; task: Gro
             {task.eventName === null ? <strong>none</strong> : <a href={`/events/${task.eventId}`}><strong>{task.eventName}</strong></a>}.
           </p>
           {canEdit && (
-            <form method="post" action={`/groups/${group.id}/event`} class="ft-form" data-guard="changed">
+            <form method="post" action={`/groups/${group.id}/event`} class="ft-form" data-guard="changed" data-swap="ft-flash task">
               <div class="mb-3">
                 <label for="g-event" class="form-label">Use the task of</label>
                 <select class="form-select" name="event" id="g-event">
@@ -265,7 +265,7 @@ export function GroupPage({ user, group, canEdit, task, flash, draft, altitude, 
   const renameId = draft?.rename?.id ?? renaming ?? null;
   const on = group.trackers.filter((t) => t.isOn).length;
   return (
-    <Layout title={group.name} user={user} path={`/groups/${group.id}`} card="wide" scripts={canEdit ? ['confirm-dialog.js', 'group-editor.js', 'keep-scroll.js'] : undefined}>
+    <Layout title={group.name} user={user} path={`/groups/${group.id}`} card="wide" scripts={canEdit ? ['confirm-dialog.js', 'swap.js', 'group-editor.js', 'keep-scroll.js'] : undefined}>
       <p class="mb-2"><a class="ft-group-link" href="/"><i class="fa-solid fa-arrow-left fa-xs" aria-hidden="true"></i> My groups</a></p>
       <div class="d-flex flex-wrap align-items-center gap-2 mb-3" id="ft-head">
         <h1 class="h3 mb-0 me-2 ft-wrap">{group.name}</h1>
@@ -285,7 +285,7 @@ export function GroupPage({ user, group, canEdit, task, flash, draft, altitude, 
       )}
       <div class="row g-4">
         <div class="col-lg-5">
-          <section class="ft-section">
+          <section class="ft-section" id="settings">
             <h5 class="ft-section-title"><i class="fa-solid fa-sliders ft-heading-icon" aria-hidden="true"></i> Group settings</h5>
             {canEdit ? <SettingsForm group={group} draft={draft?.details} /> : <Facts group={group} />}
             {canEdit && altitude && (

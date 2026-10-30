@@ -22,7 +22,7 @@
 // where it was when the person pressed Save: the position is kept in sessionStorage for a few seconds and used by the next
 // load of the same address, unless that address names a section (#...). The "Saved." message is at the top of the page, so when
 // it is out of sight after the page was put back, it is shown once more as a toast.
-// Forms that are sent in place (group-editor.js) never reach this: they stop the submit event.
+// Forms that are sent in place (swap.js, group-editor.js) never reach this: they stop the submit event.
 (() => {
   const KEY = 'ft-scroll';
   const MAX_AGE_MS = 10000;
@@ -35,22 +35,27 @@
     write({ path: location.pathname, y: window.scrollY, at: Date.now() });
   });
 
+  // The "Saved." message again, as a toast, when it is out of sight. Also used by swap.js after a change that was sent in place.
+  function showIfHidden(alert) {
+    if (!alert) return;
+    requestAnimationFrame(() => {
+      const box = alert.getBoundingClientRect();
+      if (box.bottom > 0 && box.top < window.innerHeight) return; // in sight: nothing to add
+      for (const old of document.querySelectorAll('.ft-toast')) old.remove();
+      const toast = alert.cloneNode(true);
+      toast.classList.add('ft-toast', 'shadow');
+      toast.removeAttribute('id');
+      document.body.append(toast);
+      const close = () => toast.remove();
+      toast.addEventListener('click', close);
+      setTimeout(close, 4000);
+    });
+  }
+  window.ftToast = showIfHidden;
+
   const saved = read();
   write(null); // used once
   if (!saved || saved.path !== location.pathname || Date.now() - saved.at > MAX_AGE_MS || location.hash) return;
   window.scrollTo({ top: saved.y, behavior: 'instant' });
-
-  const alert = document.querySelector('#ft-flash .alert, main > .alert');
-  if (!alert) return;
-  requestAnimationFrame(() => {
-    const box = alert.getBoundingClientRect();
-    if (box.bottom > 0 && box.top < window.innerHeight) return; // in sight: nothing to add
-    const toast = alert.cloneNode(true);
-    toast.classList.add('ft-toast', 'shadow');
-    toast.removeAttribute('id');
-    document.body.append(toast);
-    const close = () => toast.remove();
-    toast.addEventListener('click', close);
-    setTimeout(close, 4000);
-  });
+  showIfHidden(document.querySelector('#ft-flash .alert, main > .alert'));
 })();

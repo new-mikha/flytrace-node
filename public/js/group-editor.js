@@ -23,7 +23,7 @@
 //  - Rename opens in the row itself (the server renders the form hidden in every row), Delete in the dialog of confirm-dialog.js;
 //  - "Turn the trackers on & off" opens the checkboxes in place, with Select all, Select none and Cancel;
 //  - (guard.js keeps the Save, Update and Add buttons disabled until the form holds something to send);
-//  - the changes to the trackers (on/off, rename, add, delete) are sent with fetch and the parts of the page that changed
+//  - the changes to the trackers (on/off, rename, add, delete) are sent with fetch (swap.js) and the parts of the page that changed
 //    (the header, the message, the list, the add form) are swapped for those of the answer: no page load, no flicker.
 // The server stays the only place with rules: it answers with the whole page (refused changes come back with their errors).
 (() => {
@@ -130,56 +130,19 @@
     });
   }
 
-  // ---- sending the changes
+  // ---- sending the changes (swap.js does the sending and the swapping; this knows where the cursor goes afterwards)
   const PARTS = ['ft-head', 'ft-flash', 'trackers', 'add-tracker'];
-  let sending = false;
-
-  function say(text) {
-    const box = document.getElementById('ft-flash');
-    if (!box) return;
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-danger';
-    alert.setAttribute('role', 'alert');
-    alert.textContent = text;
-    box.replaceChildren(alert);
-  }
 
   async function send(form) {
-    if (sending) return; // one change at a time, in the order the person made them
-    sending = true;
     const rowId = form.closest('.ft-tracker')?.id;
-    const sections = ['trackers', 'add-tracker'].map((id) => document.getElementById(id));
-    for (const s of sections) s?.classList.add('ft-pending');
-    try {
-      const response = await fetch(form.action, {
-        method: 'POST', body: new URLSearchParams(new FormData(form)), credentials: 'same-origin', headers: { Accept: 'text/html' },
-      });
-      const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
-      if (!doc.getElementById('trackers')) { // not the editor any more (the login, no permission): go there
-        window.location.assign(response.url);
-        return;
-      }
-      for (const id of PARTS) {
-        const fresh = doc.getElementById(id);
-        const old = document.getElementById(id);
-        if (fresh && old) old.replaceWith(document.importNode(fresh, true));
-      }
-      window.ftGuard?.();
-      const bad = main.querySelector('#trackers .ft-rename-form:not([hidden]) input, #add-tracker .is-invalid');
-      const row = rowId ? document.getElementById(rowId) : null;
-      if (bad) bad.focus();
-      else if (form.id === 'ft-add-tracker') document.getElementById('f-trackerName')?.focus();
-      else if (form.id === 'ft-onoff-form') document.querySelector('#trackers .ft-onoff-start')?.focus();
-      else row?.querySelector('a[data-rename]')?.focus();
-    } catch {
-      for (const s of sections) s?.classList.remove('ft-pending');
-      say('Could not reach the server. Check the connection and try again.');
-    } finally {
-      sending = false;
-    }
+    if (!(await window.ftSwap.send(form, PARTS))) return;
+    const bad = main.querySelector('#trackers .ft-rename-form:not([hidden]) input, #add-tracker .is-invalid');
+    const row = rowId ? document.getElementById(rowId) : null;
+    if (bad) bad.focus();
+    else if (form.id === 'ft-add-tracker') document.getElementById('f-trackerName')?.focus();
+    else if (form.id === 'ft-onoff-form') document.querySelector('#trackers .ft-onoff-start')?.focus();
+    else row?.querySelector('a[data-rename]')?.focus();
   }
-
-  window.ftGuard?.();
 
   main.addEventListener('submit', (event) => {
     const form = event.target;
