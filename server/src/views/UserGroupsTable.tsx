@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import type { UserGroup, UserGroupsList } from '../repo/groups.ts';
+import { confirmAttrs, confirmDeleteGroup } from './confirmDelete.tsx';
 import { formatAge, formatTimestamp } from './format.ts';
 
 /** A task of fewer than two points is not drawn on the map. */
@@ -52,7 +53,7 @@ function Row({ group, now, admin, task }: { group: UserGroup; now: Date; admin: 
       {admin && <td class="text-end ft-card-stat" data-label="Updates">{group.updates}</td>}
       <td class="text-end text-nowrap ft-card-link ft-actions">
         <a class="ft-group-link" href={`/groups/${group.id}`}>Edit</a>
-        <a class="ft-danger-link" href={`/groups/${group.id}/delete`}>Delete</a>
+        <a class="ft-danger-link" {...confirmAttrs(confirmDeleteGroup(group, group.trackers))}>Delete</a>
         <a class="ft-group-link" href={`/map/${group.id}`} target="_blank" rel="noopener">
           Public map <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
         </a>

@@ -111,7 +111,7 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   app.get<{ Params: { id: string } }>('/groups/:id/delete', guard, async (request, reply) => {
     const found = await load(request, reply, true);
     if (!found) return reply;
-    return sendHtml(reply, <ConfirmDeletePage user={request.user!} group={found.group} confirm={confirmDeleteGroup(found.group)} />);
+    return sendHtml(reply, <ConfirmDeletePage user={request.user!} group={found.group} confirm={confirmDeleteGroup(found.group, found.group.trackers.length)} />);
   });
 
   app.post<{ Params: { id: string } }>('/groups/:id/delete', guard, async (request, reply) => {

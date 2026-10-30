@@ -192,7 +192,7 @@ describe('user home page (my pilot groups)', () => {
     const html = render(user);
     for (const id of [7, 8, 9]) {
       expect(html).toContain(`href="/groups/${id}">Edit</a>`);
-      expect(html).toContain(`href="/groups/${id}/delete">Delete</a>`);
+      expect(html).toContain(`data-confirm-action="/groups/${id}/delete"`); // opens the dialog; the link's href is the confirmation page
     }
     expect(html.indexOf('/groups/7">Edit')).toBeLessThan(html.indexOf('/map/7'));
   });

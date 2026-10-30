@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // What the group editor asks before deleting a tracker or the group, written once. The Delete link carries it as
-// `data-confirm-*` attributes (public/js/group-editor.js shows it in the dialog), and the confirmation page, which the same
+// `data-confirm-*` attributes (public/js/confirm-dialog.js shows it in the dialog, `ConfirmDialog` below), and the confirmation page, which the same
 // link opens without JavaScript, renders it as a page: so the wording cannot differ between the two.
 import type { EditableGroup, GroupTracker } from '../repo/groupEditor.ts';
 import type { CurrentUser } from '../auth/service.ts';
@@ -45,8 +45,7 @@ export function confirmDeleteTracker(group: EditableGroup, t: GroupTracker): Con
   };
 }
 
-export function confirmDeleteGroup(group: EditableGroup): ConfirmDelete {
-  const n = group.trackers.length;
+export function confirmDeleteGroup(group: { id: number; name: string }, n: number): ConfirmDelete {
   return {
     title: 'Delete group', button: 'Delete group',
     action: `/groups/${group.id}/delete`, back: `/groups/${group.id}`,
@@ -65,6 +64,27 @@ export function confirmAttrs(c: ConfirmDelete, swap = false) {
     'data-confirm-button': c.button,
     ...(swap ? { 'data-confirm-swap': true } : {}),
   };
+}
+
+/** The one dialog of a page (a Bootstrap modal); public/js/confirm-dialog.js fills it from the Delete link that was clicked. */
+export function ConfirmDialog() {
+  return (
+    <div class="modal fade" id="ft-confirm" tabIndex={-1} aria-labelledby="ft-confirm-title" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" id="ft-confirm-form">
+          <div class="modal-header">
+            <h2 class="modal-title h5" id="ft-confirm-title">Delete</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="ft-confirm-text"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep</button>
+            <button type="submit" class="btn btn-danger" id="ft-confirm-button">Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 /** The confirmation page (what the Delete link opens without JavaScript). */

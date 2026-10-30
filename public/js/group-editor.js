@@ -20,7 +20,7 @@
 
 // Group editor enhancements. Every control also works without this script (plain links and forms); with it:
 //  - the SPOT / inReach radios follow the tracker link while it is typed, until the person picks one;
-//  - Rename and Delete open in the row itself (the server renders both forms hidden in every row);
+//  - Rename opens in the row itself (the server renders the form hidden in every row), Delete in the dialog of confirm-dialog.js;
 //  - "Turn the trackers on & off" opens the checkboxes in place, with Select all, Select none and Cancel;
 //  - (guard.js keeps the Save, Update and Add buttons disabled until the form holds something to send);
 //  - the changes to the trackers (on/off, rename, add, delete) are sent with fetch and the parts of the page that changed
@@ -116,27 +116,13 @@
     else if (closest(event, '#trackers[data-selecting]')) selecting(false);
   });
 
-  // ---- Delete asks in a dialog (Bootstrap's modal, one for the page). The link's data-confirm-* attributes say what to
-  // ask and where to post; `data-confirm-swap` (a tracker) sends it like the other tracker changes, otherwise (the group)
-  // the form is posted normally and the browser follows the redirect. Without the script the link opens the confirmation page.
+  // ---- Delete asks in a dialog (confirm-dialog.js opens it). A tracker's Delete carries `data-confirm-swap`: the dialog's form is
+  // then sent like the other tracker changes; the group's is posted normally and the browser follows the redirect.
   const dialog = document.getElementById('ft-confirm');
   const dialogForm = document.getElementById('ft-confirm-form');
   if (dialog && dialogForm && window.bootstrap) {
-    main.addEventListener('click', (event) => {
-      const link = closest(event, 'a[data-confirm-action]');
-      if (!link || !plainClick(event)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      dialogForm.action = link.dataset.confirmAction;
-      dialogForm.dataset.swap = link.hasAttribute('data-confirm-swap') ? '1' : '';
-      document.getElementById('ft-confirm-title').textContent = link.dataset.confirmTitle;
-      document.getElementById('ft-confirm-text').textContent = link.dataset.confirmText;
-      document.getElementById('ft-confirm-button').textContent = link.dataset.confirmButton;
-      window.bootstrap.Modal.getOrCreateInstance(dialog).show();
-    });
-    dialog.addEventListener('shown.bs.modal', () => dialog.querySelector('.modal-footer .btn-outline-secondary').focus()); // the safe choice
     dialogForm.addEventListener('submit', (event) => {
-      if (dialogForm.dataset.swap !== '1') return; // the group: a normal post
+      if (dialogForm.dataset.swap !== '1') return;
       event.preventDefault();
       event.stopPropagation();
       window.bootstrap.Modal.getInstance(dialog)?.hide();

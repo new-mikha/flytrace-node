@@ -21,6 +21,7 @@
 import type { CurrentUser } from '../auth/service.ts';
 import type { UserEventsList } from '../repo/events.ts';
 import type { PublicGroupsList, UserGroupsList } from '../repo/groups.ts';
+import { ConfirmDialog } from './confirmDelete.tsx';
 import { MoreMaps } from './HomePage.tsx';
 import { Alert, type Flash } from './forms.tsx';
 import { Layout } from './Layout.tsx';
@@ -37,8 +38,9 @@ export function UserHomePage({ user, path, list, events, others, now, flash }: {
   const admin = user.roles.includes('Admins');
   const what = admin ? "others' groups" : "others' public groups"; // admins also get the unlisted ones
   return (
-    <Layout title="Home" user={user} path={path} card="wide">
+    <Layout title="Home" user={user} path={path} card="wide" scripts={list.groups.length > 0 ? ['confirm-dialog.js'] : undefined}>
       <Alert flash={flash} />
+      {list.groups.length > 0 && <ConfirmDialog />}
       <section class="ft-section">
         <h5 class="ft-section-title"><i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> My pilot groups</h5>
         <UserGroupsTable list={list} now={now} admin={user.roles.includes('Admins')} />

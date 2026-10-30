@@ -149,7 +149,7 @@ describe("GET / (signed in): others' groups", () => {
     expect(at(open, 'Newest')).toBeLessThan(at(open, 'EdgeIn'));
     for (const hidden of ['EdgeOut', 'Older', 'NoFix', 'Private', 'Single']) expect(open).not.toContain(`${hidden} ${run}`);
     // "Mine" is listed once, among their own groups, and not again among the others'
-    expect(open.split(`Mine ${run}`)).toHaveLength(2);
+    expect(open.split(`Mine ${run}<`)).toHaveLength(2); // as shown text (the Delete dialog's question also names it, in an attribute)
     expect(open).toMatch(/Show all \d+ groups/);
   });
 

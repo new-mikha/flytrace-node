@@ -21,7 +21,7 @@
 import type { CurrentUser } from '../auth/service.ts';
 import type { EditableGroup, GroupTracker } from '../repo/groupEditor.ts';
 import { Alert, Field, Submit, type Flash } from './forms.tsx';
-import { confirmAttrs, confirmDeleteGroup, confirmDeleteTracker } from './confirmDelete.tsx';
+import { ConfirmDialog, confirmAttrs, confirmDeleteGroup, confirmDeleteTracker } from './confirmDelete.tsx';
 import { Layout } from './Layout.tsx';
 
 /** What the person typed into a form that was refused, to show it again with its message. */
@@ -210,7 +210,7 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
   const renameId = draft?.rename?.id ?? renaming ?? null;
   const on = group.trackers.filter((t) => t.isOn).length;
   return (
-    <Layout title={group.name} user={user} path={`/groups/${group.id}`} card="wide" scripts={canEdit ? ['group-editor.js'] : undefined}>
+    <Layout title={group.name} user={user} path={`/groups/${group.id}`} card="wide" scripts={canEdit ? ['confirm-dialog.js', 'group-editor.js'] : undefined}>
       <p class="mb-2"><a class="ft-group-link" href="/"><i class="fa-solid fa-arrow-left fa-xs" aria-hidden="true"></i> My groups</a></p>
       <div class="d-flex flex-wrap align-items-center gap-2 mb-3" id="ft-head">
         <h1 class="h3 mb-0 me-2 ft-wrap">{group.name}</h1>
@@ -235,7 +235,7 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
             {canEdit ? <SettingsForm group={group} draft={draft?.details} /> : <Facts group={group} />}
             {canEdit && altitude && (
               <p class="small text-body-secondary mt-3 mb-0">
-                Altitude: <strong>{altitude}</strong> on all your maps (<a href="/settings/altitude">change in Settings</a>). Only some trackers send it, e.g. SPOT Gen3.
+                Altitude: <strong>{altitude}</strong> on all your maps (<a href="/settings/altitude">change in Settings</a>). Not all trackers provide altitude.
               </p>
             )}
           </section>
@@ -275,29 +275,12 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
             <strong>Delete this group</strong>
             <div class="small text-body-secondary">Removes the group and its trackers; its public map link stops working.</div>
           </div>
-          <a class="btn btn-outline-danger btn-sm" {...confirmAttrs(confirmDeleteGroup(group))}>
+          <a class="btn btn-outline-danger btn-sm" {...confirmAttrs(confirmDeleteGroup(group, group.trackers.length))}>
             <i class="fa-solid fa-trash fa-fw" aria-hidden="true"></i> Delete group
           </a>
         </section>
       )}
-      {canEdit && (
-        // One dialog for every delete on the page; public/js/group-editor.js fills it from the link's data-confirm-* attributes.
-        <div class="modal fade" id="ft-confirm" tabIndex={-1} aria-labelledby="ft-confirm-title" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered">
-            <form class="modal-content" method="post" id="ft-confirm-form">
-              <div class="modal-header">
-                <h2 class="modal-title h5" id="ft-confirm-title">Delete</h2>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body" id="ft-confirm-text"></div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep</button>
-                <button type="submit" class="btn btn-danger" id="ft-confirm-button">Delete</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {canEdit && <ConfirmDialog />}
     </Layout>
   );
 }
