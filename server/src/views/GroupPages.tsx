@@ -165,14 +165,14 @@ function SettingsForm({ group, draft }: { group: EditableGroup; draft?: GroupDra
     <form method="post" action={`/groups/${group.id}`} class="ft-form" data-guard="changed" data-swap="ft-head ft-flash settings">
       <Field name="name" label="Group name" value={v.name} maxlength={256} error={draft?.error} />
       <fieldset class="mb-3">
-        <legend class="form-label fs-6">Who can find the map</legend>
+        <legend class="form-label ft-subhead">Who can find the map</legend>
         <Choice name="visibility" value="public" id="g-public" checked={v.isPublic} label="On the homepage"
                 help="Anyone can see its public map link there, once the group has 2 or more pilots." />
         <Choice name="visibility" value="unlisted" id="g-unlisted" checked={!v.isPublic} label="Unlisted"
                 help="Share the map link only with the people you want to watch it. Site admins can see it anyway." />
       </fieldset>
       <fieldset class="mb-3">
-        <legend class="form-label fs-6">Owner-defined messages</legend>
+        <legend class="form-label ft-subhead">Owner-defined messages</legend>
         <Choice name="messages" value="show" id="g-msg-show" checked={v.showMessages} label="Show" help="Messages for OK, CUSTOM and HELP markers appear on this group's map." />
         <Choice name="messages" value="hide" id="g-msg-hide" checked={!v.showMessages} label="Do not show" />
       </fieldset>

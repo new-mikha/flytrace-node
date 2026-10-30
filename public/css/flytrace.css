@@ -650,7 +650,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-settings-list .list-group-item { padding: 0.8rem 1rem; }
   .ft-settings-label { font-size: 1.05rem; }
 }
-[data-bs-theme="dark"] .ft-settings-group-title, [data-bs-theme="dark"] .ft-settings-value, [data-bs-theme="dark"] .ft-settings-back { color: #7dd3fc; }
+[data-bs-theme="dark"] .ft-subhead, [data-bs-theme="dark"] #settings .form-label, [data-bs-theme="dark"] .ft-settings-group-title, [data-bs-theme="dark"] .ft-settings-value, [data-bs-theme="dark"] .ft-settings-back { color: #7dd3fc; }
 
 /* Scroll shadow. Without scroll bars, a soft strip under the sticky bars (more above) and at the bottom of the screen (more below)
    shows that the page continues. Dense at the bar, clear at the other edge. public/js/shadow.js places the top strip under the
@@ -692,3 +692,6 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-col-settings { border-right: 2px solid rgba(var(--bs-body-color-rgb), .22); padding-right: 1.5rem; }
   .ft-col-trackers { padding-left: 1.5rem; }
 }
+
+/* The titles inside the group settings card (Group name, Who can find the map, ...): the look of the group titles of the settings list. */
+.ft-subhead, #settings .form-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #0369a1; }
