@@ -708,3 +708,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-task-rows th.ft-task-no { width: 3.5rem; font-size: .85rem; }
   .ft-task-rows input[name="radius"] { max-width: 5.5rem; }
 }
+
+/* The events table has only three columns: where it is a table (xl and up) it stays narrower than the groups table. Below that it is cards, full width. */
+@media (min-width: 1200px) {
+  .ft-table-events { max-width: 40rem; }
+}

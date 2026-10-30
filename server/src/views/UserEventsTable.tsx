@@ -38,7 +38,7 @@ function Row({ event }: { event: UserEvent }) {
 export function UserEventsTable({ list: { events } }: { list: UserEventsList }) {
   if (events.length === 0) return <p class="text-muted">You don't have any events yet.</p>;
   return (
-    <div class="table-responsive-xl ft-table-wrap ft-sticky-head">
+    <div class="table-responsive-xl ft-table-wrap ft-sticky-head ft-table-events">
       <table class="table table-striped table-hover align-middle ft-table ft-cards mb-0">
         <caption class="visually-hidden">My events</caption>
         <thead>
