@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import type { UserEvent, UserEventsList } from '../repo/events.ts';
+import { confirmAttrs, confirmDeleteEvent } from './confirmDelete.tsx';
 
 function Row({ event }: { event: UserEvent }) {
   return (
@@ -27,7 +28,7 @@ function Row({ event }: { event: UserEvent }) {
       <td class="text-end ft-card-full" data-label="Waypoints">{event.waypoints}</td>
       <td class="text-end text-nowrap ft-card-link ft-actions">
         <a class="ft-group-link" href={`/events/${event.id}`}>Edit</a>
-        <a class="ft-danger-link" href={`/events/${event.id}/delete`}>Delete</a>
+        <a class="ft-danger-link" {...confirmAttrs(confirmDeleteEvent(event))}>Delete</a>
       </td>
     </tr>
   );

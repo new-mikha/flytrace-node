@@ -37,19 +37,20 @@ function formatterFor(timeZone: string | undefined): Intl.DateTimeFormat {
   return f;
 }
 
-function partsOf(d: Date): Record<string, string> {
+function partsOf(d: Date, timeZone: string | undefined = process.env.TZ || undefined): Record<string, string> {
   const parts: Record<string, string> = {};
-  for (const p of formatterFor(process.env.TZ || undefined).formatToParts(d)) parts[p.type] = p.value;
+  for (const p of formatterFor(timeZone).formatToParts(d)) parts[p.type] = p.value;
   return parts;
 }
 
 /**
  * `ddd d MMM H:mm zone` in the site's time zone, e.g. "Wed 5 Mar 4:07 UTC" or "Wed 5 Mar 15:07 GMT+11". The year is added when
- * it is not the current year (`now`, the year in that same zone): "Wed 5 Mar 2025 15:07 GMT+11".
+ * it is not the current year (`now`, the year in that same zone): "Wed 5 Mar 2025 15:07 GMT+11". `timeZone` asks for another zone ("UTC").
  */
-export function formatTimestamp(d: Date, now: Date = new Date()): string {
-  const t = partsOf(d);
-  const year = t.year !== partsOf(now).year ? ` ${t.year}` : '';
+export function formatTimestamp(d: Date, now: Date = new Date(), timeZone?: string): string {
+  const zone = timeZone ?? (process.env.TZ || undefined);
+  const t = partsOf(d, zone);
+  const year = t.year !== partsOf(now, zone).year ? ` ${t.year}` : '';
   return `${t.weekday} ${t.day} ${t.month}${year} ${Number(t.hour)}:${t.minute} ${t.timeZoneName}`;
 }
 

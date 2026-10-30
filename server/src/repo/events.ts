@@ -25,6 +25,8 @@ export interface UserEvent {
   id: number;
   name: string;
   waypoints: number;
+  /** How many of their groups show it. */
+  groups: number;
   /** The user's default event: new groups use it (the legacy "*"). */
   isDefault: boolean;
 }
@@ -38,9 +40,10 @@ export interface UserEventsList {
 /** The events a user owns, by name. */
 export async function listUserEvents(pool: Pool, userId: string): Promise<UserEventsList> {
   const [list, profile] = await Promise.all([
-    pool.query<{ id: number; name: string; waypoints: number; is_default: boolean }>(
+    pool.query<{ id: number; name: string; waypoints: number; groups: number; is_default: boolean }>(
       `SELECT e.id, e.name, (up.default_event_id = e.id) AS is_default,
-              (SELECT count(*)::int FROM waypoints w WHERE w.event_id = e.id) AS waypoints
+              (SELECT count(*)::int FROM waypoints w WHERE w.event_id = e.id) AS waypoints,
+              (SELECT count(*)::int FROM groups g WHERE g.event_id = e.id) AS groups
        FROM events e LEFT JOIN user_profiles up ON up.user_id = e.user_id
        WHERE e.user_id = $1 ORDER BY lower(e.name), e.id`,
       [userId],
@@ -48,7 +51,7 @@ export async function listUserEvents(pool: Pool, userId: string): Promise<UserEv
     pool.query<{ simple: boolean }>('SELECT is_simple_events_model AS simple FROM user_profiles WHERE user_id = $1', [userId]),
   ]);
   return {
-    events: list.rows.map((r) => ({ id: r.id, name: r.name, waypoints: r.waypoints, isDefault: r.is_default === true })),
+    events: list.rows.map((r) => ({ id: r.id, name: r.name, waypoints: r.waypoints, groups: r.groups, isDefault: r.is_default === true })),
     show: !(profile.rows[0]?.simple ?? true),
   };
 }

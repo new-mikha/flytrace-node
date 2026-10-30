@@ -330,8 +330,8 @@ describe('user home page: my events', () => {
   const events: UserEventsList = {
     show: true,
     events: [
-      { id: 1, name: '<i>Dalby</i> 2024', waypoints: 42, isDefault: true },
-      { id: 2, name: 'Quiet', waypoints: 0, isDefault: false },
+      { id: 1, name: '<i>Dalby</i> 2024', waypoints: 42, groups: 1, isDefault: true },
+      { id: 2, name: 'Quiet', waypoints: 0, groups: 0, isDefault: false },
     ],
   };
   const render = (list: UserEventsList) =>
@@ -353,7 +353,7 @@ describe('user home page: my events', () => {
     const html = render(events);
     for (const id of [1, 2]) {
       expect(html).toContain(`href="/events/${id}">Edit</a>`);
-      expect(html).toContain(`href="/events/${id}/delete">Delete</a>`);
+      expect(html).toContain(`data-confirm-action="/events/${id}/delete"`); // Delete opens the dialog
     }
   });
 

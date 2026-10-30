@@ -52,6 +52,10 @@
     if (form.ftValid && !form.ftValid()) return false;
     if (form.dataset.guard !== 'changed') return true;
     if (form.querySelector('.is-invalid')) return true;
+    // A form whose fields come and go (the task editor) says itself whether it differs from what was saved.
+    const probe = { changed: null };
+    form.dispatchEvent(new CustomEvent('ft-changed', { bubbles: true, detail: probe }));
+    if (probe.changed !== null) return probe.changed;
     return fields.some((f) => {
       if (f.tagName === 'SELECT') return [...f.options].some((o) => o.selected !== o.defaultSelected);
       return f.type === 'checkbox' || f.type === 'radio' ? f.checked !== f.defaultChecked : f.value !== f.defaultValue;

@@ -54,6 +54,17 @@ export function confirmDeleteGroup(group: { id: number; name: string }, n: numbe
   };
 }
 
+export function confirmDeleteEvent(event: { id: number; name: string; waypoints: number; groups: number }): ConfirmDelete {
+  const w = event.waypoints;
+  const g = event.groups;
+  return {
+    title: 'Delete event', button: 'Delete event',
+    action: `/events/${event.id}/delete`, back: `/events/${event.id}`,
+    question: ['Delete the event ', { name: event.name }, w > 0 ? ` and its ${w} waypoint${w === 1 ? '' : 's'}` : '',
+               g > 0 ? `? ${g === 1 ? 'The group that shows it' : `The ${g} groups that show it`} will show no task.` : '?', ' This cannot be undone.'],
+  };
+}
+
 /** The attributes that make a Delete link open the dialog. `swap`: the change is sent in place (a tracker) rather than posted. */
 export function confirmAttrs(c: ConfirmDelete, swap = false) {
   return {
@@ -88,9 +99,9 @@ export function ConfirmDialog() {
 }
 
 /** The confirmation page (what the Delete link opens without JavaScript). */
-export function ConfirmDeletePage({ user, group, confirm, error }: { user: CurrentUser; group: EditableGroup; confirm: ConfirmDelete; error?: string }) {
+export function ConfirmDeletePage({ user, path, confirm, error }: { user: CurrentUser; path: string; confirm: ConfirmDelete; error?: string }) {
   return (
-    <Layout title={confirm.title} user={user} path={`/groups/${group.id}`} card>
+    <Layout title={confirm.title} user={user} path={path} card>
       <h1 class="h3 mb-3"><i class="fa-solid fa-trash text-danger" aria-hidden="true"></i> {confirm.title}</h1>
       {error && <Alert flash={{ kind: 'danger', text: error }} />}
       <p>{confirm.question.map((p) => (typeof p === 'string' ? p : <strong>{p.name}</strong>))}</p>
