@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import type { CurrentUser } from '../auth/service.ts';
-import type { UserEventsList } from '../repo/events.ts';
+import type { TodayTask, UserEventsList } from '../repo/events.ts';
 import type { PublicGroupsList, UserGroupsList } from '../repo/groups.ts';
 import { ConfirmDialog } from './confirmDelete.tsx';
 import { MoreMaps } from './HomePage.tsx';
@@ -29,9 +29,50 @@ import { PublicGroupsTable } from './PublicGroupsTable.tsx';
 import { UserEventsTable } from './UserEventsTable.tsx';
 import { UserGroupsTable } from './UserGroupsTable.tsx';
 
+/** "Switch to the ... mode then." at the bottom of the two task panels: a POST, so the link is a button that looks like one. */
+function SwitchMode({ to, lead, label }: { to: 'single' | 'multiple'; lead: string; label: string }) {
+  return (
+    <form class="small text-body-secondary mt-3 mb-0" method="post" action="/events-mode">
+      <input type="hidden" name="to" value={to} />
+      {lead}<br />Switch to the <button class="btn btn-link btn-sm p-0 align-baseline" type="submit">{label}</button> then.
+    </form>
+  );
+}
+
+/** The single-event mode: one "Today Task" (the default event). Where its waypoints and task are edited is not built yet. */
+function TodayTaskPanel({ today, groups }: { today: TodayTask; groups: number }) {
+  return (
+    <section class="ft-section">
+      <h5 class="ft-section-title"><i class="fa-solid fa-flag-checkered ft-heading-icon" aria-hidden="true"></i> Today Task <span class="ft-section-note">optional</span></h5>
+      <p class="text-body-secondary">Here you can manage competition waypoints, and set up a task then to display on your public maps.</p>
+      {groups === 0 ? <p>But first create a pilot group above.</p> : (
+        <>
+          {today.waypoints === 0 ? (
+            <p>Competition waypoints not loaded yet.<br /><a href="/events/default/waypoints">Load waypoints now (optional)...</a></p>
+          ) : (
+            <>
+              <p><strong>{today.waypoints}</strong> competition waypoint{today.waypoints === 1 ? '' : 's'} loaded.<br /><a href="/events/default/waypoints">View/edit all waypoints...</a></p>
+              {today.taskWaypoints === 0 ? (
+                <p>There is no task at the moment.<br /><a href="/events/default">Set up a task...</a></p>
+              ) : (
+                <p>
+                  Task set with <strong>{today.taskWaypoints}</strong> waypoint{today.taskWaypoints === 1 ? '' : 's'}
+                  {today.taskWaypoints === 1 && <>, so it is an empty task. Add more waypoints to the task to show it on your maps</>}.<br />
+                  <a href="/events/default">View/edit Today Task</a>
+                </p>
+              )}
+            </>
+          )}
+        </>
+      )}
+      <SwitchMode to="multiple" lead="Having more than one competition at a time?" label="Multiple Events mode" />
+    </section>
+  );
+}
+
 /** The home page of a signed-in user. Their pilot groups, and their events when they use the multiple-events mode. */
-export function UserHomePage({ user, path, list, events, others, now, flash }: {
-  user: CurrentUser; path: string; list: UserGroupsList; events: UserEventsList; now: Date; flash?: Flash | null;
+export function UserHomePage({ user, path, list, events, today, others, now, flash }: {
+  user: CurrentUser; path: string; list: UserGroupsList; events: UserEventsList; today: TodayTask; now: Date; flash?: Flash | null;
   /** Other people's groups, when "Show others' groups" is on (`/?others=1`). */
   others?: { list: PublicGroupsList; showAll: boolean } | null;
 }) {
@@ -48,23 +89,17 @@ export function UserHomePage({ user, path, list, events, others, now, flash }: {
           <button class="btn btn-primary" type="submit"><i class="fa-solid fa-plus fa-fw" aria-hidden="true"></i> Create new group</button>
         </form>
       </section>
-      {!events.show && (
-        <p class="small text-body-secondary mt-3 mb-0">
-          Events: choose Multiple Events Mode in <a href="/settings/events-mode">Settings</a> to manage several events.
-        </p>
-      )}
+      {!events.show && <TodayTaskPanel today={today} groups={list.groups.length} />}
       {events.show && (
         <section class="ft-section">
           <h5 class="ft-section-title"><i class="fa-solid fa-flag-checkered ft-heading-icon" aria-hidden="true"></i> My events</h5>
           <p class="text-body-secondary">You can set up events here to show tasks on your public maps.</p>
           <UserEventsTable list={events} />
-          <p class="mt-3 mb-0">
-            <a class="btn btn-primary" href="/events/new"><i class="fa-solid fa-plus fa-fw" aria-hidden="true"></i> Create new event</a>
-          </p>
+          <form class="mt-3 mb-0" method="post" action="/events">
+            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-plus fa-fw" aria-hidden="true"></i> Create new event</button>
+          </form>
           {events.events.some((e) => e.isDefault) && <p class="small text-body-secondary mt-3 mb-0">* New pilot groups use this event by default.</p>}
-          <p class="small text-body-secondary mt-3 mb-0">
-            Multiple events mode looks too complicated? Switch to the <a href="/settings/events-mode">Single Task mode</a> then.
-          </p>
+          <SwitchMode to="single" lead="Multiple events mode looks too complicated?" label="Single Task mode" />
         </section>
       )}
       {others ? (

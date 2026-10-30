@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import type { CurrentUser } from '../auth/service.ts';
-import type { EditableGroup, GroupTracker } from '../repo/groupEditor.ts';
+import type { EditableGroup, GroupTaskInfo, GroupTracker } from '../repo/groupEditor.ts';
 import { Alert, Field, Submit, type Flash } from './forms.tsx';
 import { ConfirmDialog, confirmAttrs, confirmDeleteGroup, confirmDeleteTracker } from './confirmDelete.tsx';
 import { Layout } from './Layout.tsx';
@@ -36,6 +36,8 @@ interface PageProps {
   group: EditableGroup;
   /** The owner changes things; an admin or a SpotIdReaders member only looks (no controls at all, the values are plain text). */
   canEdit: boolean;
+  /** The task of the group's map (what the owner's events mode makes of it). */
+  task: GroupTaskInfo;
   flash?: Flash | null;
   draft?: GroupDraft;
   /** The owner's altitude setting, shown as information (owner only). */
@@ -179,6 +181,59 @@ function SettingsForm({ group, draft }: { group: EditableGroup; draft?: GroupDra
   );
 }
 
+/** Where the group's map gets its task from: the Today Task (single-event mode, a checkbox) or one of the owner's events (multiple-events mode, a choice). */
+function TaskSection({ group, task, canEdit }: { group: EditableGroup; task: GroupTaskInfo; canEdit: boolean }) {
+  const single = task.mode === 'single';
+  const showing = single && task.eventId !== null && task.eventId === task.defaultEventId;
+  const todayTask = (text: string) => (task.eventId === null ? text : <a href={`/events/${task.eventId}`}>{text}</a>);
+  return (
+    <section class="ft-section mt-4" id="task">
+      <h5 class="ft-section-title">
+        <i class="fa-solid fa-flag-checkered ft-heading-icon" aria-hidden="true"></i> {single ? 'Task' : 'Event'}
+        <span class="ft-section-note">optional</span>
+      </h5>
+      {single ? (
+        <>
+          <p class={canEdit ? 'text-body-secondary' : undefined}>
+            {!showing ? "The group is not showing the Today Task on its map."
+              : task.taskWaypoints > 1 ? <>The group is showing the {todayTask('Today Task')} on its map.</>
+              : <>The group will show the {todayTask('Today Task')} on its map when the task is ready.</>}
+          </p>
+          {canEdit && (
+            <form method="post" action={`/groups/${group.id}/task`} class="ft-form" data-guard="changed">
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="show" id="g-task-show" value="1" checked={showing} />
+                <label class="form-check-label" for="g-task-show">Display the Today Task on the group's map</label>
+              </div>
+              <Submit>Save</Submit>
+            </form>
+          )}
+        </>
+      ) : (
+        <>
+          <p class={canEdit ? 'text-body-secondary' : undefined}>
+            A task can be added to the group's <a href={`/map/${group.id}`}>map</a>. It is the task of the event it uses:{' '}
+            {task.eventName === null ? <strong>none</strong> : <a href={`/events/${task.eventId}`}><strong>{task.eventName}</strong></a>}.
+          </p>
+          {canEdit && (
+            <form method="post" action={`/groups/${group.id}/event`} class="ft-form" data-guard="changed">
+              <div class="mb-3">
+                <label for="g-event" class="form-label">Use the task of</label>
+                <select class="form-select" name="event" id="g-event">
+                  <option value="0" selected={task.eventId === null}>None</option>
+                  {task.events.map((e) => <option key={e.id} value={String(e.id)} selected={e.id === task.eventId}>{e.name}</option>)}
+                  <option value="-1">Create a new event and use it</option>
+                </select>
+              </div>
+              <Submit>Save</Submit>
+            </form>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 function AddTracker({ group, add }: { group: EditableGroup; add?: GroupDraft['add'] }) {
   return (
     <form method="post" action={`/groups/${group.id}/trackers`} class="ft-form" id="ft-add-tracker">
@@ -206,7 +261,7 @@ function AddTracker({ group, add }: { group: EditableGroup; add?: GroupDraft['ad
  * The group editor. Wide screens: the group settings at the left, the trackers (switch, name, id, rename and delete on each
  * row) and under them the form for a new tracker at the right; phones stack them in that order. Anybody but the owner gets the same page read-only.
  */
-export function GroupPage({ user, group, canEdit, flash, draft, altitude, renaming, selecting }: PageProps) {
+export function GroupPage({ user, group, canEdit, task, flash, draft, altitude, renaming, selecting }: PageProps) {
   const renameId = draft?.rename?.id ?? renaming ?? null;
   const on = group.trackers.filter((t) => t.isOn).length;
   return (
@@ -239,6 +294,7 @@ export function GroupPage({ user, group, canEdit, flash, draft, altitude, renami
               </p>
             )}
           </section>
+          <TaskSection group={group} task={task} canEdit={canEdit} />
         </div>
         <div class="col-lg-7">
           <section class="ft-section" id="trackers" data-selecting={selecting ? 'true' : undefined}>

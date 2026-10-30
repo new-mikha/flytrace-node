@@ -20,7 +20,7 @@
 
 import type { FastifyInstance } from 'fastify';
 import type { Pool } from '../db.ts';
-import { listUserEvents } from '../repo/events.ts';
+import { getTodayTask, listUserEvents } from '../repo/events.ts';
 import { listOthersGroups, listPublicGroups, listUserGroups } from '../repo/groups.ts';
 import { HomePage, PublicMaps } from '../views/HomePage.tsx';
 import { UserHomePage } from '../views/UserHomePage.tsx';
@@ -35,11 +35,11 @@ export async function homeRoutes(app: FastifyInstance, pool: Pool): Promise<void
     if (request.user) { // signed in: their own groups instead of the introduction and the public maps
       const user = request.user;
       const showAll = request.query.all === '1';
-      const [list, events, others] = await Promise.all([
-        listUserGroups(pool, user.id), listUserEvents(pool, user.id),
+      const [list, events, today, others] = await Promise.all([
+        listUserGroups(pool, user.id), listUserEvents(pool, user.id), getTodayTask(pool, user.id),
         request.query.others === '1' ? listOthersGroups(pool, user.id, { all: showAll, admin: user.roles.includes('Admins') }) : null,
       ]);
-      return sendHtml(reply, <UserHomePage user={user} path={request.url} list={list} events={events} now={new Date()}
+      return sendHtml(reply, <UserHomePage user={user} path={request.url} list={list} events={events} today={today} now={new Date()}
                                            others={others && { list: others, showAll }} flash={takeFlash(request)} />);
     }
     const showAll = request.query.all === '1';

@@ -167,7 +167,7 @@ describe('creating and editing', () => {
     expect(home).toContain('id="ft-confirm"');
     expect(home).toContain('/assets/js/confirm-dialog.js');
     for (const part of ['id="ft-head"', 'id="ft-flash"', 'id="trackers"', 'id="add-tracker"']) expect(plain).toContain(part); // what group-editor.js swaps
-    expect(plain.match(/data-guard="changed"/g)).toHaveLength(4); // settings, on/off and the two rename forms: their buttons wait for a change
+    expect(plain.match(/data-guard="changed"/g)).toHaveLength(5); // settings, on/off, the task and the two rename forms: their buttons wait for a change
     expect(plain).not.toContain('data-guard="filled"'); // the add form needs no marker: guard.js waits for its required fields
     const renaming = (await owner.get(`/groups/${id}?rename=${ann.id}`)).body;
     expect(renaming.match(/class="ft-rename-form" hidden/g)).toHaveLength(1);

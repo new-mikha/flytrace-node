@@ -175,7 +175,7 @@ describe('user home page (my pilot groups)', () => {
   ];
   const noEvents: UserEventsList = { events: [], show: false };
   const render = (u: CurrentUser, groups = mine, extra: Partial<UserGroupsList> = {}, events: UserEventsList = noEvents) =>
-    renderDocument(<UserHomePage user={u} path="/" list={{ groups, showTask: false, simpleEvents: true, ...extra }} events={events} now={now} />);
+    renderDocument(<UserHomePage user={u} path="/" list={{ groups, showTask: false, simpleEvents: true, ...extra }} events={events} today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }} now={now} />);
 
   it('lists the groups in the same table style as the public maps, with a link to each public map', () => {
     const html = render(user);
@@ -221,7 +221,7 @@ describe('user home page (my pilot groups)', () => {
 
   it('has no Task column until events are in use', () => {
     const html = render(user);
-    expect(html).not.toContain('Task');
+    expect(html).not.toContain('>Task</th>');
     expect(html).not.toContain('Dalby 2024');
   });
 
@@ -273,7 +273,7 @@ describe("user home page: others' groups", () => {
   const mine = { groups: [], showTask: false, simpleEvents: true };
   const noEvents: UserEventsList = { events: [], show: false };
   const render = (u: CurrentUser, others: { list: typeof list; showAll: boolean } | null) =>
-    renderDocument(<UserHomePage user={u} path="/" list={mine} events={noEvents} others={others} now={now} />);
+    renderDocument(<UserHomePage user={u} path="/" list={mine} events={noEvents} today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }} others={others} now={now} />);
 
   it("offers \"Show others' public groups\", and \"Show others' groups\" to admins (who also get the unlisted ones)", () => {
     const plain = render(user, null);
@@ -335,7 +335,7 @@ describe('user home page: my events', () => {
     ],
   };
   const render = (list: UserEventsList) =>
-    renderDocument(<UserHomePage user={user} path="/" list={{ groups: [], showTask: false, simpleEvents: false }} events={list} now={now} />);
+    renderDocument(<UserHomePage user={user} path="/" list={{ groups: [], showTask: false, simpleEvents: false }} events={list} today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }} now={now} />);
 
   it('lists the events in the table style, marking the default one', () => {
     const html = render(events);
@@ -368,11 +368,12 @@ describe('user home page: my events', () => {
     expect(html).toContain('You can set up events here to show tasks on your public maps.');
     expect(html).not.toContain('help'); // no help link
     expect(html.indexOf('show tasks on your public maps')).toBeLessThan(html.indexOf('Dalby'));
-    expect(html).toContain('href="/events/new"');
-    expect(html.indexOf('/events/new')).toBeGreaterThan(html.indexOf('Quiet'));
-    expect(html.indexOf('/events/new')).toBeLessThan(html.indexOf('* New pilot groups use this event by default.'));
+    expect(html).toContain('action="/events"'); // Create new event is a POST
+    expect(html.indexOf('action="/events"')).toBeGreaterThan(html.indexOf('Quiet'));
+    expect(html.indexOf('action="/events"')).toBeLessThan(html.indexOf('* New pilot groups use this event by default.'));
     expect(html).toContain('Multiple events mode looks too complicated?');
-    expect(html).toContain('href="/settings/events-mode">Single Task mode</a>');
+    expect(html).toContain('action="/events-mode"'); // the switch is a POST, written like a link
+    expect(html).toContain('name="to" value="single"');
     expect(render({ show: true, events: [] })).toContain('Create new event'); // also with no events yet
   });
 

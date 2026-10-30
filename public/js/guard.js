@@ -52,7 +52,10 @@
     if (form.ftValid && !form.ftValid()) return false;
     if (form.dataset.guard !== 'changed') return true;
     if (form.querySelector('.is-invalid')) return true;
-    return fields.some((f) => (f.type === 'checkbox' || f.type === 'radio' ? f.checked !== f.defaultChecked : f.value !== f.defaultValue));
+    return fields.some((f) => {
+      if (f.tagName === 'SELECT') return [...f.options].some((o) => o.selected !== o.defaultSelected);
+      return f.type === 'checkbox' || f.type === 'radio' ? f.checked !== f.defaultChecked : f.value !== f.defaultValue;
+    });
   }
 
   function guard() {

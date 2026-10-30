@@ -32,6 +32,7 @@ import { MailService } from './mail/service.ts';
 import { accountRoutes } from './routes/account.tsx';
 import { adminRoutes } from './routes/admin.tsx';
 import { settingsRoutes } from './routes/settings.tsx';
+import { eventRoutes } from './routes/events.tsx';
 import { groupRoutes } from './routes/groups.tsx';
 import { homeRoutes } from './routes/home.tsx';
 import { identityRoutes } from './routes/identity.tsx';
@@ -107,6 +108,7 @@ export async function buildApp(config: Config, pool: Pool, mailer?: Mailer, logS
   await settingsRoutes(app, pool);
   await themeRoutes(app);
   await groupRoutes(app, pool);
+  await eventRoutes(app, pool);
   await homeRoutes(app, pool);
   await pageRoutes(app);
 

@@ -24,8 +24,9 @@ import { audit } from '../audit.ts';
 import { requireLogin } from '../auth/guards.ts';
 import type { Pool } from '../db.ts';
 import {
-  addTracker, createGroup, deleteGroup, deleteTracker, getGroup, renameTracker, setTrackersOn, updateGroup, type EditableGroup,
+  addTracker, createGroup, deleteGroup, deleteTracker, getGroup, getGroupTask, renameTracker, setTrackersOn, updateGroup, type EditableGroup,
 } from '../repo/groupEditor.ts';
+import { assignEvent, createEvent, ensureDefaultEvent } from '../repo/events.ts';
 import { getSettings } from '../repo/settings.ts';
 import { parseTrackerInput } from '../repo/trackerInput.ts';
 import { ConfirmDeletePage, confirmDeleteGroup, confirmDeleteTracker } from '../views/confirmDelete.tsx';
@@ -78,11 +79,45 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     const altitude = found.canEdit ? ALTITUDE_LABEL[(await getSettings(pool, user.id)).altitude] : undefined;
     const renaming = found.canEdit && /^\d+$/.test(request.query.rename ?? '') ? Number(request.query.rename) : null;
     const selecting = found.canEdit && request.query.onoff === '1';
-    return sendHtml(reply, <GroupPage user={user} {...found} flash={takeFlash(request)} altitude={altitude} renaming={renaming} selecting={selecting} />);
+    const task = await getGroupTask(pool, found.group);
+    return sendHtml(reply, <GroupPage user={user} {...found} task={task} flash={takeFlash(request)} altitude={altitude} renaming={renaming} selecting={selecting} />);
   });
 
-  const show = (request: FastifyRequest, reply: FastifyReply, group: EditableGroup, draft: GroupDraft) =>
-    sendHtml(reply, <GroupPage user={request.user!} group={group} canEdit draft={draft} />, 422);
+  const show = async (request: FastifyRequest, reply: FastifyReply, group: EditableGroup, draft: GroupDraft) =>
+    sendHtml(reply, <GroupPage user={request.user!} group={group} canEdit draft={draft} task={await getGroupTask(pool, group)} />, 422);
+
+  // The task of the group's map. Single-event mode: show the Today Task or not (the checkbox). Multiple-events mode: which event,
+  // none (0), or a new one (-1) that is made and chosen at once. Choosing an event also makes it the owner's default (legacy).
+  app.post<{ Params: { id: string } }>('/groups/:id/task', guard, async (request, reply) => {
+    const found = await load(request, reply, true);
+    if (!found) return reply;
+    const { group } = found;
+    const f = formFields(request, 'show');
+    const eventId = f.show === '1' ? await ensureDefaultEvent(pool, group.ownerId) : null;
+    await assignEvent(pool, group.id, group.ownerId, eventId);
+    audit(request, 'group.task', eventId === null ? 'Today Task no longer shown on the group' : 'Today Task shown on the group',
+      { groupId: group.id, before: group.eventId, after: eventId });
+    return back(request, reply, group, eventId === null ? 'The group no longer shows the Today Task.' : 'The group shows the Today Task.');
+  });
+
+  app.post<{ Params: { id: string } }>('/groups/:id/event', guard, async (request, reply) => {
+    const found = await load(request, reply, true);
+    if (!found) return reply;
+    const { group } = found;
+    const choice = formFields(request, 'event').event;
+    if (!/^-?\d+$/.test(choice)) return back(request, reply, group, 'Please choose one of the events.');
+    let eventId: number | null = Number(choice) > 0 ? Number(choice) : null;
+    let created: string | null = null;
+    if (Number(choice) < 0) {
+      const event = await createEvent(pool, group.ownerId);
+      eventId = event.id;
+      created = event.name;
+      audit(request, 'event.created', 'Event created', { eventId: event.id, name: event.name, groupId: group.id });
+    }
+    if (!(await assignEvent(pool, group.id, group.ownerId, eventId))) return back(request, reply, group, 'Please choose one of your own events.');
+    audit(request, 'group.event', eventId === null ? 'Event removed from the group' : 'Event chosen for the group', { groupId: group.id, before: group.eventId, after: eventId });
+    return back(request, reply, group, created ? `Created "${created}" and chose it for the group.` : eventId === null ? 'The group shows no event.' : 'Saved.');
+  });
 
   // The details form: name, visibility, owner-defined messages.
   app.post<{ Params: { id: string } }>('/groups/:id', guard, async (request, reply) => {

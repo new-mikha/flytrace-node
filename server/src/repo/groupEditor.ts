@@ -22,6 +22,7 @@
 // (the map's cached copy of the group is stale then), in the same transaction as the change.
 import type { Client, Pool } from '../db.ts';
 import { withTransaction } from '../db.ts';
+import { ensureDefaultEvent } from './events.ts';
 import type { ParsedTracker } from './trackerInput.ts';
 
 export interface GroupTracker {
@@ -39,14 +40,16 @@ export interface EditableGroup {
   owner: string;
   isPublic: boolean;
   showMessages: boolean;
+  /** The event whose task the group's map shows (the legacy "Today Task" in the single-event mode), if any. */
+  eventId: number | null;
   trackers: GroupTracker[];
 }
 
 export async function getGroup(pool: Pool, id: number): Promise<EditableGroup | null> {
   if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) return null;
   const [group, trackers] = await Promise.all([
-    pool.query<{ id: number; name: string; user_id: string; username: string; is_public: boolean; display_user_messages: boolean }>(
-      `SELECT g.id, g.name, g.user_id, u.username, g.is_public, g.display_user_messages
+    pool.query<{ id: number; name: string; user_id: string; username: string; is_public: boolean; display_user_messages: boolean; event_id: number | null }>(
+      `SELECT g.id, g.name, g.user_id, u.username, g.is_public, g.display_user_messages, g.event_id
        FROM groups g JOIN users u ON u.id = g.user_id WHERE g.id = $1`, [id]),
     pool.query<{ id: number; name: string; tracker_type: 'S' | 'G' | 'T'; foreign_id: string; is_on: boolean }>(
       `SELECT id, name, tracker_type, foreign_id, is_on FROM group_trackers WHERE group_id = $1 ORDER BY id`, [id]),
@@ -54,7 +57,7 @@ export async function getGroup(pool: Pool, id: number): Promise<EditableGroup | 
   const g = group.rows[0];
   if (!g) return null;
   return {
-    id: g.id, name: g.name, ownerId: g.user_id, owner: g.username, isPublic: g.is_public, showMessages: g.display_user_messages,
+    id: g.id, name: g.name, ownerId: g.user_id, owner: g.username, isPublic: g.is_public, showMessages: g.display_user_messages, eventId: g.event_id,
     trackers: trackers.rows.map((t) => ({ id: t.id, name: t.name, type: t.tracker_type, foreignId: t.foreign_id, isOn: t.is_on })),
   };
 }
@@ -70,6 +73,10 @@ const bump = (c: Client, groupId: number) => c.query('UPDATE groups SET version 
 
 /** `Group 01`, `Group 02`, ...: the first free number (the legacy names), with the owner's default for the owner-defined messages. */
 export async function createGroup(pool: Pool, userId: string, showMessages: boolean): Promise<{ id: number; name: string }> {
+  // A new group shows the user's default event (legacy): in the single-event mode that is the Today Task, made if need be.
+  const { rows: [profile] } = await pool.query<{ simple: boolean; default_event_id: number | null }>(
+    'SELECT is_simple_events_model AS simple, default_event_id FROM user_profiles WHERE user_id = $1', [userId]);
+  const eventId = (profile?.simple ?? true) ? await ensureDefaultEvent(pool, userId) : (profile?.default_event_id ?? null);
   for (let attempt = 0; ; attempt++) {
     const { rows } = await pool.query<{ name: string }>('SELECT name FROM groups WHERE user_id = $1', [userId]);
     const used = new Set(rows.map((r) => r.name.toLowerCase()));
@@ -78,7 +85,7 @@ export async function createGroup(pool: Pool, userId: string, showMessages: bool
     const name = `Group ${String(n).padStart(2, '0')}`;
     try {
       const { rows: [g] } = await pool.query<{ id: number }>(
-        'INSERT INTO groups (name, user_id, display_user_messages) VALUES ($1, $2, $3) RETURNING id', [name, userId, showMessages]);
+        'INSERT INTO groups (name, user_id, display_user_messages, event_id) VALUES ($1, $2, $3, $4) RETURNING id', [name, userId, showMessages, eventId]);
       return { id: g!.id, name };
     } catch (err) {
       if (duplicateOf(err) === null || attempt >= 3) throw err; // two creations at once picked the same name: look again
@@ -152,4 +159,34 @@ export async function setTrackersOn(pool: Pool, groupId: number, on: number[]): 
     await bump(c, groupId);
     await c.query('UPDATE group_trackers SET is_on = (id = ANY($2::int[])) WHERE group_id = $1', [groupId, on]);
   });
+}
+
+/** What the group editor's task section shows: the owner's events mode and what the group's map takes its task from. */
+export interface GroupTaskInfo {
+  mode: 'single' | 'multiple';
+  eventId: number | null;
+  eventName: string | null;
+  /** The owner's default event: the Today Task of the single-event mode. */
+  defaultEventId: number | null;
+  /** Waypoints in the task of the group's event. */
+  taskWaypoints: number;
+  /** The owner's events (multiple mode, for the choice). */
+  events: Array<{ id: number; name: string }>;
+}
+
+export async function getGroupTask(pool: Pool, group: EditableGroup): Promise<GroupTaskInfo> {
+  const [profile, event, events] = await Promise.all([
+    pool.query<{ simple: boolean; default_event_id: number | null }>(
+      'SELECT is_simple_events_model AS simple, default_event_id FROM user_profiles WHERE user_id = $1', [group.ownerId]),
+    group.eventId === null ? null : pool.query<{ name: string; task: number }>(
+      `SELECT e.name, (SELECT count(*)::int FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = e.id) AS task
+       FROM events e WHERE e.id = $1`, [group.eventId]),
+    pool.query<{ id: number; name: string }>('SELECT id, name FROM events WHERE user_id = $1 ORDER BY lower(name), id', [group.ownerId]),
+  ]);
+  const p = profile.rows[0];
+  const mode = (p?.simple ?? true) ? 'single' : 'multiple';
+  return {
+    mode, eventId: group.eventId, eventName: event?.rows[0]?.name ?? null, defaultEventId: p?.default_event_id ?? null,
+    taskWaypoints: event?.rows[0]?.task ?? 0, events: mode === 'multiple' ? events.rows : [],
+  };
 }
