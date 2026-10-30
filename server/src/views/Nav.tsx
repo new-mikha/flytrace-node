@@ -158,8 +158,9 @@ function AnonymousNav({ path }: { path: string }) {
         <Brand />
         <Toggler withText />
         <div class="collapse navbar-collapse" id="navMain">
+          {/* The login form below has data-guard="off": Log in is always enabled. A password manager can fill the fields without the page seeing the values, and a disabled button would lock the person out. */}
           {!onLoginPage && (
-            <form class="ft-login-form d-lg-flex flex-grow-1 gap-2 mt-3 mt-lg-0 ms-lg-4" method="post" action="/login">
+            <form class="ft-login-form d-lg-flex flex-grow-1 gap-2 mt-3 mt-lg-0 ms-lg-4" method="post" action="/login" data-guard="off">
               <input type="hidden" name="returnUrl" value={path} />
               <input class="form-control mb-2 mb-lg-0" name="username" placeholder="User name or email" type="text"
                      autocomplete="username" aria-label="User name or email" required />

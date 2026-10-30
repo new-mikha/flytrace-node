@@ -50,7 +50,8 @@ export function LoginPage({ returnUrl, error, ...c }: Common & { returnUrl: stri
         <Alert flash={{ kind: 'danger', text: 'Please confirm your email address first: open the link in the email we sent you.' }} />
       )}
       {error === 'unconfirmed' && <p><a href="/resend-confirmation">Send the confirmation email again</a></p>}
-      <form method="post" action="/login">
+      {/* data-guard="off": Log in is always enabled (see the login form in Nav.tsx); the server checks the fields. */}
+      <form method="post" action="/login" data-guard="off">
         <input type="hidden" name="returnUrl" value={returnUrl} />
         <Field name="username" label="Username or email" autocomplete="username" autofocus />
         <Field name="password" label="Password" type="password" autocomplete="current-password" />
