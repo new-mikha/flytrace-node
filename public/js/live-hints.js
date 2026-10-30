@@ -37,7 +37,6 @@
   const currentEmail = (form.dataset.currentEmail || '').toLowerCase();
   const MIN_PASSWORD = Number(form.dataset.minPassword) || 6; // from the server, which owns the rule
   const MAX_PASSWORD = 128;
-  const submit = form.querySelector('button[type="submit"]');
 
   // field name -> rule name -> test (true = fine). "free" needs the server and is handled separately below.
   const RULES = {
@@ -84,7 +83,7 @@
       const bad = touched.has(name) && violated(name, item);
       item.hidden = !bad;
     }
-    if (submit) submit.disabled = form.querySelector('.ft-hints li:not([hidden])') !== null;
+    window.ftGuard?.();
   }
 
   // Is the value free? Only asked once the local rules pass, and not on every key press; the answer stays silent
@@ -119,6 +118,9 @@
     // The browser or a failed submit may have filled it in: look the free-check up quietly so that it is ready.
     if ((name === 'username' || name === 'email') && value(name) !== '') checkFree(name);
   }
+
+  // guard.js asks: do all the local rules pass, and is the value not known to be taken?
+  form.ftValid = () => names.every((name) => Object.values(RULES[name]).every((test) => test(value(name))) && !taken[name]);
 
   // Clicking Register on an untouched form is the other way to "leave" every field: show all problems at once.
   form.addEventListener('submit', (event) => {

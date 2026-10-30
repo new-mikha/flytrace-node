@@ -48,9 +48,9 @@ function PreferencePage({ title, path, intro, children, user, settings, flash, e
     <SettingsShell title={title} user={user} path={path} flash={flash} settings={settings}>
       <p class="text-body-secondary">{intro}</p>
       {error && <Alert flash={{ kind: 'danger', text: error }} />}
-      <form method="post" action={path} class="ft-form">
+      <form method="post" action={path} class="ft-form" data-guard="changed">
         {children}
-        <div class="mt-3"><Submit icon="fa-solid fa-check">Save</Submit></div>
+        <div class="mt-3"><Submit>Save</Submit></div>
       </form>
     </SettingsShell>
   );

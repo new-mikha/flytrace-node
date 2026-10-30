@@ -70,7 +70,7 @@ export function TwoFactorLoginPage({ error, ...c }: Common & { error?: boolean }
       <form method="post" action="/login/2fa">
         <Field name="code" label="Authenticator code" autocomplete="one-time-code" inputmode="numeric" maxlength={9}
                autofocus error={error ? 'That code is not right. Try the current one.' : undefined} />
-        <Submit icon="fa-solid fa-check">Verify</Submit>
+        <Submit>Verify</Submit>
       </form>
       <hr />
       <p class="mb-1">Lost your phone? <a href="/login/recovery">Use a recovery code</a></p>
@@ -86,7 +86,7 @@ export function RecoveryLoginPage({ error, ...c }: Common & { error?: boolean })
       <form method="post" action="/login/recovery">
         <Field name="code" label="Recovery code" autocomplete="off" autofocus maxlength={20}
                error={error ? 'That recovery code is not valid or was already used.' : undefined} />
-        <Submit icon="fa-solid fa-check">Log in</Submit>
+        <Submit>Log in</Submit>
       </form>
       <hr />
       <p class="mb-0"><a href="/login/2fa">Use the authenticator app instead</a></p>
@@ -150,7 +150,7 @@ export function LinkPage({ title, icon, action, token, valid, intro, button, ...
           <p>{intro}</p>
           <form method="post" action={action}>
             <input type="hidden" name="token" value={token} />
-            <Submit icon="fa-solid fa-check">{button}</Submit>
+            <Submit>{button}</Submit>
           </form>
         </>
       ) : (
@@ -195,7 +195,7 @@ export function ResetPasswordPage({ token, valid, errors, forbidden = [], ...c }
                  hints={<PasswordHints />} autofocus />
           <Field name="confirmPassword" label="Confirm new password" type="password" error={errors.confirmPassword} autocomplete="new-password"
                  hints={<ConfirmPasswordHints />} />
-          <Submit icon="fa-solid fa-check">Change password</Submit>
+          <Submit>Change password</Submit>
         </form>
       ) : (
         <>

@@ -218,7 +218,7 @@ function ConfirmName({ slug, target, errors }: { slug: string; target: ManagedUs
   return (
     <div class="mb-3">
       <label for={id} class="form-label">To confirm, type the user name <code>{target.username}</code></label>
-      <input id={id} name="confirmName" type="text" class={`form-control${error ? ' is-invalid' : ''}`} required
+      <input id={id} name="confirmName" type="text" data-equals={target.username} class={`form-control${error ? ' is-invalid' : ''}`} required
              autocomplete="off" autocapitalize="off" spellcheck={false} aria-describedby={error ? `${id}-err` : undefined} />
       {error && <div id={`${id}-err`} class="invalid-feedback">{error}</div>}
     </div>

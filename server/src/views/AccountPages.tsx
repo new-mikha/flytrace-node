@@ -112,7 +112,7 @@ export function PasswordPage({ account, errors, ...c }: Common & { account: Acco
                hints={<PasswordHints />} />
         <Field name="confirmPassword" label="Confirm new password" type="password" error={errors.confirmPassword} autocomplete="new-password"
                hints={<ConfirmPasswordHints />} />
-        <Submit icon="fa-solid fa-check">Change password</Submit>
+        <Submit>Change password</Submit>
         <p class="form-text mt-2">Other devices that are logged in will be logged out.</p>
       </form>
     </AccountShell>
@@ -177,7 +177,7 @@ export function TwoFactorSetupPage({ secret, qrSvg, error, ...c }: Common & { se
       <ol start={3}><li>Enter the 6-digit code the app shows now.</li></ol>
       <form method="post" action="/account/2fa/setup" class="ft-form" novalidate>
         <Field name="code" label="Code from the app" autocomplete="one-time-code" inputmode="numeric" maxlength={9} autofocus error={error} />
-        <Submit icon="fa-solid fa-check">Verify and turn on</Submit>
+        <Submit>Verify and turn on</Submit>
         {' '}<a class="btn btn-link" href="/account/2fa">Cancel</a>
       </form>
     </AccountShell>

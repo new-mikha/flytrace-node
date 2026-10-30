@@ -58,6 +58,7 @@ export function Layout({ title, user, path, card, scripts, children }: LayoutPro
         </div>
         <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>
         <script src="/assets/js/app.js" defer></script>
+        <script src="/assets/js/guard.js" defer></script>
         <script src="/assets/js/shadow.js" defer></script>
         {scripts?.map((src) => <script src={`/assets/js/${src}`} defer></script>)}
       </body>

@@ -89,7 +89,7 @@ function OnOffTools({ group }: { group: EditableGroup }) {
         <i class="fa-solid fa-power-off fa-fw" aria-hidden="true"></i> Turn the trackers on &amp; off
       </a>
       <form id="ft-onoff-form" method="post" action={`/groups/${group.id}/trackers/on-off`} class="ft-onoff-bar" data-guard="changed">
-        <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-check fa-fw" aria-hidden="true"></i> Save changes</button>
+        <button class="btn btn-primary btn-sm" type="submit">Save changes</button>
         <button class="btn btn-outline-secondary btn-sm ft-needs-js" type="button" data-onoff-all>Select all</button>
         <button class="btn btn-outline-secondary btn-sm ft-needs-js" type="button" data-onoff-none>Select none</button>
         <a class="btn btn-outline-secondary btn-sm" href={`/groups/${group.id}#trackers`} data-onoff-cancel>Cancel</a>
@@ -174,14 +174,14 @@ function SettingsForm({ group, draft }: { group: EditableGroup; draft?: GroupDra
         <Choice name="messages" value="show" id="g-msg-show" checked={v.showMessages} label="Show" help="Messages for OK, CUSTOM and HELP markers appear on this group's map." />
         <Choice name="messages" value="hide" id="g-msg-hide" checked={!v.showMessages} label="Do not show" />
       </fieldset>
-      <Submit icon="fa-solid fa-check">Save settings</Submit>
+      <Submit>Save settings</Submit>
     </form>
   );
 }
 
 function AddTracker({ group, add }: { group: EditableGroup; add?: GroupDraft['add'] }) {
   return (
-    <form method="post" action={`/groups/${group.id}/trackers`} class="ft-form" id="ft-add-tracker" data-guard="filled">
+    <form method="post" action={`/groups/${group.id}/trackers`} class="ft-form" id="ft-add-tracker">
       <Field name="trackerName" label="Pilot name" value={add?.name ?? ''} maxlength={50} error={add?.nameError} />
       <Field name="link" label="SPOT or inReach page" value={add?.link ?? ''} maxlength={445} error={add?.linkError}
              help="A SPOT shared page link or its ID, or an inReach KML feed link or its ID followed by # and the device's IMEI." />
