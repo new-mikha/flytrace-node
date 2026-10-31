@@ -701,16 +701,17 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 @media (min-width: 768px) {
   .ft-jumbotron-card.ft-jumbotron-wide:has(.ft-event-page) { max-width: 52rem; }
 }
-.ft-task-rows { --bs-table-bg: transparent; } /* the card's own background shows through, in both themes */
+.ft-task-wrap { display: table; max-width: 100%; } /* only as wide as the rows, so Remove stays close to the point */
+.ft-task-rows select[name="wpt"] { min-width: 14rem; }
 .ft-js .ft-no-js { display: none; }
 .ft-task-rows th.ft-task-no { width: 5.5rem; white-space: nowrap; font-weight: 400; }
-.ft-task-rows input[name="radius"] { max-width: 8rem; }
-.ft-task-rows td:last-child { width: 3rem; }
+.ft-task-rows .input-group { width: 9rem; }
 .ft-bulk summary, details > summary { cursor: pointer; color: var(--bs-link-color); }
 .ft-bulk-radius { width: 6rem; }
 @media (max-width: 575.98px) {
   .ft-task-rows th.ft-task-no { width: 3.5rem; font-size: .85rem; }
-  .ft-task-rows input[name="radius"] { max-width: 5.5rem; }
+  .ft-task-rows .input-group { width: 7rem; }
+  .ft-task-rows select[name="wpt"] { min-width: 0; }
 }
 
 /* The events table has three columns: where it is a table (xl and up) it spans the width: the name column is wide (55%), the count takes only what it needs, all left-aligned,

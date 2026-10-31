@@ -56,10 +56,13 @@ function TaskRow({ index, last, wpt, radius, options }: { index: number; last: b
         </select>
       </td>
       <td>
-        <input class="form-control form-control-sm" name="radius" inputmode="numeric" pattern="[0-9]{1,6}" maxlength={6} value={radius} aria-label="Radius in meters" />
+        <div class="input-group input-group-sm">
+          <input class="form-control" name="radius" inputmode="numeric" pattern="[0-9]{1,6}" maxlength={6} value={radius} aria-label="Radius in meters" />
+          <span class="input-group-text">m</span>
+        </div>
       </td>
-      <td class="text-end">
-        <button class="btn btn-outline-secondary btn-sm ft-needs-js ft-task-remove" type="button" data-task-remove aria-label="Remove this point" title="Remove">
+      <td>
+        <button class="btn btn-outline-danger btn-sm ft-needs-js ft-task-remove" type="button" data-task-remove aria-label="Remove this point" title="Remove">
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
       </td>
@@ -88,14 +91,16 @@ function TaskEditor({ event, draft }: { event: EditableEvent; draft?: EventDraft
           </div>
         </details>
       </div>
-      <table class="table table-sm align-middle ft-task-rows">
+      <div class="ft-table-wrap ft-task-wrap mb-3">
+      <table class="table table-striped align-middle ft-table ft-task-rows mb-0">
         <thead>
-          <tr><th scope="col">Point #</th><th scope="col">Turn point</th><th scope="col">Radius (meters)</th><th scope="col"><span class="visually-hidden">Remove</span></th></tr>
+          <tr><th scope="col">Point #</th><th scope="col">Turn point</th><th scope="col">Radius</th><th scope="col"><span class="visually-hidden">Remove</span></th></tr>
         </thead>
         <tbody>
           {rows.map((r, i) => <TaskRow key={i} index={i} last={i === rows.length - 1} wpt={r.wpt} radius={r.radius} options={options} />)}
         </tbody>
       </table>
+      </div>
       <p class="form-text">Pick a waypoint in the last line to add a point{' '}
         <span class="ft-no-js">(to take one out, choose the empty entry in its line)</span>. The radius is in meters, 1 to {MAX_RADIUS}.</p>
       <Submit>Save task</Submit>
