@@ -1,0 +1,83 @@
+///////////////////////////////////////////////////////////////////////////////
+//  Flytrace, online viewer for GPS trackers.
+//  Copyright (C) 2011-2026 Mikhail Karmazin
+//
+//  This file is part of Flytrace.
+//
+//  Flytrace is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Affero General Public License as
+//  published by the Free Software Foundation, either version 3 of the
+//  License, or (at your option) any later version.
+//
+//  Flytrace is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Affero General Public License for more details.
+//
+//  You should have received a copy of the GNU Affero General Public License
+//  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
+///////////////////////////////////////////////////////////////////////////////
+
+// Waypoints manager enhancements. Every control also works without this script (links and forms);
+// with it:
+//  - Edit opens the row's form in place (the page is fetched with ?edit= and the table swapped),
+//    Cancel closes it again;
+//  - Delete asks in the dialog of confirm-dialog.js and is sent in place (swap.js);
+//  - the server stays the only place with rules: it answers with the whole page.
+(() => {
+  const main = document.querySelector('main');
+  if (!main) return;
+  const PARTS = ['ft-flash', 'waypoints', 'add-waypoint'];
+  const closest = (event, selector) =>
+    event.target instanceof Element ? event.target.closest(selector) : null;
+  const plainClick = (event) =>
+    event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey);
+
+  // ---- Edit / Cancel: swap the table for the one the server renders with (or without) the form
+  async function openRow(link) {
+    const section = document.getElementById('waypoints');
+    section?.classList.add('ft-pending');
+    try {
+      const response = await fetch(link.href, {
+        credentials: 'same-origin',
+        headers: { Accept: 'text/html' },
+      });
+      const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+      const fresh = doc.getElementById('waypoints');
+      if (!fresh) {
+        window.location.assign(link.href);
+        return;
+      }
+      section.replaceWith(document.importNode(fresh, true));
+      window.ftGuard?.();
+      document.querySelector('#waypoints .ft-wpt-edit input[name="name"]')?.focus();
+    } catch {
+      window.location.assign(link.href);
+    }
+  }
+
+  main.addEventListener('click', (event) => {
+    const link = closest(event, 'a[data-wpt-edit], a[data-wpt-cancel]');
+    if (!link || !plainClick(event)) return;
+    event.preventDefault();
+    event.stopPropagation(); // the page-wide handler in app.js must not start a navigation for it
+    openRow(link);
+  });
+
+  main.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    closest(event, '.ft-wpt-edit')?.querySelector('a[data-wpt-cancel]')?.click();
+  });
+
+  // ---- Delete: the dialog's form is sent in place
+  const dialog = document.getElementById('ft-confirm');
+  const dialogForm = document.getElementById('ft-confirm-form');
+  if (dialog && dialogForm && window.bootstrap)
+    dialogForm.addEventListener('submit', (event) => {
+      if (dialogForm.dataset.swap !== '1') return;
+      event.preventDefault();
+      event.stopPropagation();
+      window.bootstrap.Modal.getInstance(dialog)?.hide();
+      window.ftSwap.send(dialogForm, PARTS);
+    });
+})();

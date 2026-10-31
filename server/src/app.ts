@@ -33,6 +33,7 @@ import { packageDir, projectRoot } from './paths.ts';
 import { accountRoutes } from './routes/account.tsx';
 import { adminRoutes } from './routes/admin.tsx';
 import { eventRoutes } from './routes/events.tsx';
+import { waypointRoutes } from './routes/waypoints.tsx';
 import { groupRoutes } from './routes/groups.tsx';
 import { homeRoutes } from './routes/home.tsx';
 import { identityRoutes } from './routes/identity.tsx';
@@ -152,6 +153,7 @@ export async function buildApp(
   await themeRoutes(app);
   await groupRoutes(app, pool);
   await eventRoutes(app, pool);
+  await waypointRoutes(app, pool);
   await homeRoutes(app, pool);
   await pageRoutes(app);
 

@@ -93,6 +93,35 @@ export function confirmDeleteEvent(event: {
   };
 }
 
+export function confirmDeleteWaypoint(
+  event: { id: number },
+  w: { id: number; name: string },
+): ConfirmDelete {
+  return {
+    title: 'Delete waypoint',
+    button: 'Delete waypoint',
+    action: `/events/${event.id}/waypoints/${w.id}/delete`,
+    back: `/events/${event.id}/waypoints#wpt-${w.id}`,
+    question: [
+      'Are you certain you want to delete the waypoint ',
+      { name: w.name },
+      ' from the event?',
+    ],
+  };
+}
+
+export function confirmDeleteAllWaypoints(event: { id: number }, n: number): ConfirmDelete {
+  return {
+    title: 'Delete all waypoints',
+    button: 'Delete all waypoints',
+    action: `/events/${event.id}/waypoints/delete-all`,
+    back: `/events/${event.id}/waypoints`,
+    question: [
+      `Are you certain you want to delete ALL LOADED WAYPOINTS (${n})? The task is cleared with them. This cannot be undone.`,
+    ],
+  };
+}
+
 /**
  * The attributes that make a Delete link open the dialog. `swap`: the change is sent in place (a
  * tracker) rather than posted.

@@ -755,3 +755,12 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 }
 
 .ft-pre-line { white-space: pre-line; } /* error messages with line breaks (the file loader's) */
+
+/* Waypoints manager */
+.ft-coord-h { flex: 0 0 4.75rem; max-width: 4.75rem; }
+.ft-coord-deg, .ft-coord-min, .ft-coord-sec { min-width: 3.5rem; }
+.ft-coord-min, .ft-coord-sec { min-width: 4.25rem; }
+.ft-wpt-edit td { padding: 1rem; }
+tr:target { animation: ft-wpt-flash 3s ease-out; }
+@keyframes ft-wpt-flash { from { background-color: rgba(var(--bs-success-rgb), 0.35); } }
+#ft-flash .alert { white-space: pre-line; }

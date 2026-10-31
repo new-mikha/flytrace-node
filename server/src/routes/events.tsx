@@ -204,7 +204,12 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
       const found = await load(request, reply);
       if (!found) return reply;
       const { event } = found;
-      const refuse = (error: string) => show(request, reply, found, { upload: { error } });
+      let fromManager = false;
+      const refuse = (error: string) => {
+        if (!fromManager) return show(request, reply, found, { upload: { error } });
+        setFlash(request, 'danger', error);
+        return reply.redirect(`/events/${event.id}/waypoints#load`, 302);
+      };
       if (!request.isMultipart()) return refuse('No file loaded.');
       let text: string;
       let fileName: string;
@@ -213,6 +218,9 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
         const file = await request.file();
         if (!file || !file.filename) return refuse('No file loaded.');
         fileName = file.filename;
+        const from = file.fields.back;
+        fromManager =
+          !!from && !Array.isArray(from) && 'value' in from && from.value === 'waypoints';
         const existing = file.fields.existing;
         skipExisting =
           !!existing &&
@@ -242,6 +250,10 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
         result.updated > 0 && `${result.updated} updated`,
         result.skipped > 0 && `${result.skipped} already there`,
       ].filter(Boolean);
+      if (fromManager) {
+        setFlash(request, 'success', `Waypoints loaded: ${parts.join(', ')}.`);
+        return reply.redirect(`/events/${event.id}/waypoints#waypoints`, 302);
+      }
       return back(request, reply, event, `Waypoints loaded: ${parts.join(', ')}.`);
     },
   );

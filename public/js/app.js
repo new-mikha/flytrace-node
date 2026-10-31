@@ -296,12 +296,15 @@
 
 // A file input with data-autosubmit sends its form as soon as a file is chosen (the legacy site did
 // the same for waypoint files: one click fewer). The button stays for browsers without this script.
+// A <select> with it does the same when another option is chosen (a preference).
 // An element with data-uploading in the form is the "please wait" note, shown meanwhile.
 document.addEventListener('change', (event) => {
   const input = event.target;
-  if (!(input instanceof HTMLInputElement) || !input.hasAttribute('data-autosubmit')) return;
+  const isSelect = input instanceof HTMLSelectElement;
+  if (!(input instanceof HTMLInputElement || isSelect) || !input.hasAttribute('data-autosubmit'))
+    return;
   const form = input.form;
-  if (!form || !input.files?.length) return;
+  if (!form || (!isSelect && !input.files?.length)) return;
   form.querySelector('[data-uploading]')?.removeAttribute('hidden');
   form.requestSubmit();
 });
