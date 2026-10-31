@@ -761,11 +761,16 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-coord-deg, .ft-coord-min, .ft-coord-sec { min-width: 3.5rem; }
 .ft-coord-min, .ft-coord-sec { min-width: 4.25rem; }
 .ft-wpt-edit td { padding: 1rem; }
-/* the striped table paints its cells (an inset shadow), so the flash goes on the cells, and on the row for the cards */
-tr:target, .ft-wpt-new { animation: ft-wpt-flash 3s ease-out; }
-tr:target > *, .ft-wpt-new > * { animation: ft-wpt-flash-cell 3s ease-out; }
-@keyframes ft-wpt-flash { from { background-color: rgba(var(--bs-success-rgb), 0.35); } }
-@keyframes ft-wpt-flash-cell { from { box-shadow: inset 0 0 0 9999px rgba(var(--bs-success-rgb), 0.35); background-color: rgba(var(--bs-success-rgb), 0.35); } }
+/* the striped table paints its cells (an inset shadow), so the marks go on the cells, and on the row for the cards.
+   The row just added or updated stays green (it fades in) until the next one; a waypoint the task uses (cannot be deleted) is amber. */
+.ft-wpt-used, .ft-wpt-used > * { --ft-wpt-mark: rgba(var(--bs-warning-rgb), 0.22); }
+.ft-wpt-new, .ft-wpt-new > *, tr:target, tr:target > * { --ft-wpt-mark: rgba(var(--bs-success-rgb), 0.25); }
+@media (min-width: 1200px) {
+  .ft-table tbody tr.ft-wpt-used > *, .ft-table tbody tr.ft-wpt-new > *, .ft-table tbody tr:target > * { box-shadow: inset 0 0 0 9999px var(--ft-wpt-mark); }
+}
+.ft-cards tr.ft-wpt-used, .ft-cards tr.ft-wpt-new { background: var(--ft-wpt-mark); }
+@media (min-width: 1200px) { .ft-table tbody tr.ft-wpt-new > * { animation: ft-wpt-flash-cell 0.8s ease-out; } }
+@keyframes ft-wpt-flash-cell { from { box-shadow: inset 0 0 0 9999px rgba(var(--bs-success-rgb), 0.6); } }
 #ft-flash .alert { white-space: pre-line; }
 /* a refused coordinate: red borders, but no icon and no extra padding (the fields are small) */
 .ft-coord-group .form-control.is-invalid { background-image: none; padding-right: 0.5rem; }

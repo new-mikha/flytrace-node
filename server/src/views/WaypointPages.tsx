@@ -357,7 +357,13 @@ function Row({
   highlight: boolean;
 }) {
   return (
-    <tr id={`wpt-${w.id}`} class={highlight ? 'ft-wpt-new' : undefined}>
+    <tr
+      id={`wpt-${w.id}`}
+      class={highlight ? 'ft-wpt-new' : w.inTask ? 'ft-wpt-used' : undefined}
+      title={
+        w.inTask ? 'In the task: cannot be deleted until it is taken out of the task' : undefined
+      }
+    >
       <td class="fw-semibold ft-name-cell">
         <a href={mapLink(w)} target="_blank" rel="noopener" title="Show on Google Maps">
           {w.name}
@@ -631,8 +637,8 @@ export function WaypointsPage(p: WaypointsPageProps) {
                 </table>
               </div>
               <p class="small text-body-secondary">
-                {waypoints.length} waypoint{waypoints.length === 1 ? '' : 's'}. A waypoint that is
-                in the task cannot be deleted: take it out of the task first.
+                {waypoints.length} waypoint{waypoints.length === 1 ? '' : 's'}. Waypoints shaded
+                amber are in the task and cannot be deleted: take them out of the task first.
               </p>
             </>
           )}
