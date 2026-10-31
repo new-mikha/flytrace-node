@@ -33,15 +33,14 @@ export async function runMigrations(pool: Pool, dir: string = MIGRATIONS_DIR): P
     applied_at timestamptz NOT NULL DEFAULT now()
   )`);
   const applied = new Set(
-    (await pool.query<{ name: string; }>('SELECT name FROM schema_migrations')).rows.map((r) =>
-      r.name
+    (await pool.query<{ name: string }>('SELECT name FROM schema_migrations')).rows.map(
+      (r) => r.name,
     ),
   );
   const files = (await readdir(dir)).filter((f) => f.endsWith('.sql')).sort();
   const ran: string[] = [];
   for (const file of files) {
-    if (applied.has(file))
-      continue;
+    if (applied.has(file)) continue;
     const sql = await readFile(join(dir, file), 'utf8');
     await withTransaction(pool, async (client) => {
       await client.query(sql);

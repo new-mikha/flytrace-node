@@ -38,7 +38,7 @@ export const ALTITUDE_LABEL = { none: 'Off', ft: 'Feet', m: 'Kilometers' } as co
  * Every settings page, in two groups. Wide screens list them in a column at the left of each page; on phones the list is the
  * first screen (/settings) and every entry opens its own page with a way back.
  */
-export const SETTINGS_GROUPS: { title: string; items: SettingsItem[]; }[] = [
+export const SETTINGS_GROUPS: { title: string; items: SettingsItem[] }[] = [
   {
     title: 'Account',
     items: [
@@ -107,8 +107,10 @@ export function currentItem(path: string): SettingsItem | null {
   let best: SettingsItem | null = null;
   for (const group of SETTINGS_GROUPS)
     for (const item of group.items)
-      if ((path === item.href || path.startsWith(`${item.href}/`)) &&
-        (!best || item.href.length > best.href.length))
+      if (
+        (path === item.href || path.startsWith(`${item.href}/`)) &&
+        (!best || item.href.length > best.href.length)
+      )
         best = item;
 
   return best;

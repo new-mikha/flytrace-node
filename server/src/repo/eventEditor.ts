@@ -52,31 +52,29 @@ export const MAX_RADIUS = 100000;
 export const DEFAULT_RADIUS = 400;
 
 export async function getEvent(pool: Pool, id: number): Promise<EditableEvent | null> {
-  if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647)
-    return null;
-  const { rows: [e] } = await pool.query<
-    {
-      id: number;
-      user_id: string;
-      name: string;
-      start_ts: Date | null;
-      is_default: boolean;
-      groups: number;
-    }
-  >(
+  if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) return null;
+  const {
+    rows: [e],
+  } = await pool.query<{
+    id: number;
+    user_id: string;
+    name: string;
+    start_ts: Date | null;
+    is_default: boolean;
+    groups: number;
+  }>(
     `SELECT e.id, e.user_id, e.name, e.start_ts, (up.default_event_id = e.id) AS is_default,
             (SELECT count(*)::int FROM groups g WHERE g.event_id = e.id) AS groups
      FROM events e LEFT JOIN user_profiles up ON up.user_id = e.user_id WHERE e.id = $1`,
     [id],
   );
-  if (!e)
-    return null;
+  if (!e) return null;
   const [waypoints, task] = await Promise.all([
-    pool.query<{ id: number; name: string; }>(
+    pool.query<{ id: number; name: string }>(
       'SELECT id, name FROM waypoints WHERE event_id = $1 ORDER BY id',
       [id],
     ),
-    pool.query<{ waypoint_id: number; radius: number; }>(
+    pool.query<{ waypoint_id: number; radius: number }>(
       `SELECT t.waypoint_id, t.radius FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = $1 ORDER BY t.wpt_order, t.id`,
       [id],
     ),
@@ -102,8 +100,7 @@ export async function renameEvent(pool: Pool, eventId: number, name: string): Pr
     await pool.query('UPDATE events SET name = $2 WHERE id = $1', [eventId, name]);
     return true;
   } catch (err) {
-    if ((err as { code?: string; }).code === '23505')
-      return false;
+    if ((err as { code?: string }).code === '23505') return false;
     throw err;
   }
 }
@@ -121,12 +118,11 @@ export async function saveTask(pool: Pool, eventId: number, points: TaskPoint[])
   return withTransaction(pool, async (c) => {
     const ids = [...new Set(points.map((p) => p.waypointId))];
     if (ids.length > 0) {
-      const { rows } = await c.query<{ n: number; }>(
+      const { rows } = await c.query<{ n: number }>(
         'SELECT count(*)::int AS n FROM waypoints WHERE event_id = $1 AND id = ANY($2::int[])',
         [eventId, ids],
       );
-      if (rows[0]!.n !== ids.length)
-        return false;
+      if (rows[0]!.n !== ids.length) return false;
     }
     await bumpGroups(c, eventId);
     await c.query(

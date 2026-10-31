@@ -34,7 +34,7 @@ export interface ConfirmDelete {
   /** Where "Cancel" goes. */
   back: string;
   /** The question: text, and `{ name }` for what the page shows in bold (the dialog shows plain text). */
-  question: Array<string | { name: string; }>;
+  question: Array<string | { name: string }>;
 }
 
 export function confirmDeleteTracker(group: EditableGroup, t: GroupTracker): ConfirmDelete {
@@ -47,7 +47,7 @@ export function confirmDeleteTracker(group: EditableGroup, t: GroupTracker): Con
   };
 }
 
-export function confirmDeleteGroup(group: { id: number; name: string; }, n: number): ConfirmDelete {
+export function confirmDeleteGroup(group: { id: number; name: string }, n: number): ConfirmDelete {
   return {
     title: 'Delete group',
     button: 'Delete group',
@@ -62,9 +62,12 @@ export function confirmDeleteGroup(group: { id: number; name: string; }, n: numb
   };
 }
 
-export function confirmDeleteEvent(
-  event: { id: number; name: string; waypoints: number; groups: number; },
-): ConfirmDelete {
+export function confirmDeleteEvent(event: {
+  id: number;
+  name: string;
+  waypoints: number;
+  groups: number;
+}): ConfirmDelete {
   const w = event.waypoints;
   const g = event.groups;
   return {
@@ -78,8 +81,8 @@ export function confirmDeleteEvent(
       w > 0 ? ` and its ${w} waypoint${w === 1 ? '' : 's'}` : '',
       g > 0
         ? `? ${
-          g === 1 ? 'The group that shows it' : `The ${g} groups that show it`
-        } will show no task.`
+            g === 1 ? 'The group that shows it' : `The ${g} groups that show it`
+          } will show no task.`
         : '?',
       ' This cannot be undone.',
     ],
@@ -102,25 +105,33 @@ export function confirmAttrs(c: ConfirmDelete, swap = false) {
 export function ConfirmDialog() {
   return (
     <div
-      class='modal fade'
-      id='ft-confirm'
+      class="modal fade"
+      id="ft-confirm"
       tabIndex={-1}
-      aria-labelledby='ft-confirm-title'
-      aria-hidden='true'
+      aria-labelledby="ft-confirm-title"
+      aria-hidden="true"
     >
-      <div class='modal-dialog modal-dialog-centered'>
-        <form class='modal-content' method='post' id='ft-confirm-form'>
-          <div class='modal-header'>
-            <h2 class='modal-title h5' id='ft-confirm-title'>Delete</h2>
-            <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'>
-            </button>
+      <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="post" id="ft-confirm-form">
+          <div class="modal-header">
+            <h2 class="modal-title h5" id="ft-confirm-title">
+              Delete
+            </h2>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
-          <div class='modal-body' id='ft-confirm-text'></div>
-          <div class='modal-footer'>
-            <button type='button' class='btn btn-outline-secondary' data-bs-dismiss='modal'>
+          <div class="modal-body" id="ft-confirm-text"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
               Keep
             </button>
-            <button type='submit' class='btn btn-danger' id='ft-confirm-button'>Delete</button>
+            <button type="submit" class="btn btn-danger" id="ft-confirm-button">
+              Delete
+            </button>
           </div>
         </form>
       </div>
@@ -129,24 +140,31 @@ export function ConfirmDialog() {
 }
 
 /** The confirmation page (what the Delete link opens without JavaScript). */
-export function ConfirmDeletePage(
-  { user, path, confirm, error }: {
-    user: CurrentUser;
-    path: string;
-    confirm: ConfirmDelete;
-    error?: string;
-  },
-) {
+export function ConfirmDeletePage({
+  user,
+  path,
+  confirm,
+  error,
+}: {
+  user: CurrentUser;
+  path: string;
+  confirm: ConfirmDelete;
+  error?: string;
+}) {
   return (
     <Layout title={confirm.title} user={user} path={path} card>
-      <h1 class='h3 mb-3'>
-        <i class='fa-solid fa-trash text-danger' aria-hidden='true'></i> {confirm.title}
+      <h1 class="h3 mb-3">
+        <i class="fa-solid fa-trash text-danger" aria-hidden="true"></i> {confirm.title}
       </h1>
       {error && <Alert flash={{ kind: 'danger', text: error }} />}
       <p>{confirm.question.map((p) => (typeof p === 'string' ? p : <strong>{p.name}</strong>))}</p>
-      <form method='post' action={confirm.action} class='d-flex gap-2'>
-        <Submit kind='danger' icon='fa-solid fa-trash'>{confirm.button}</Submit>
-        <a class='btn btn-outline-secondary' href={confirm.back}>Cancel</a>
+      <form method="post" action={confirm.action} class="d-flex gap-2">
+        <Submit kind="danger" icon="fa-solid fa-trash">
+          {confirm.button}
+        </Submit>
+        <a class="btn btn-outline-secondary" href={confirm.back}>
+          Cancel
+        </a>
       </form>
     </Layout>
   );

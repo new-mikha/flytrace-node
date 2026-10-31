@@ -36,9 +36,10 @@
   function autofilled(field) {
     for (const selector of [':autofill', ':-webkit-autofill'])
       try {
-        if (field.matches(selector))
-          return true;
-      } catch { /* this browser does not know it */ }
+        if (field.matches(selector)) return true;
+      } catch {
+        /* this browser does not know it */
+      }
 
     return false;
   }
@@ -49,26 +50,22 @@
 
   function ready(form, fields) {
     for (const f of fields) {
-      if (f.dataset.equals !== undefined &&
-        f.value.trim().toLowerCase() !== f.dataset.equals.toLowerCase())
+      if (
+        f.dataset.equals !== undefined &&
+        f.value.trim().toLowerCase() !== f.dataset.equals.toLowerCase()
+      )
         return false;
 
-      if (!f.checkValidity() && !(f.validity.valueMissing && autofilled(f)))
-        return false;
+      if (!f.checkValidity() && !(f.validity.valueMissing && autofilled(f))) return false;
     }
-    if (form.querySelector('.ft-hints li:not([hidden])'))
-      return false;
-    if (form.ftValid && !form.ftValid())
-      return false;
-    if (form.dataset.guard !== 'changed')
-      return true;
-    if (form.querySelector('.is-invalid'))
-      return true;
+    if (form.querySelector('.ft-hints li:not([hidden])')) return false;
+    if (form.ftValid && !form.ftValid()) return false;
+    if (form.dataset.guard !== 'changed') return true;
+    if (form.querySelector('.is-invalid')) return true;
     // A form whose fields come and go (the task editor) says itself whether it differs from what was saved.
     const probe = { changed: null };
     form.dispatchEvent(new CustomEvent('ft-changed', { bubbles: true, detail: probe }));
-    if (probe.changed !== null)
-      return probe.changed;
+    if (probe.changed !== null) return probe.changed;
     return fields.some((f) => {
       if (f.tagName === 'SELECT')
         return [...f.options].some((o) => o.selected !== o.defaultSelected);
@@ -80,12 +77,10 @@
 
   function guard() {
     for (const form of document.querySelectorAll('form')) {
-      if (form.method !== 'post' || form.dataset.guard === 'off')
-        continue;
+      if (form.method !== 'post' || form.dataset.guard === 'off') continue;
       const button = form.querySelector('button[type="submit"]');
       const fields = fieldsOf(form);
-      if (!button || fields.length === 0)
-        continue;
+      if (!button || fields.length === 0) continue;
       button.disabled = !ready(form, fields);
     }
   }
@@ -95,6 +90,5 @@
   document.addEventListener('change', guard);
   window.addEventListener('pageshow', guard);
   guard();
-  for (const ms of [150, 600, 1500])
-    setTimeout(guard, ms); // browsers fill saved logins a moment after the page loads
+  for (const ms of [150, 600, 1500]) setTimeout(guard, ms); // browsers fill saved logins a moment after the page loads
 })();

@@ -29,7 +29,7 @@ let app: FastifyInstance;
 let ip = 0;
 const get = (
   url: string,
-  extra: { cookies?: Record<string, string>; headers?: Record<string, string>; } = {},
+  extra: { cookies?: Record<string, string>; headers?: Record<string, string> } = {},
 ) => app.inject({ url, remoteAddress: `10.4.0.${++ip}`, ...extra });
 
 beforeAll(async () => {
@@ -72,8 +72,9 @@ describe('theme', () => {
 
     const back = await get('/theme', { cookies: { 'ft-theme': 'dark' } });
     expect(back.cookies.find((c) => c.name === 'ft-theme')?.value).toBe('light');
-    expect((await get('/theme?set=dark', { cookies: { 'ft-theme': 'dark' } })).cookies[0]?.value)
-      .toBe('dark');
+    expect(
+      (await get('/theme?set=dark', { cookies: { 'ft-theme': 'dark' } })).cookies[0]?.value,
+    ).toBe('dark');
   });
 
   it('does not redirect anywhere but this site', async () => {

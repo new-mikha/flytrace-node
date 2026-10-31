@@ -55,16 +55,17 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   const guard = { preHandler: requireLogin };
 
   const notFound = (request: FastifyRequest, reply: FastifyReply) =>
-    reply.code(404).type('text/html; charset=utf-8').send(
-      page('Group not found', '<p>There is no such group.</p>', request.user ?? null),
-    );
+    reply
+      .code(404)
+      .type('text/html; charset=utf-8')
+      .send(page('Group not found', '<p>There is no such group.</p>', request.user ?? null));
 
   /** The group, when this person may see it (`write`: change it, i.e. is the owner). Otherwise the reply is already sent. */
   async function load(
-    request: FastifyRequest<{ Params: { id: string; }; }>,
+    request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,
     write: boolean,
-  ): Promise<{ group: EditableGroup; canEdit: boolean; } | null> {
+  ): Promise<{ group: EditableGroup; canEdit: boolean } | null> {
     const user = request.user!;
     const group = /^\d+$/.test(request.params.id)
       ? await getGroup(pool, Number(request.params.id))
@@ -84,7 +85,7 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   const back = (
     request: FastifyRequest,
     reply: FastifyReply,
-    group: { id: number; },
+    group: { id: number },
     text: string,
     anchor = '',
   ) => {
@@ -107,20 +108,20 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   });
 
   // `?rename=<tracker id>` and `?onoff=1` open the rename form and the on/off selection without JavaScript.
-  app.get<{ Params: { id: string; }; Querystring: { rename?: string; onoff?: string; }; }>(
+  app.get<{ Params: { id: string }; Querystring: { rename?: string; onoff?: string } }>(
     '/groups/:id',
     guard,
     async (request, reply) => {
       const found = await load(request, reply, false);
-      if (!found)
-        return reply;
+      if (!found) return reply;
       const user = request.user!;
       const altitude = found.canEdit
         ? ALTITUDE_LABEL[(await getSettings(pool, user.id)).altitude]
         : undefined;
-      const renaming = found.canEdit && /^\d+$/.test(request.query.rename ?? '')
-        ? Number(request.query.rename)
-        : null;
+      const renaming =
+        found.canEdit && /^\d+$/.test(request.query.rename ?? '')
+          ? Number(request.query.rename)
+          : null;
       const selecting = found.canEdit && request.query.onoff === '1';
       const task = await getGroupTask(pool, found.group);
       return sendHtml(
@@ -158,10 +159,9 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
 
   // The task of the group's map. Single-event mode: show the Today Task or not (the checkbox). Multiple-events mode: which event,
   // none (0), or a new one (-1) that is made and chosen at once. Choosing an event also makes it the owner's default (legacy).
-  app.post<{ Params: { id: string; }; }>('/groups/:id/task', guard, async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/groups/:id/task', guard, async (request, reply) => {
     const found = await load(request, reply, true);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     const { group } = found;
     const f = formFields(request, 'show');
     const eventId = f.show === '1' ? await ensureDefaultEvent(pool, group.ownerId) : null;
@@ -184,10 +184,9 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     );
   });
 
-  app.post<{ Params: { id: string; }; }>('/groups/:id/event', guard, async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/groups/:id/event', guard, async (request, reply) => {
     const found = await load(request, reply, true);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     const { group } = found;
     const choice = formFields(request, 'event').event;
     if (!/^-?\d+$/.test(choice))
@@ -219,16 +218,15 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
       created
         ? `Created "${created}" and chose it for the group.`
         : eventId === null
-        ? 'The group shows no event.'
-        : 'Saved.',
+          ? 'The group shows no event.'
+          : 'Saved.',
     );
   });
 
   // The details form: name, visibility, owner-defined messages.
-  app.post<{ Params: { id: string; }; }>('/groups/:id', guard, async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/groups/:id', guard, async (request, reply) => {
     const found = await load(request, reply, true);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     const { group } = found;
     const f = formFields(request, 'name', 'visibility', 'messages');
     const name = f.name.trim();
@@ -263,10 +261,9 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return back(request, reply, group, 'Saved.');
   });
 
-  app.get<{ Params: { id: string; }; }>('/groups/:id/delete', guard, async (request, reply) => {
+  app.get<{ Params: { id: string } }>('/groups/:id/delete', guard, async (request, reply) => {
     const found = await load(request, reply, true);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     return sendHtml(
       reply,
       <ConfirmDeletePage
@@ -277,10 +274,9 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     );
   });
 
-  app.post<{ Params: { id: string; }; }>('/groups/:id/delete', guard, async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/groups/:id/delete', guard, async (request, reply) => {
     const found = await load(request, reply, true);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     await deleteGroup(pool, found.group.id);
     audit(request, 'group.deleted', 'Group deleted', {
       groupId: found.group.id,
@@ -291,10 +287,9 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return reply.redirect('/', 302);
   });
 
-  app.post<{ Params: { id: string; }; }>('/groups/:id/trackers', guard, async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/groups/:id/trackers', guard, async (request, reply) => {
     const found = await load(request, reply, true);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     const { group } = found;
     const f = formFields(request, 'trackerName', 'link', 'type');
     const name = f.trackerName.trim();
@@ -330,18 +325,17 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   });
 
   // "Turn the trackers on & off": the checked trackers (`on` = their ids) are on, the others off.
-  app.post<{ Params: { id: string; }; }>(
+  app.post<{ Params: { id: string } }>(
     '/groups/:id/trackers/on-off',
     guard,
     async (request, reply) => {
       const found = await load(request, reply, true);
-      if (!found)
-        return reply;
+      if (!found) return reply;
       const { group } = found;
-      const raw = (request.body as { on?: unknown; } | undefined)?.on;
-      const ids = (Array.isArray(raw) ? raw : raw === undefined ? [] : [raw]).map(Number).filter(
-        Number.isSafeInteger,
-      );
+      const raw = (request.body as { on?: unknown } | undefined)?.on;
+      const ids = (Array.isArray(raw) ? raw : raw === undefined ? [] : [raw])
+        .map(Number)
+        .filter(Number.isSafeInteger);
       const on = group.trackers.filter((t) => ids.includes(t.id)).map((t) => t.id);
       const changed = group.trackers.filter((t) => t.isOn !== on.includes(t.id)).length;
       await setTrackersOn(pool, group.id, on);
@@ -361,26 +355,22 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     },
   );
 
-  app.post<{ Params: { id: string; tid: string; }; }>(
+  app.post<{ Params: { id: string; tid: string } }>(
     '/groups/:id/trackers/:tid/rename',
     guard,
     async (request, reply) => {
       const found = await load(request, reply, true);
-      if (!found)
-        return reply;
+      if (!found) return reply;
       const { group } = found;
       const tracker = /^\d+$/.test(request.params.tid)
         ? group.trackers.find((t) => t.id === Number(request.params.tid))
         : undefined;
-      if (!tracker)
-        return notFound(request, reply);
+      if (!tracker) return notFound(request, reply);
       const name = formFields(request, 'name').name.trim();
       const refuse = (error: string) =>
         show(request, reply, group, { rename: { id: tracker.id, name, error } });
-      if (!name)
-        return refuse('Enter the pilot name.');
-      if (name.length > 50)
-        return refuse('The pilot name is too long (50 characters at most).');
+      if (!name) return refuse('Enter the pilot name.');
+      if (name.length > 50) return refuse('The pilot name is too long (50 characters at most).');
       if (!(await renameTracker(pool, group.id, tracker.id, name)))
         return refuse('This group already has a pilot with such name.');
       audit(request, 'tracker.renamed', 'Pilot renamed', {
@@ -394,21 +384,17 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   );
 
   // Deleting a tracker has its own confirmation page (a link, so it works without JavaScript).
-  const trackerOf = (
-    group: EditableGroup,
-    tid: string,
-  ) => (/^\d+$/.test(tid) ? group.trackers.find((t) => t.id === Number(tid)) : undefined);
+  const trackerOf = (group: EditableGroup, tid: string) =>
+    /^\d+$/.test(tid) ? group.trackers.find((t) => t.id === Number(tid)) : undefined;
 
-  app.get<{ Params: { id: string; tid: string; }; }>(
+  app.get<{ Params: { id: string; tid: string } }>(
     '/groups/:id/trackers/:tid/delete',
     guard,
     async (request, reply) => {
       const found = await load(request, reply, true);
-      if (!found)
-        return reply;
+      if (!found) return reply;
       const tracker = trackerOf(found.group, request.params.tid);
-      if (!tracker)
-        return notFound(request, reply);
+      if (!tracker) return notFound(request, reply);
       return sendHtml(
         reply,
         <ConfirmDeletePage
@@ -420,16 +406,14 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     },
   );
 
-  app.post<{ Params: { id: string; tid: string; }; }>(
+  app.post<{ Params: { id: string; tid: string } }>(
     '/groups/:id/trackers/:tid/delete',
     guard,
     async (request, reply) => {
       const found = await load(request, reply, true);
-      if (!found)
-        return reply;
+      if (!found) return reply;
       const tracker = trackerOf(found.group, request.params.tid);
-      if (!tracker)
-        return notFound(request, reply);
+      if (!tracker) return notFound(request, reply);
       await deleteTracker(pool, found.group.id, tracker.id);
       audit(request, 'tracker.deleted', 'Tracker deleted from a group', {
         groupId: found.group.id,

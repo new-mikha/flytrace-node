@@ -25,10 +25,11 @@ import { z } from 'zod';
 const optional = <T extends z.ZodType>(type: T) =>
   z.preprocess((v) => (v === '' ? undefined : v), type.optional());
 const flag = (fallback: boolean) =>
-  z.preprocess(
-    (v) => (v === '' || v === undefined ? undefined : v),
-    z.enum(['true', 'false', '1', '0']).optional(),
-  )
+  z
+    .preprocess(
+      (v) => (v === '' || v === undefined ? undefined : v),
+      z.enum(['true', 'false', '1', '0']).optional(),
+    )
     .transform((v) => (v === undefined ? fallback : v === 'true' || v === '1'));
 
 function isTimeZone(name: string): boolean {
@@ -41,10 +42,8 @@ function isTimeZone(name: string): boolean {
 }
 
 /** A true/false setting that may be left unset (unlike `flag`, there is no fallback to apply here). */
-const optionalFlag = z.preprocess(
-  (v) => (v === '' ? undefined : v),
-  z.enum(['true', 'false', '1', '0']).optional(),
-)
+const optionalFlag = z
+  .preprocess((v) => (v === '' ? undefined : v), z.enum(['true', 'false', '1', '0']).optional())
   .transform((v) => (v === undefined ? undefined : v === 'true' || v === '1'));
 
 const schema = z.object({
@@ -85,8 +84,7 @@ export type Config = z.infer<typeof schema>;
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const parsed = schema.safeParse(env);
-  if (!parsed.success)
-    throw new Error(`Invalid environment:\n${z.prettifyError(parsed.error)}`);
+  if (!parsed.success) throw new Error(`Invalid environment:\n${z.prettifyError(parsed.error)}`);
   const config = parsed.data;
   if (config.SMTP_HOST && !config.MAIL_FROM_ADDRESS)
     throw new Error('Invalid environment:\nMAIL_FROM_ADDRESS is required when SMTP_HOST is set');
@@ -104,5 +102,7 @@ export function baseUrl(config: Config): string {
 }
 
 export function legacyExcludedUsers(config: Config): string[] {
-  return config.LEGACY_EXCLUDE_USERS.split(',').map((s) => s.trim()).filter(Boolean);
+  return config.LEGACY_EXCLUDE_USERS.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 }

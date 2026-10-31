@@ -49,7 +49,7 @@ export function legacyPage(
 ): string {
   return renderDocument(
     <Layout title={title} user={user} path={path}>
-      <h1 class='h3 mb-3'>{title}</h1>
+      <h1 class="h3 mb-3">{title}</h1>
       <div dangerouslySetInnerHTML={{ __html: bodyHtml }} />
     </Layout>,
   );

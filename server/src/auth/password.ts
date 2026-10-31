@@ -37,13 +37,10 @@ function safeEqual(a: string, b: string): boolean {
  */
 export function verifyLegacyPassword(stored: string, password: string): boolean {
   const parts = stored.split('|');
-  if (parts.length !== 4 || parts[0] !== 'flytrace1')
-    return false;
+  if (parts.length !== 4 || parts[0] !== 'flytrace1') return false;
   const [, hash = '', format = '', salt = ''] = parts;
-  if (format === '0')
-    return safeEqual(hash, password);
-  if (format !== '1')
-    return false;
+  if (format === '0') return safeEqual(hash, password);
+  if (format !== '1') return false;
   const computed = createHash('sha1')
     .update(Buffer.concat([Buffer.from(salt, 'base64'), Buffer.from(password, 'utf16le')]))
     .digest('base64');

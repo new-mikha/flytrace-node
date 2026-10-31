@@ -70,7 +70,7 @@ type Reply = Parameters<typeof sendHtml>[0];
 
 function firstIssue(
   schema: {
-    safeParse(v: unknown): { success: boolean; error?: { issues: { message: string; }[]; }; };
+    safeParse(v: unknown): { success: boolean; error?: { issues: { message: string }[] } };
   },
   value: string,
 ): string | undefined {
@@ -83,8 +83,8 @@ export function passwordErrors(
   password: string,
   confirm: string,
   forbidden: string[] = [],
-): { password?: string; confirmPassword?: string; } {
-  const errors: { password?: string; confirmPassword?: string; } = {};
+): { password?: string; confirmPassword?: string } {
+  const errors: { password?: string; confirmPassword?: string } = {};
   errors.password = firstIssue(newPasswordSchema, password);
   if (!errors.password && forbidden.some((f) => f && f.toLowerCase() === password.toLowerCase()))
     errors.password = 'The password must not be the same as your username or email.';
@@ -113,18 +113,14 @@ export async function identityRoutes(
 
   // ---- log in ----
 
-  app.get<{ Querystring: { returnUrl?: string; error?: string; }; }>(
+  app.get<{ Querystring: { returnUrl?: string; error?: string } }>(
     '/login',
     async (request, reply) => {
       const returnUrl = safeReturnUrl(request.query.returnUrl);
-      if (request.user)
-        return reply.redirect(returnUrl, 302);
+      if (request.user) return reply.redirect(returnUrl, 302);
       const e = request.query.error;
-      const error = e === 'unconfirmed' || e === 'locked' || e === 'expired'
-        ? e
-        : e
-        ? 'invalid'
-        : undefined;
+      const error =
+        e === 'unconfirmed' || e === 'locked' || e === 'expired' ? e : e ? 'invalid' : undefined;
       return sendHtml(
         reply,
         <LoginPage {...common(request)} returnUrl={returnUrl} error={error} />,
@@ -195,8 +191,7 @@ export async function identityRoutes(
     retryPage: () => ReturnType<typeof sendHtml>,
   ) {
     const pending = pendingLogin(request);
-    if (!pending)
-      return reply.redirect('/login?error=expired', 302);
+    if (!pending) return reply.redirect('/login?error=expired', 302);
     const { code } = formFields(request, 'code');
     if (pending.attempts >= MAX_CODE_ATTEMPTS) {
       audit(request, 'login.locked', 'Too many wrong codes, login attempt cancelled', {
@@ -216,8 +211,7 @@ export async function identityRoutes(
     }
 
     const result = await completeLogin(pool, pending.userId);
-    if (result.kind !== 'ok')
-      return reply.redirect('/login?error=1', 302);
+    if (result.kind !== 'ok') return reply.redirect('/login?error=1', 302);
     await startSession(request, result.user.id);
     audit(request, 'login.success', `Logged in with ${kind}`, {
       user: result.user.username,
@@ -227,52 +221,43 @@ export async function identityRoutes(
   }
 
   app.get('/login/2fa', async (request, reply) => {
-    if (!pendingLogin(request))
-      return reply.redirect('/login?error=expired', 302);
+    if (!pendingLogin(request)) return reply.redirect('/login?error=expired', 302);
     return sendHtml(reply, <TwoFactorLoginPage {...common(request)} />);
   });
-  app.post(
-    '/login/2fa',
-    { config: strictRateLimit },
-    async (request, reply) =>
-      secondStep(
-        request,
-        reply,
-        'authenticator code',
-        (id, code) => verifyUserCode(pool, id, code),
-        () => sendHtml(reply, <TwoFactorLoginPage {...common(request)} error />, 401),
-      ),
+  app.post('/login/2fa', { config: strictRateLimit }, async (request, reply) =>
+    secondStep(
+      request,
+      reply,
+      'authenticator code',
+      (id, code) => verifyUserCode(pool, id, code),
+      () => sendHtml(reply, <TwoFactorLoginPage {...common(request)} error />, 401),
+    ),
   );
 
   app.get('/login/recovery', async (request, reply) => {
-    if (!pendingLogin(request))
-      return reply.redirect('/login?error=expired', 302);
+    if (!pendingLogin(request)) return reply.redirect('/login?error=expired', 302);
     return sendHtml(reply, <RecoveryLoginPage {...common(request)} />);
   });
-  app.post(
-    '/login/recovery',
-    { config: strictRateLimit },
-    async (request, reply) =>
-      secondStep(
-        request,
-        reply,
-        'recovery code',
-        (id, code) => useRecoveryCode(pool, id, code),
-        () => sendHtml(reply, <RecoveryLoginPage {...common(request)} error />, 401),
-      ),
+  app.post('/login/recovery', { config: strictRateLimit }, async (request, reply) =>
+    secondStep(
+      request,
+      reply,
+      'recovery code',
+      (id, code) => useRecoveryCode(pool, id, code),
+      () => sendHtml(reply, <RecoveryLoginPage {...common(request)} error />, 401),
+    ),
   );
 
   // ---- register ----
 
   app.get('/register', async (request, reply) => {
-    if (request.user)
-      return reply.redirect('/account', 302);
+    if (request.user) return reply.redirect('/account', 302);
     return sendHtml(reply, <RegisterPage {...common(request)} values={{}} errors={{}} />);
   });
 
   // Answers the "not taken yet" hints on the register and change-email pages while the person types. Reveals whether a username or
   // email is registered, which registering itself reveals as well; hence the rate limit.
-  app.get<{ Querystring: { username?: string; email?: string; }; }>(
+  app.get<{ Querystring: { username?: string; email?: string } }>(
     '/register/check',
     { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } },
     async (request, reply) => {
@@ -303,8 +288,7 @@ export async function identityRoutes(
         <RegisterPage {...common(request)} values={{ username, email }} errors={errors} />,
         status,
       );
-    if (Object.values(errors).some(Boolean))
-      return show(422);
+    if (Object.values(errors).some(Boolean)) return show(422);
 
     const result = await registerUser(pool, { username, email, password: f.password });
     if (!result.ok) {
@@ -330,20 +314,20 @@ export async function identityRoutes(
 
   // ---- confirm email ----
 
-  app.get<{ Querystring: { token?: string; }; }>('/confirm-email', async (request, reply) => {
+  app.get<{ Querystring: { token?: string } }>('/confirm-email', async (request, reply) => {
     const token = request.query.token ?? '';
     const valid = token.length > 0 && (await peekToken(pool, token, 'confirm_email')) !== null;
     return sendHtml(
       reply,
       <LinkPage
         {...common(request)}
-        title='Confirm your email'
-        icon='fa-regular fa-envelope'
-        action='/confirm-email'
+        title="Confirm your email"
+        icon="fa-regular fa-envelope"
+        action="/confirm-email"
         token={token}
         valid={valid}
-        button='Confirm my email'
-        intro='Press the button to confirm your email address.'
+        button="Confirm my email"
+        intro="Press the button to confirm your email address."
       />,
       valid ? 200 : 400,
     );
@@ -352,40 +336,36 @@ export async function identityRoutes(
   app.post('/confirm-email', { config: strictRateLimit }, async (request, reply) => {
     const { token } = formFields(request, 'token');
     const info = await consumeToken(pool, token, 'confirm_email');
-    if (!info)
-      return reply.redirect(`/confirm-email?token=${encodeURIComponent(token)}`, 302);
+    if (!info) return reply.redirect(`/confirm-email?token=${encodeURIComponent(token)}`, 302);
     await confirmEmail(pool, info.userId);
     audit(request, 'email.confirmed', 'Email address confirmed', { userId: info.userId });
     setFlash(request, 'success', 'Thank you! Your email is confirmed.');
     return reply.redirect(request.user ? '/account' : '/login', 302);
   });
 
-  app.get<{ Querystring: { token?: string; }; }>(
-    '/confirm-email-change',
-    async (request, reply) => {
-      const token = request.query.token ?? '';
-      const info = token ? await peekToken(pool, token, 'change_email') : null;
-      return sendHtml(
-        reply,
-        <LinkPage
-          {...common(request)}
-          title='Confirm your new email'
-          icon='fa-regular fa-envelope'
-          action='/confirm-email-change'
-          token={token}
-          valid={info !== null}
-          button='Use this email address'
-          intro={
-            <>
-              Press the button to make <strong>{info?.data}</strong>{' '}
-              the email address of your account.
-            </>
-          }
-        />,
-        info ? 200 : 400,
-      );
-    },
-  );
+  app.get<{ Querystring: { token?: string } }>('/confirm-email-change', async (request, reply) => {
+    const token = request.query.token ?? '';
+    const info = token ? await peekToken(pool, token, 'change_email') : null;
+    return sendHtml(
+      reply,
+      <LinkPage
+        {...common(request)}
+        title="Confirm your new email"
+        icon="fa-regular fa-envelope"
+        action="/confirm-email-change"
+        token={token}
+        valid={info !== null}
+        button="Use this email address"
+        intro={
+          <>
+            Press the button to make <strong>{info?.data}</strong> the email address of your
+            account.
+          </>
+        }
+      />,
+      info ? 200 : 400,
+    );
+  });
 
   app.post('/confirm-email-change', { config: strictRateLimit }, async (request, reply) => {
     const { token } = formFields(request, 'token');
@@ -397,10 +377,10 @@ export async function identityRoutes(
         reply,
         <MessagePage
           {...common(request)}
-          title='Email already in use'
-          icon='fa-regular fa-envelope'
+          title="Email already in use"
+          icon="fa-regular fa-envelope"
         >
-          <p class='mb-0'>
+          <p class="mb-0">
             Somebody else has registered {info.data} in the meantime. Please choose another address.
           </p>
         </MessagePage>,
@@ -414,9 +394,8 @@ export async function identityRoutes(
     return reply.redirect(request.user ? '/account' : '/login', 302);
   });
 
-  app.get(
-    '/resend-confirmation',
-    async (request, reply) => sendHtml(reply, <ResendConfirmationPage {...common(request)} />),
+  app.get('/resend-confirmation', async (request, reply) =>
+    sendHtml(reply, <ResendConfirmationPage {...common(request)} />),
   );
 
   app.post('/resend-confirmation', { config: emailRateLimit }, async (request, reply) => {
@@ -424,7 +403,7 @@ export async function identityRoutes(
     if (!login.trim())
       return sendHtml(
         reply,
-        <ResendConfirmationPage {...common(request)} error='Enter your username or email.' />,
+        <ResendConfirmationPage {...common(request)} error="Enter your username or email." />,
         422,
       );
 
@@ -436,8 +415,8 @@ export async function identityRoutes(
     // Same answer whether or not the account exists, so this page cannot be used to look up who is registered.
     return sendHtml(
       reply,
-      <MessagePage {...common(request)} title='Check your email' icon='fa-regular fa-envelope'>
-        <p class='mb-0'>
+      <MessagePage {...common(request)} title="Check your email" icon="fa-regular fa-envelope">
+        <p class="mb-0">
           If that account exists and still needs confirming, we have sent the link again.
         </p>
       </MessagePage>,
@@ -446,9 +425,8 @@ export async function identityRoutes(
 
   // ---- forgot / reset password ----
 
-  app.get(
-    '/forgot-password',
-    async (request, reply) => sendHtml(reply, <ForgotPasswordPage {...common(request)} />),
+  app.get('/forgot-password', async (request, reply) =>
+    sendHtml(reply, <ForgotPasswordPage {...common(request)} />),
   );
 
   app.post('/forgot-password', { config: emailRateLimit }, async (request, reply) => {
@@ -456,7 +434,7 @@ export async function identityRoutes(
     if (!login.trim())
       return sendHtml(
         reply,
-        <ForgotPasswordPage {...common(request)} error='Enter your username or email.' />,
+        <ForgotPasswordPage {...common(request)} error="Enter your username or email." />,
         422,
       );
 
@@ -471,19 +449,19 @@ export async function identityRoutes(
     }
     return sendHtml(
       reply,
-      <MessagePage {...common(request)} title='Check your email' icon='fa-regular fa-envelope'>
+      <MessagePage {...common(request)} title="Check your email" icon="fa-regular fa-envelope">
         <p>
           If an account with that name or email exists and has an email address, we have sent a link
           to choose a new password. It works for one hour.
         </p>
-        <p class='mb-0'>
-          <a href='/login'>Back to log in</a>
+        <p class="mb-0">
+          <a href="/login">Back to log in</a>
         </p>
       </MessagePage>,
     );
   });
 
-  app.get<{ Querystring: { token?: string; }; }>('/reset-password', async (request, reply) => {
+  app.get<{ Querystring: { token?: string } }>('/reset-password', async (request, reply) => {
     const token = request.query.token ?? '';
     const info = token.length > 0 ? await peekToken(pool, token, 'reset_password') : null;
     const account = info ? await getAccount(pool, info.userId) : null;
@@ -528,7 +506,8 @@ export async function identityRoutes(
         422,
       );
 
-    if (!(await consumeToken(pool, f.token, 'reset_password'))) // lost a race with another submit of the same link
+    if (!(await consumeToken(pool, f.token, 'reset_password')))
+      // lost a race with another submit of the same link
       return sendHtml(
         reply,
         <ResetPasswordPage {...common(request)} token={f.token} valid={false} errors={{}} />,

@@ -37,16 +37,14 @@ let failMail = false;
 const mailer: Mailer = {
   kind: 'smtp',
   async send(message) {
-    if (failMail)
-      throw new Error('connection refused');
+    if (failMail) throw new Error('connection refused');
     sent.push(message);
   },
 };
 
 function tokenIn(message: MailMessage | undefined): string {
   const match = message?.text.match(/token=([^\s&"]+)/);
-  if (!match)
-    throw new Error(`no link in: ${message?.text}`);
+  if (!match) throw new Error(`no link in: ${message?.text}`);
   return decodeURIComponent(match[1]!);
 }
 
@@ -64,16 +62,15 @@ class Browser {
       cookies: this.cookies,
       ...(form
         ? {
-          payload: new URLSearchParams(form).toString(),
-          headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        }
+            payload: new URLSearchParams(form).toString(),
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          }
         : {}),
     });
     for (const c of res.cookies)
       if (c.value === '' || (c.expires && c.expires.getTime() < Date.now()))
         delete this.cookies[c.name];
-      else
-        this.cookies[c.name] = c.value;
+      else this.cookies[c.name] = c.value;
 
     return res;
   }
@@ -96,8 +93,11 @@ class Browser {
 }
 
 function totp(secret: string, offsetSteps = 0): string {
-  return new OTPAuth.TOTP({ secret: OTPAuth.Secret.fromBase32(secret), digits: 6, period: 30 })
-    .generate({ timestamp: Date.now() + offsetSteps * 30_000 });
+  return new OTPAuth.TOTP({
+    secret: OTPAuth.Secret.fromBase32(secret),
+    digits: 6,
+    period: 30,
+  }).generate({ timestamp: Date.now() + offsetSteps * 30_000 });
 }
 
 let pool: Pool;
@@ -171,9 +171,9 @@ describe('registration', () => {
     expect(mail.subject).toContain('Confirm');
     expect(mail.html).toContain('/confirm-email?token=');
 
-    const row =
-      (await pool.query('SELECT email_confirmed FROM users WHERE username = $1', [userName('reg')]))
-        .rows[0];
+    const row = (
+      await pool.query('SELECT email_confirmed FROM users WHERE username = $1', [userName('reg')])
+    ).rows[0];
     expect(row.email_confirmed).toBe(false);
     expect((await b.get('/account')).body).toContain('not confirmed');
   });
@@ -353,8 +353,9 @@ describe('account pages', () => {
     expect(ok.statusCode).toBe(302);
     expect(await b.whoami()).toBe(userName('pw'));
     expect(await other.whoami()).toBeNull();
-    expect((await new Browser(app).loginAs(userName('pw'), 'another good one')).headers.location)
-      .toBe('/account');
+    expect(
+      (await new Browser(app).loginAs(userName('pw'), 'another good one')).headers.location,
+    ).toBe('/account');
   });
 
   it('change the email through a link sent to the new address', async () => {
@@ -381,9 +382,11 @@ describe('account pages', () => {
     ).toBe(userEmail('em'));
 
     expect((await b.post('/confirm-email-change', { token: tokenIn(mail) })).statusCode).toBe(302);
-    const row = (await pool.query('SELECT email, email_confirmed FROM users WHERE username = $1', [
-      userName('em'),
-    ])).rows[0];
+    const row = (
+      await pool.query('SELECT email, email_confirmed FROM users WHERE username = $1', [
+        userName('em'),
+      ])
+    ).rows[0];
     expect(row).toEqual({ email: newEmail, email_confirmed: true });
   });
 
@@ -440,8 +443,8 @@ describe('two-factor login', () => {
     expect(wrong.statusCode).toBe(422);
     const enabled = await b.post('/account/2fa/setup', { code: totp(secret) });
     expect(enabled.statusCode).toBe(200);
-    const codes = [...enabled.body.matchAll(/<code>([A-Z2-9]{5}-[A-Z2-9]{5})<\/code>/g)].map((m) =>
-      m[1]!
+    const codes = [...enabled.body.matchAll(/<code>([A-Z2-9]{5}-[A-Z2-9]{5})<\/code>/g)].map(
+      (m) => m[1]!,
     );
     expect(codes).toHaveLength(10);
     return { secret, codes };
@@ -483,8 +486,7 @@ describe('two-factor login', () => {
 
     const guesser = new Browser(app);
     await guesser.loginAs(userName('mfa2'));
-    for (let i = 0; i < 5; i++)
-      await guesser.post('/login/2fa', { code: '111111' });
+    for (let i = 0; i < 5; i++) await guesser.post('/login/2fa', { code: '111111' });
     const locked = await guesser.post('/login/2fa', { code: '111111' });
     expect(locked.headers.location).toContain('error=locked');
     expect((await guesser.get('/login/2fa')).statusCode).toBe(302);
@@ -496,12 +498,13 @@ describe('two-factor login', () => {
     await b.loginAs(userName('mfa3'));
     await b.post('/login/recovery', { code: codes[1]! });
 
-    expect((await b.post('/account/2fa/recovery-codes', { currentPassword: 'wrong' })).statusCode)
-      .toBe(422);
+    expect(
+      (await b.post('/account/2fa/recovery-codes', { currentPassword: 'wrong' })).statusCode,
+    ).toBe(422);
     const fresh = await b.post('/account/2fa/recovery-codes', { currentPassword: PASSWORD });
     expect(fresh.body).toContain('<code>');
-    const newCodes = [...fresh.body.matchAll(/<code>([A-Z2-9]{5}-[A-Z2-9]{5})<\/code>/g)].map((m) =>
-      m[1]!
+    const newCodes = [...fresh.body.matchAll(/<code>([A-Z2-9]{5}-[A-Z2-9]{5})<\/code>/g)].map(
+      (m) => m[1]!,
     );
     expect(newCodes).not.toContain(codes[2]);
 
@@ -514,10 +517,12 @@ describe('two-factor login', () => {
     const plain = new Browser(app);
     expect((await plain.loginAs(userName('mfa3'))).headers.location).toBe('/account');
     expect(
-      (await pool.query(
-        `SELECT count(*) AS n FROM recovery_codes r JOIN users u ON u.id = r.user_id WHERE u.username = $1`,
-        [userName('mfa3')],
-      )).rows[0].n,
+      (
+        await pool.query(
+          `SELECT count(*) AS n FROM recovery_codes r JOIN users u ON u.id = r.user_id WHERE u.username = $1`,
+          [userName('mfa3')],
+        )
+      ).rows[0].n,
     ).toBe('0');
   });
 });

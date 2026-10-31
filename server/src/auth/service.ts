@@ -43,15 +43,15 @@ interface UserRow {
 
 /** Outcome of checking a login name and password. */
 export type LoginResult =
-  | { kind: 'ok'; user: CurrentUser; }
+  | { kind: 'ok'; user: CurrentUser }
   /** Password is right, but a second step (authenticator code) is still needed. */
-  | { kind: 'two-factor'; userId: string; }
+  | { kind: 'two-factor'; userId: string }
   /** Password is right, but the email address has not been confirmed and the site requires that. */
-  | { kind: 'email-unconfirmed'; userId: string; }
-  | { kind: 'invalid'; };
+  | { kind: 'email-unconfirmed'; userId: string }
+  | { kind: 'invalid' };
 
 export async function loadUser(pool: Pool, id: string): Promise<CurrentUser | null> {
-  const { rows } = await pool.query<{ id: string; username: string; roles: string[]; }>(
+  const { rows } = await pool.query<{ id: string; username: string; roles: string[] }>(
     `SELECT u.id, u.username,
             COALESCE(array_agg(r.name::text) FILTER (WHERE r.name IS NOT NULL), '{}') AS roles
      FROM users u
@@ -93,8 +93,7 @@ export async function checkPassword(
   }
 
   const { ok, needsRehash } = await verifyPassword(user.password_hash, password);
-  if (!ok || !user.is_approved || user.is_locked_out)
-    return { kind: 'invalid' };
+  if (!ok || !user.is_approved || user.is_locked_out) return { kind: 'invalid' };
 
   if (needsRehash)
     // Upgrade the legacy ASP.NET hash now that we have the plain password in hand.
@@ -105,8 +104,7 @@ export async function checkPassword(
 
   if (requireConfirmedEmail && !user.email_confirmed)
     return { kind: 'email-unconfirmed', userId: user.id };
-  if (user.two_factor_enabled)
-    return { kind: 'two-factor', userId: user.id };
+  if (user.two_factor_enabled) return { kind: 'two-factor', userId: user.id };
   return completeLogin(pool, user.id);
 }
 

@@ -44,7 +44,9 @@ let eventId: number;
 beforeAll(async () => {
   const config = { ...loadConfig(), SMTP_HOST: undefined };
   pool = createPool(config.DATABASE_URL);
-  const { rows: [u] } = await pool.query<{ id: number; }>(
+  const {
+    rows: [u],
+  } = await pool.query<{ id: number }>(
     'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id',
     [USER, await hashPassword(PASSWORD)],
   );
@@ -52,7 +54,9 @@ beforeAll(async () => {
     'INSERT INTO user_profiles (user_id, is_simple_events_model) VALUES ($1, false)',
     [u!.id],
   ); // multiple-events mode: /events/:id
-  const { rows: [e] } = await pool.query<{ id: number; }>(
+  const {
+    rows: [e],
+  } = await pool.query<{ id: number }>(
     'INSERT INTO events (user_id, name) VALUES ($1, $2) RETURNING id',
     [u!.id, `E2E ${run}`],
   );
@@ -80,11 +84,13 @@ const rows = (page: Page) =>
   page.$$eval('#ft-task-form tr.ft-task-row', (trs) =>
     trs
       .map((tr) => ({
-        wpt: (tr.querySelector('select[name="wpt"]') as HTMLSelectElement).selectedOptions[0]
-          ?.textContent ?? '',
+        wpt:
+          (tr.querySelector('select[name="wpt"]') as HTMLSelectElement).selectedOptions[0]
+            ?.textContent ?? '',
         radius: (tr.querySelector('input[name="radius"]') as HTMLInputElement).value,
       }))
-      .filter((r) => r.wpt !== ''));
+      .filter((r) => r.wpt !== ''),
+  );
 
 describe('bulk buttons on the event page', () => {
   it('fill the task in the order added or by name, with the typed radius, and make the task savable', async () => {
@@ -118,7 +124,7 @@ describe('bulk buttons on the event page', () => {
 
       await save.click();
       await page.waitForSelector('#ft-flash .alert-success');
-      const saved = await pool.query<{ name: string; radius: number; }>(
+      const saved = await pool.query<{ name: string; radius: number }>(
         `SELECT w.name, t.radius FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = $1 ORDER BY t.wpt_order`,
         [eventId],
       );

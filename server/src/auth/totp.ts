@@ -64,30 +64,26 @@ export function normalizeCode(input: string): string {
  */
 export function checkCode(secret: string, code: string, now = Date.now()): number | null {
   const digits = normalizeCode(code);
-  if (!/^\d{6}$/.test(digits))
-    return null;
+  if (!/^\d{6}$/.test(digits)) return null;
   const delta = totp(secret, 'Flytrace', 'check').validate({
     token: digits,
     timestamp: now,
     window: 1,
   });
-  if (delta === null)
-    return null;
+  if (delta === null) return null;
   return Math.floor(now / 1000 / STEP_SECONDS) + delta;
 }
 
 /** Verifies the code for the user and records its time step; false for a wrong or already used code. */
 export async function verifyUserCode(pool: Pool, userId: string, code: string): Promise<boolean> {
-  const { rows } = await pool.query<{ two_factor_secret: string | null; }>(
+  const { rows } = await pool.query<{ two_factor_secret: string | null }>(
     'SELECT two_factor_secret FROM users WHERE id = $1 AND two_factor_enabled',
     [userId],
   );
   const secret = rows[0]?.two_factor_secret;
-  if (!secret)
-    return false;
+  if (!secret) return false;
   const step = checkCode(secret, code);
-  if (step === null)
-    return false;
+  if (step === null) return false;
   const { rowCount } = await pool.query(
     `UPDATE users SET two_factor_last_used_step = $2
      WHERE id = $1 AND (two_factor_last_used_step IS NULL OR two_factor_last_used_step < $2)`,
@@ -127,7 +123,7 @@ export async function useRecoveryCode(pool: Pool, userId: string, code: string):
 }
 
 export async function countRecoveryCodes(pool: Pool, userId: string): Promise<number> {
-  const { rows } = await pool.query<{ n: string; }>(
+  const { rows } = await pool.query<{ n: string }>(
     'SELECT count(*) AS n FROM recovery_codes WHERE user_id = $1 AND used_at IS NULL',
     [userId],
   );

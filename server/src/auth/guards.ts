@@ -34,19 +34,16 @@ export async function requireLogin(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<FastifyReply | undefined> {
-  if (!request.user)
-    return denyAnonymous(request, reply);
+  if (!request.user) return denyAnonymous(request, reply);
 }
 
 /** preHandler factory: the logged-in user must hold `role` (e.g. "Admins"). */
 export function requireRole(role: string) {
-  return async function(
+  return async function (
     request: FastifyRequest,
     reply: FastifyReply,
   ): Promise<FastifyReply | undefined> {
-    if (!request.user)
-      return denyAnonymous(request, reply);
-    if (!request.user.roles.includes(role))
-      return denyForbidden(reply);
+    if (!request.user) return denyAnonymous(request, reply);
+    if (!request.user.roles.includes(role)) return denyForbidden(reply);
   };
 }

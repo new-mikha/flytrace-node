@@ -45,9 +45,8 @@ import { formFields, setFlash, takeFlash } from './util.ts';
 
 const HIDE_HOURS = [0, 1, 2, 3, 5, 24];
 const MAX_POINTS = 500;
-const asList = (
-  v: unknown,
-): string[] => (Array.isArray(v) ? v.map(String) : typeof v === 'string' ? [v] : []);
+const asList = (v: unknown): string[] =>
+  Array.isArray(v) ? v.map(String) : typeof v === 'string' ? [v] : [];
 
 export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<void> {
   const guard = { preHandler: requireLogin };
@@ -61,15 +60,16 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   });
 
   const notFound = (request: FastifyRequest, reply: FastifyReply) =>
-    reply.code(404).type('text/html; charset=utf-8').send(
-      page('Event not found', '<p>There is no such event.</p>', request.user ?? null),
-    );
+    reply
+      .code(404)
+      .type('text/html; charset=utf-8')
+      .send(page('Event not found', '<p>There is no such event.</p>', request.user ?? null));
 
   /** The event, when it is the signed-in person's own; in the single-event mode only the default event can be opened. Otherwise the reply is sent. */
   async function load(
-    request: FastifyRequest<{ Params: { id: string; }; }>,
+    request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,
-  ): Promise<{ event: EditableEvent; single: boolean; } | null> {
+  ): Promise<{ event: EditableEvent; single: boolean } | null> {
     const user = request.user!;
     const event = /^\d+$/.test(request.params.id)
       ? await getEvent(pool, Number(request.params.id))
@@ -89,17 +89,13 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   }
 
   // The single-event mode's Today Task is the default event, made when there is none yet.
-  app.get(
-    '/events/default',
-    guard,
-    async (request, reply) =>
-      reply.redirect(`/events/${await ensureDefaultEvent(pool, request.user!.id)}`, 302),
+  app.get('/events/default', guard, async (request, reply) =>
+    reply.redirect(`/events/${await ensureDefaultEvent(pool, request.user!.id)}`, 302),
   );
 
-  app.get<{ Params: { id: string; }; }>('/events/:id', guard, async (request, reply) => {
+  app.get<{ Params: { id: string } }>('/events/:id', guard, async (request, reply) => {
     const found = await load(request, reply);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     return sendHtml(
       reply,
       <EventPage user={request.user!} {...found} flash={takeFlash(request)} now={new Date()} />,
@@ -109,7 +105,7 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   const show = (
     request: FastifyRequest,
     reply: FastifyReply,
-    found: { event: EditableEvent; single: boolean; },
+    found: { event: EditableEvent; single: boolean },
     draft: EventDraft,
   ) =>
     sendHtml(
@@ -121,7 +117,7 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   const back = (
     request: FastifyRequest,
     reply: FastifyReply,
-    event: { id: number; },
+    event: { id: number },
     text: string,
     anchor = '',
   ) => {
@@ -129,10 +125,9 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return reply.redirect(`/events/${event.id}${anchor}`, 302);
   };
 
-  app.post<{ Params: { id: string; }; }>('/events/:id', guard, async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/events/:id', guard, async (request, reply) => {
     const found = await load(request, reply);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     const { event } = found;
     const name = formFields(request, 'name').name.trim();
     if (!name)
@@ -156,10 +151,9 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   });
 
   // The task: the rows of waypoint + radius, in order (a row without a waypoint is dropped; no radius means the default).
-  app.post<{ Params: { id: string; }; }>('/events/:id/task', guard, async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/events/:id/task', guard, async (request, reply) => {
     const found = await load(request, reply);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     const { event } = found;
     const body = (request.body ?? {}) as Record<string, unknown>;
     const wpts = asList(body.wpt);
@@ -168,21 +162,15 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     const refuse = (error: string) => show(request, reply, found, { task: { rows, error } });
     const points: TaskPoint[] = [];
     for (const r of rows) {
-      if (r.wpt === '')
-        continue;
-      const radius = r.radius === ''
-        ? DEFAULT_RADIUS
-        : /^\d{1,6}$/.test(r.radius)
-        ? Number(r.radius)
-        : 0;
-      if (!/^\d{1,10}$/.test(r.wpt))
-        return refuse('Please choose the turn points from the lists.');
+      if (r.wpt === '') continue;
+      const radius =
+        r.radius === '' ? DEFAULT_RADIUS : /^\d{1,6}$/.test(r.radius) ? Number(r.radius) : 0;
+      if (!/^\d{1,10}$/.test(r.wpt)) return refuse('Please choose the turn points from the lists.');
       if (radius < 1 || radius > MAX_RADIUS)
         return refuse(`The radius is a whole number of meters, 1 to ${MAX_RADIUS}.`);
       points.push({ waypointId: Number(r.wpt), radius });
     }
-    if (points.length > MAX_POINTS)
-      return refuse(`A task can have up to ${MAX_POINTS} points.`);
+    if (points.length > MAX_POINTS) return refuse(`A task can have up to ${MAX_POINTS} points.`);
     if (!(await saveTask(pool, event.id, points)))
       return refuse('Please choose waypoints of this event.');
     audit(request, 'event.task', 'Task saved', {
@@ -201,10 +189,9 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
   });
 
   // "Hide old points" (older than now minus some hours) and "Restore old points".
-  app.post<{ Params: { id: string; }; }>('/events/:id/hide-old', guard, async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/events/:id/hide-old', guard, async (request, reply) => {
     const found = await load(request, reply);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     const hours = Number(formFields(request, 'hours').hours);
     if (!HIDE_HOURS.includes(hours))
       return back(request, reply, found.event, 'Please use one of the buttons.', '#old-points');
@@ -213,27 +200,20 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return back(request, reply, found.event, 'Old points are hidden now.', '#old-points');
   });
 
-  app.post<{ Params: { id: string; }; }>(
-    '/events/:id/restore-old',
-    guard,
-    async (request, reply) => {
-      const found = await load(request, reply);
-      if (!found)
-        return reply;
-      await setStartTs(pool, found.event.id, null);
-      audit(request, 'event.restore-old', 'Old points restored', { eventId: found.event.id });
-      return back(request, reply, found.event, 'Old points are shown again.', '#old-points');
-    },
-  );
+  app.post<{ Params: { id: string } }>('/events/:id/restore-old', guard, async (request, reply) => {
+    const found = await load(request, reply);
+    if (!found) return reply;
+    await setStartTs(pool, found.event.id, null);
+    audit(request, 'event.restore-old', 'Old points restored', { eventId: found.event.id });
+    return back(request, reply, found.event, 'Old points are shown again.', '#old-points');
+  });
 
   // Delete the whole event: the confirmation page (what the Delete link opens without JavaScript, and the dialog's twin) and the delete.
-  app.get<{ Params: { id: string; }; }>('/events/:id/delete', guard, async (request, reply) => {
+  app.get<{ Params: { id: string } }>('/events/:id/delete', guard, async (request, reply) => {
     const found = await load(request, reply);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     const { event } = found;
-    if (found.single)
-      return reply.redirect(`/events/${event.id}`, 302); // the single-event mode has one Today Task, which stays
+    if (found.single) return reply.redirect(`/events/${event.id}`, 302); // the single-event mode has one Today Task, which stays
     return sendHtml(
       reply,
       <ConfirmDeletePage
@@ -249,10 +229,9 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     );
   });
 
-  app.post<{ Params: { id: string; }; }>('/events/:id/delete', guard, async (request, reply) => {
+  app.post<{ Params: { id: string } }>('/events/:id/delete', guard, async (request, reply) => {
     const found = await load(request, reply);
-    if (!found)
-      return reply;
+    if (!found) return reply;
     const { event } = found;
     if (found.single)
       return back(

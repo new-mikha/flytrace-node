@@ -35,11 +35,11 @@ declare module '@fastify/session' {
   interface FastifySessionObject {
     userId?: string;
     /** Password was right but the authenticator code is still to come (login step 2). */
-    pendingLogin?: { userId: string; returnUrl: string; attempts: number; expires: number; };
+    pendingLogin?: { userId: string; returnUrl: string; attempts: number; expires: number };
     /** Authenticator secret being set up, not saved to the user until a code from the app is confirmed. */
     pendingTotpSecret?: string;
     /** One-time message shown on the next page. */
-    flash?: { kind: 'success' | 'info' | 'danger'; text: string; };
+    flash?: { kind: 'success' | 'info' | 'danger'; text: string };
   }
 }
 
@@ -76,7 +76,6 @@ export async function registerSession(
   app.addHook('preHandler', async (request) => {
     const userId = request.session.userId;
     request.user = userId ? await loadUser(pool, userId) : null;
-    if (userId && !request.user)
-      await request.session.destroy(); // deleted / locked out since login
+    if (userId && !request.user) await request.session.destroy(); // deleted / locked out since login
   });
 }

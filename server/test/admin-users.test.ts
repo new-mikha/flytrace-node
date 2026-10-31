@@ -80,13 +80,13 @@ beforeAll(async () => {
   const config = { ...loadConfig(), SMTP_HOST: undefined };
   pool = createPool(config.DATABASE_URL);
   const hash = await hashPassword(PASSWORD);
-  for (
-    const [name, email] of [[ADMIN, `${ADMIN}@example.com`], [PLAIN, `${PLAIN}@example.com`], [
-      TARGET,
-      `${TARGET}@example.com`,
-    ], [NO_MAIL, null]] as const
-  ) {
-    const { rows } = await pool.query<{ id: string; }>(
+  for (const [name, email] of [
+    [ADMIN, `${ADMIN}@example.com`],
+    [PLAIN, `${PLAIN}@example.com`],
+    [TARGET, `${TARGET}@example.com`],
+    [NO_MAIL, null],
+  ] as const) {
+    const { rows } = await pool.query<{ id: string }>(
       'INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3) RETURNING id',
       [name, hash, email],
     );
@@ -105,10 +105,12 @@ afterAll(async () => {
 });
 
 const userRow = async (name: string) =>
-  (await pool.query(
-    'SELECT is_locked_out, email, email_confirmed, two_factor_enabled FROM users WHERE username = $1',
-    [name],
-  )).rows[0];
+  (
+    await pool.query(
+      'SELECT is_locked_out, email, email_confirmed, two_factor_enabled FROM users WHERE username = $1',
+      [name],
+    )
+  ).rows[0];
 
 describe('access', () => {
   it('sends anonymous visitors to the login and other users to /403', async () => {
@@ -125,12 +127,14 @@ describe('access', () => {
     expect(res.headers.location).toBe('/403');
     expect((await userRow(TARGET)).is_locked_out).toBe(false);
     expect(
-      (await app.inject({
-        method: 'POST',
-        url: `/admin/users/${ids[TARGET]}/lock`,
-        headers: FORM,
-        payload: `confirmName=${TARGET}`,
-      })).statusCode,
+      (
+        await app.inject({
+          method: 'POST',
+          url: `/admin/users/${ids[TARGET]}/lock`,
+          headers: FORM,
+          payload: `confirmName=${TARGET}`,
+        })
+      ).statusCode,
     ).toBe(302);
   });
 });
@@ -152,10 +156,10 @@ describe('the list', () => {
 describe('sorting the list', () => {
   const all = encodeURIComponent(`_${run}`); // matches the four test users and nobody else
   const order = (body: string) =>
-    [ADMIN, PLAIN, TARGET, NO_MAIL].map((n) =>
-      [n, body.indexOf(`href="/admin/users/${ids[n]}"`)] as const
-    )
-      .sort((a, b) => a[1] - b[1]).map(([n]) => n);
+    [ADMIN, PLAIN, TARGET, NO_MAIL]
+      .map((n) => [n, body.indexOf(`href="/admin/users/${ids[n]}"`)] as const)
+      .sort((a, b) => a[1] - b[1])
+      .map(([n]) => n);
 
   it('orders by name by default, and either way on request', async () => {
     const admin = await loginAs(ADMIN);
@@ -321,7 +325,8 @@ describe('the user pages', () => {
 
   it('have one form each, with the typed-name field, and the list stays at the left', async () => {
     const admin = await loginAs(ADMIN);
-    for (const slug of sections.filter((x) => x !== 'disable-2fa')) { // that one has no form while two-factor is off
+    for (const slug of sections.filter((x) => x !== 'disable-2fa')) {
+      // that one has no form while two-factor is off
       const res = await admin.get(`/admin/users/${ids[TARGET]}/${slug}`);
       expect(res.statusCode, slug).toBe(200);
       expect(res.body.match(/<form method="post" action="\/admin\/users\//g), slug).toHaveLength(1);
@@ -391,8 +396,9 @@ describe('the user pages', () => {
   it('go back to the list or the user when something is unknown', async () => {
     const admin = await loginAs(ADMIN);
     expect((await admin.get('/admin/users/not-a-uuid')).headers.location).toBe('/admin');
-    expect((await admin.get('/admin/users/00000000-0000-4000-8000-000000000000')).headers.location)
-      .toBe('/admin');
+    expect(
+      (await admin.get('/admin/users/00000000-0000-4000-8000-000000000000')).headers.location,
+    ).toBe('/admin');
     expect(
       (await admin.get('/admin/users/00000000-0000-4000-8000-000000000000/password')).headers
         .location,
@@ -526,10 +532,12 @@ describe('changes', () => {
     expect((await admin.post(url, { to: 'yes', confirmName: TARGET })).statusCode).toBe(302);
     expect((await userRow(TARGET)).email_confirmed).toBe(true);
     expect(
-      (await admin.post(`/admin/users/${ids[NO_MAIL]}/email-status`, {
-        to: 'yes',
-        confirmName: NO_MAIL,
-      })).statusCode,
+      (
+        await admin.post(`/admin/users/${ids[NO_MAIL]}/email-status`, {
+          to: 'yes',
+          confirmName: NO_MAIL,
+        })
+      ).statusCode,
     ).toBe(422);
   });
 

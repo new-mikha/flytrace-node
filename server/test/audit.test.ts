@@ -64,16 +64,23 @@ describe('what the app logs', () => {
       done();
     },
   });
-  const mailer: Mailer = { kind: 'smtp', async send() {/* sent */} };
+  const mailer: Mailer = {
+    kind: 'smtp',
+    async send() {
+      /* sent */
+    },
+  };
   let app: FastifyInstance;
   let pool: Pool;
   let cookies: Record<string, string> = {};
   let ip = 0;
 
   const events = () =>
-    written.join('').split('\n').filter(Boolean).map((l) =>
-      JSON.parse(l) as Record<string, unknown>
-    )
+    written
+      .join('')
+      .split('\n')
+      .filter(Boolean)
+      .map((l) => JSON.parse(l) as Record<string, unknown>)
       .filter((l) => l.event);
 
   async function post(url: string, form: Record<string, string>) {
@@ -85,8 +92,7 @@ describe('what the app logs', () => {
       payload: new URLSearchParams(form).toString(),
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
     });
-    for (const c of res.cookies)
-      cookies[c.name] = c.value;
+    for (const c of res.cookies) cookies[c.name] = c.value;
     return res;
   }
 
@@ -138,9 +144,11 @@ describe('what the app logs', () => {
   });
 
   it('shows the user on every page request line', () => {
-    const lines = written.join('').split('\n').filter(Boolean).map((l) =>
-      JSON.parse(l) as Record<string, unknown>
-    );
+    const lines = written
+      .join('')
+      .split('\n')
+      .filter(Boolean)
+      .map((l) => JSON.parse(l) as Record<string, unknown>);
     const account = lines.find((l) => String(l.msg).startsWith('POST /account/test-email'));
     expect(account).toMatchObject({ user: name });
   });

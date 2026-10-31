@@ -33,8 +33,7 @@ export function setFlash(request: FastifyRequest, kind: Flash['kind'], text: str
 /** The one-time message left by the previous request, removed once read. */
 export function takeFlash(request: FastifyRequest): Flash | null {
   const flash = request.session.flash ?? null;
-  if (flash)
-    request.session.flash = undefined;
+  if (flash) request.session.flash = undefined;
   return flash;
 }
 

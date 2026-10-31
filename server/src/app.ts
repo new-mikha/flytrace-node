@@ -46,12 +46,13 @@ function localIsoTime(): string {
   const offset = -d.getTimezoneOffset();
   const sign = offset < 0 ? '-' : '+';
   const date = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-  const time = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${
-    p(d.getMilliseconds(), 3)
-  }`;
-  return `,"time":"${date}T${time}${sign}${p(Math.floor(Math.abs(offset) / 60))}:${
-    p(Math.abs(offset) % 60)
-  }"`;
+  const time = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(
+    d.getMilliseconds(),
+    3,
+  )}`;
+  return `,"time":"${date}T${time}${sign}${p(Math.floor(Math.abs(offset) / 60))}:${p(
+    Math.abs(offset) % 60,
+  )}"`;
 }
 
 /**
@@ -69,20 +70,20 @@ export async function buildApp(
     logger: logStream
       ? { level: 'info', stream: logStream }
       : config.NODE_ENV === 'test'
-      ? false
-      : config.NODE_ENV === 'production'
-      ? { level: 'info', timestamp: localIsoTime }
-      : {
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            translateTime: 'SYS:HH:MM:ss', // SYS: = the process's time zone (LOG_TIMEZONE, else the host's), not UTC
-            // messages are written to be read on their own; the fields stay in the JSON logs of production
-            ignore: 'pid,hostname,reqId,event,user,userId,to,subject,action,ip',
-            messageFormat: '{msg}{if user} [{user}]{end}',
-          },
-        },
-      },
+        ? false
+        : config.NODE_ENV === 'production'
+          ? { level: 'info', timestamp: localIsoTime }
+          : {
+              transport: {
+                target: 'pino-pretty',
+                options: {
+                  translateTime: 'SYS:HH:MM:ss', // SYS: = the process's time zone (LOG_TIMEZONE, else the host's), not UTC
+                  // messages are written to be read on their own; the fields stay in the JSON logs of production
+                  ignore: 'pid,hostname,reqId,event,user,userId,to,subject,action,ip',
+                  messageFormat: '{msg}{if user} [{user}]{end}',
+                },
+              },
+            },
     // Fastify's own two lines per request are replaced by the one line per page request below.
     logController: new LogController({ disableRequestLogging: true }),
     trustProxy: config.NODE_ENV === 'production', // behind nginx in production
@@ -91,8 +92,10 @@ export async function buildApp(
   // Every HTML page gets the visitor's theme (Bootstrap's `data-bs-theme`) on <html>, so the right colours are there from
   // the first paint. Done here, once, instead of in every page.
   app.addHook('onSend', async (request, reply, payload) => {
-    if (typeof payload === 'string' &&
-      String(reply.getHeader('content-type') ?? '').startsWith('text/html'))
+    if (
+      typeof payload === 'string' &&
+      String(reply.getHeader('content-type') ?? '').startsWith('text/html')
+    )
       return payload.replace(
         '<html lang="en">',
         `<html lang="en" data-bs-theme="${themeOf(request.cookies)}">`,
@@ -105,8 +108,7 @@ export async function buildApp(
   // query string is left out because it can hold one-time tokens (emailed links) and typed usernames or emails.
   app.addHook('onResponse', async (request, reply) => {
     const path = request.url.split('?')[0]!;
-    if (path.startsWith('/assets/') || path.startsWith('/vendor/'))
-      return;
+    if (path.startsWith('/assets/') || path.startsWith('/vendor/')) return;
     request.log.info(
       { user: request.user?.username },
       `${request.method} ${path} ${reply.statusCode} ${Math.round(reply.elapsedTime)}ms`,

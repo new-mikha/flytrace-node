@@ -69,7 +69,7 @@ export async function peekToken(
   token: string,
   purpose: TokenPurpose,
 ): Promise<TokenInfo | null> {
-  const { rows } = await pool.query<{ id: string; user_id: string; data: string | null; }>(
+  const { rows } = await pool.query<{ id: string; user_id: string; data: string | null }>(
     `SELECT id, user_id, data FROM user_tokens
      WHERE token_hash = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > now()`,
     [sha256(token), purpose],
@@ -83,7 +83,7 @@ export async function consumeToken(
   token: string,
   purpose: TokenPurpose,
 ): Promise<TokenInfo | null> {
-  const { rows } = await pool.query<{ id: string; user_id: string; data: string | null; }>(
+  const { rows } = await pool.query<{ id: string; user_id: string; data: string | null }>(
     `UPDATE user_tokens SET used_at = now()
      WHERE token_hash = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > now()
      RETURNING id, user_id, data`,

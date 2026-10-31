@@ -28,48 +28,39 @@
 // The server stays the only place with rules: it answers with the whole page (refused changes come back with their errors).
 (() => {
   const main = document.querySelector('main');
-  if (!main)
-    return;
+  if (!main) return;
   document.documentElement.classList.add('ft-js'); // shows what needs this script (Select all / none)
-  const closest = (
-    event,
-    selector,
-  ) => (event.target instanceof Element ? event.target.closest(selector) : null);
+  const closest = (event, selector) =>
+    event.target instanceof Element ? event.target.closest(selector) : null;
   const plainClick = (event) =>
     event.button === 0 && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey);
 
   // ---- the type radios of the add form
   const SPOT =
     /^\s*(?:(?:https?:\/\/)?share\.findmespot\.com\/shared\/faces\/viewspots\.jsp\?glId=)?[^\s\\/?=&#]{20,50}\s*$/i;
-  const guess = (
-    text,
-  ) => (/garmin\.com|#/i.test(text) ? 'G' : SPOT.test(text) ? 'S' : /\S/.test(text) ? 'G' : null);
+  const guess = (text) =>
+    /garmin\.com|#/i.test(text) ? 'G' : SPOT.test(text) ? 'S' : /\S/.test(text) ? 'G' : null;
 
   main.addEventListener('input', (event) => {
     const link = closest(event, '#ft-add-tracker input[name="link"]');
-    if (!link)
-      return;
+    if (!link) return;
     const form = link.form;
     const radios = [...form.querySelectorAll('input[name="type"]')];
     if (form.dataset.hand === undefined)
       form.dataset.hand = radios.some((r) => r.checked) ? '1' : '0';
-    if (form.dataset.hand === '1')
-      return;
+    if (form.dataset.hand === '1') return;
     const type = guess(link.value);
-    for (const r of radios)
-      r.checked = r.value === type;
+    for (const r of radios) r.checked = r.value === type;
   });
   main.addEventListener('change', (event) => {
     const radio = closest(event, '#ft-add-tracker input[name="type"]');
-    if (radio)
-      radio.form.dataset.hand = '1';
+    if (radio) radio.form.dataset.hand = '1';
   });
 
   // ---- Rename in the row: 'view' or 'rename'
   function rowMode(row, mode) {
     const rename = row.querySelector('.ft-rename-form');
-    if (!rename)
-      return; // a read-only row has none
+    if (!rename) return; // a read-only row has none
     row.querySelector('.ft-tracker-name').hidden = mode === 'rename';
     row.querySelector('.ft-actions').hidden = mode !== 'view';
     rename.hidden = mode !== 'rename';
@@ -87,14 +78,12 @@
 
   main.addEventListener('click', (event) => {
     const link = closest(event, 'a[data-rename], a[data-rename-cancel]');
-    if (!link || !plainClick(event))
-      return;
+    if (!link || !plainClick(event)) return;
     event.preventDefault();
     event.stopPropagation(); // the page-wide handler in app.js must not start a navigation for it
     const row = link.closest('.ft-tracker');
     for (const other of main.querySelectorAll('.ft-tracker'))
-      if (other !== row)
-        rowMode(other, 'view');
+      if (other !== row) rowMode(other, 'view');
 
     rowMode(row, link.hasAttribute('data-rename') ? 'rename' : 'view');
   });
@@ -108,8 +97,7 @@
       checks()[0]?.focus();
     } else {
       section.removeAttribute('data-selecting');
-      for (const c of checks())
-        c.checked = c.dataset.was === '1'; // what a cancelled selection left behind is dropped
+      for (const c of checks()) c.checked = c.dataset.was === '1'; // what a cancelled selection left behind is dropped
       section.querySelector('.ft-onoff-start')?.focus();
     }
     window.ftGuard?.();
@@ -120,8 +108,7 @@
       event,
       '[data-onoff-start], [data-onoff-cancel], [data-onoff-all], [data-onoff-none]',
     );
-    if (!button || !plainClick(event))
-      return;
+    if (!button || !plainClick(event)) return;
     event.preventDefault();
     event.stopPropagation();
     if (button.hasAttribute('data-onoff-start')) {
@@ -129,20 +116,16 @@
     } else if (button.hasAttribute('data-onoff-cancel')) {
       selecting(false);
     } else {
-      for (const c of checks())
-        c.checked = button.hasAttribute('data-onoff-all');
+      for (const c of checks()) c.checked = button.hasAttribute('data-onoff-all');
       window.ftGuard?.();
     }
   });
 
   main.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape')
-      return;
+    if (event.key !== 'Escape') return;
     const open = closest(event, '.ft-rename-form');
-    if (open)
-      rowMode(open.closest('.ft-tracker'), 'view');
-    else if (closest(event, '#trackers[data-selecting]'))
-      selecting(false);
+    if (open) rowMode(open.closest('.ft-tracker'), 'view');
+    else if (closest(event, '#trackers[data-selecting]')) selecting(false);
   });
 
   // ---- Delete asks in a dialog (confirm-dialog.js opens it). A tracker's Delete carries `data-confirm-swap`: the dialog's form is
@@ -151,8 +134,7 @@
   const dialogForm = document.getElementById('ft-confirm-form');
   if (dialog && dialogForm && window.bootstrap)
     dialogForm.addEventListener('submit', (event) => {
-      if (dialogForm.dataset.swap !== '1')
-        return;
+      if (dialogForm.dataset.swap !== '1') return;
       event.preventDefault();
       event.stopPropagation();
       window.bootstrap.Modal.getInstance(dialog)?.hide();
@@ -164,26 +146,21 @@
 
   async function send(form) {
     const rowId = form.closest('.ft-tracker')?.id;
-    if (!(await window.ftSwap.send(form, PARTS)))
-      return;
+    if (!(await window.ftSwap.send(form, PARTS))) return;
     const bad = main.querySelector(
       '#trackers .ft-rename-form:not([hidden]) input, #add-tracker .is-invalid',
     );
     const row = rowId ? document.getElementById(rowId) : null;
-    if (bad)
-      bad.focus();
-    else if (form.id === 'ft-add-tracker')
-      document.getElementById('f-trackerName')?.focus();
+    if (bad) bad.focus();
+    else if (form.id === 'ft-add-tracker') document.getElementById('f-trackerName')?.focus();
     else if (form.id === 'ft-onoff-form')
       document.querySelector('#trackers .ft-onoff-start')?.focus();
-    else
-      row?.querySelector('a[data-rename]')?.focus();
+    else row?.querySelector('a[data-rename]')?.focus();
   }
 
   main.addEventListener('submit', (event) => {
     const form = event.target;
-    if (!(form instanceof HTMLFormElement) || !form.closest('#trackers, #add-tracker'))
-      return;
+    if (!(form instanceof HTMLFormElement) || !form.closest('#trackers, #add-tracker')) return;
     event.preventDefault();
     event.stopPropagation(); // app.js would show its own spinner and wait for a page that never loads
     send(form);

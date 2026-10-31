@@ -61,12 +61,12 @@ const groups: PublicGroup[] = [
 const render = (
   user: CurrentUser | null,
   list = groups,
-  extra: { total?: number; showAll?: boolean; } = {},
+  extra: { total?: number; showAll?: boolean } = {},
 ) =>
   renderDocument(
     <HomePage
       user={user}
-      path='/'
+      path="/"
       groups={list}
       total={extra.total ?? list.length}
       showAll={extra.showAll ?? false}
@@ -140,8 +140,7 @@ describe('home page (anonymous)', () => {
 
   it('serves each screenshot in three sizes', () => {
     for (const n of ['01', '02', '03'])
-      for (const size of ['A', 'B', 'C'])
-        expect(html).toContain(`${n}-size${size}.jpg`);
+      for (const size of ['A', 'B', 'C']) expect(html).toContain(`${n}-size${size}.jpg`);
   });
 
   it('says so when there are no public maps', () => {
@@ -234,7 +233,7 @@ describe('user home page (my pilot groups)', () => {
     renderDocument(
       <UserHomePage
         user={u}
-        path='/'
+        path="/"
         list={{ groups, showTask: false, simpleEvents: true, ...extra }}
         events={events}
         today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }}
@@ -339,24 +338,27 @@ describe("user home page: others' groups", () => {
   const user: CurrentUser = { id: 'u1', username: 'ann', roles: [] };
   const admin: CurrentUser = { id: 'u2', username: 'root', roles: ['Admins'] };
   const list = {
-    groups: [...groups, {
-      id: 10,
-      name: 'Hidden one',
-      owner: 'dee',
-      trackers: 2,
-      views: 0,
-      newestCoordTs: null,
-      unlisted: true,
-    }],
+    groups: [
+      ...groups,
+      {
+        id: 10,
+        name: 'Hidden one',
+        owner: 'dee',
+        trackers: 2,
+        views: 0,
+        newestCoordTs: null,
+        unlisted: true,
+      },
+    ],
     total: 6,
   };
   const mine = { groups: [], showTask: false, simpleEvents: true };
   const noEvents: UserEventsList = { events: [], show: false };
-  const render = (u: CurrentUser, others: { list: typeof list; showAll: boolean; } | null) =>
+  const render = (u: CurrentUser, others: { list: typeof list; showAll: boolean } | null) =>
     renderDocument(
       <UserHomePage
         user={u}
-        path='/'
+        path="/"
         list={mine}
         events={noEvents}
         today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }}
@@ -432,7 +434,7 @@ describe('user home page: my events', () => {
     renderDocument(
       <UserHomePage
         user={user}
-        path='/'
+        path="/"
         list={{ groups: [], showTask: false, simpleEvents: false }}
         events={list}
         today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }}

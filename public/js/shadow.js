@@ -28,19 +28,17 @@
   const top = anchor?.querySelector('.ft-shadow-strip');
   const bottom = document.querySelector('.ft-shadow-bottom .ft-shadow-strip');
   const frame = document.querySelector('.ft-navbar');
-  if (!anchor || !top || !bottom || !frame)
-    return;
+  if (!anchor || !top || !bottom || !frame) return;
 
   // Everything that sticks at the top of the screen. The shadow starts under the lowest one that is stuck right now: the menu bar, then
   // the section title, the search and sort rows, the column header of a table (each sticks at its own `top`).
   const STICKY =
     '.ft-navbar, .ft-section-title, .ft-sticky-head thead, .ft-search, .ft-pager-bar, .ft-sort-bar';
   const clamp = (n) => Math.min(1, Math.max(0, n));
-  const px = (
-    value,
-  ) => (/rem\s*$/.test(value)
-    ? parseFloat(value) * parseFloat(getComputedStyle(document.documentElement).fontSize)
-    : parseFloat(value));
+  const px = (value) =>
+    /rem\s*$/.test(value)
+      ? parseFloat(value) * parseFloat(getComputedStyle(document.documentElement).fontSize)
+      : parseFloat(value);
   let queued = false;
 
   function update() {
@@ -52,8 +50,7 @@
     const box = frame.getBoundingClientRect();
     let edge = Math.max(0, box.bottom); // never above the menu bar, even before it sticks (on wide screens there is a gap above it)
     for (const el of document.querySelectorAll(STICKY)) {
-      if (el.getClientRects().length === 0)
-        continue; // not shown at this width
+      if (el.getClientRects().length === 0) continue; // not shown at this width
       const rect = el.getBoundingClientRect();
       if (rect.top <= parseFloat(getComputedStyle(el).top) + 1 && rect.bottom > edge)
         edge = rect.bottom; // stuck, or being pushed out

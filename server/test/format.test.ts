@@ -27,10 +27,8 @@ const minutesAgo = (m: number) => new Date(now.getTime() - m * 60_000);
 describe('formatTimestamp', () => {
   const savedZone = process.env.TZ;
   afterEach(() => {
-    if (savedZone === undefined)
-      delete process.env.TZ;
-    else
-      process.env.TZ = savedZone;
+    if (savedZone === undefined) delete process.env.TZ;
+    else process.env.TZ = savedZone;
   });
 
   it('uses the "ddd d MMM H:mm zone" shape', () => {

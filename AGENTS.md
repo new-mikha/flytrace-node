@@ -60,13 +60,13 @@ simulated client its own `remoteAddress`.
 
 ## Code style (enforced by tools)
 
-- After changing code, run `npm run format` (`eslint --fix`, then `dprint fmt`); `npm run format:check` only reports. Config: `dprint.json`
-  (layout, 100 columns, line endings kept) and `eslint.config.js` (the `curly` rule only). Do not hand-format against it.
-- The statement after `if` / `else` / `for` / `while` goes on its own line, indented. One statement: no braces. If any block of an if / else if /
-  else chain needs braces (several statements), all of them get braces. The opening brace stays on the line of its `if` / `for`, except when the
-  condition spans lines: then each clause is on its own line, ends with its binary operator, and the brace goes on the next line.
+- After changing code, run `npm run format` (`eslint --fix`, then `prettier --write`); `npm run format:check` only reports. Config:
+  `.prettierrc.json` (layout, 100 columns, line endings kept) and `eslint.config.js` (the `curly` rule only). Do not hand-format against it.
+- Braces: one statement, no braces; if any block of an if / else if / else chain needs braces (several statements), all of them get braces
+  (ESLint `curly`). The owner would also like the statement after `if` / `else` / `for` on its own line and the brace on its own line after a
+  multi-line condition, but Prettier cannot do that (it was tried with dprint, see git history `5be71c5`); do not fight Prettier over it.
 - Lines are at most 100 columns; comments, long strings, SQL and regexes may run over (the tools do not wrap them).
-- VS Code: `.vscode/` recommends the dprint and ESLint extensions and formats on save.
+- VS Code: `.vscode/` recommends the Prettier and ESLint extensions and formats on save.
 
 ## UI conventions
 

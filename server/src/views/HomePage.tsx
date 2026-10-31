@@ -36,21 +36,21 @@ interface HomePageProps {
 }
 
 /** Three sizes of each screenshot, picked by viewport width. */
-function Screenshot({ n, alt }: { n: '01' | '02' | '03'; alt: string; }) {
+function Screenshot({ n, alt }: { n: '01' | '02' | '03'; alt: string }) {
   const base = `/assets/img/screenshots/${n}-size`;
   return (
     <picture>
-      <source media='(min-width: 576px)' srcset={`${base}C.jpg`} />
-      <source media='(min-width: 400px)' srcset={`${base}B.jpg`} />
-      <img src={`${base}A.jpg`} class='img-fluid img-thumbnail' alt={alt} loading='lazy' />
+      <source media="(min-width: 576px)" srcset={`${base}C.jpg`} />
+      <source media="(min-width: 400px)" srcset={`${base}B.jpg`} />
+      <img src={`${base}A.jpg`} class="img-fluid img-thumbnail" alt={alt} loading="lazy" />
     </picture>
   );
 }
 
-function External({ href, children }: { href: string; children: ComponentChildren; }) {
+function External({ href, children }: { href: string; children: ComponentChildren }) {
   return (
-    <a href={href} target='_blank' rel='noopener'>
-      {children} <i class='fa-solid fa-arrow-up-right-from-square fa-xs' aria-hidden='true'></i>
+    <a href={href} target="_blank" rel="noopener">
+      {children} <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
     </a>
   );
 }
@@ -59,42 +59,47 @@ function External({ href, children }: { href: string; children: ComponentChildre
  * Below the table: a plain link switches between "recent only" and "all", so it works without JavaScript. The anonymous home page
  * swaps the list in place (`swap`); the signed-in one follows the links (`recentHref` and `allHref` are theirs).
  */
-export function MoreMaps(
-  { showAll, total, shown, recentHref = '/', allHref = '/?all=1', swap = true, noun = 'maps' }: {
-    showAll: boolean;
-    total: number;
-    shown: number;
-    recentHref?: string;
-    allHref?: string;
-    swap?: boolean;
-    noun?: string;
-  },
-) {
+export function MoreMaps({
+  showAll,
+  total,
+  shown,
+  recentHref = '/',
+  allHref = '/?all=1',
+  swap = true,
+  noun = 'maps',
+}: {
+  showAll: boolean;
+  total: number;
+  shown: number;
+  recentHref?: string;
+  allHref?: string;
+  swap?: boolean;
+  noun?: string;
+}) {
   const swapAttrs = swap ? { 'data-swap-target': 'public-maps' } : {};
   if (showAll)
     return (
-      <p class='mt-3 mb-0'>
+      <p class="mt-3 mb-0">
         <a
-          class='btn btn-outline-info'
+          class="btn btn-outline-info"
           href={recentHref}
           {...swapAttrs}
           {...(swap ? { 'data-swap-scroll': true } : {})}
         >
-          <i class='fa-solid fa-arrow-up fa-xs' aria-hidden='true'></i> Show only the latest week
+          <i class="fa-solid fa-arrow-up fa-xs" aria-hidden="true"></i> Show only the latest week
         </a>
       </p>
     );
 
   const hidden = total - shown;
-  if (hidden <= 0)
-    return null;
+  if (hidden <= 0) return null;
   return (
-    <div class='mt-3'>
-      <a class='btn btn-info' href={allHref} {...swapAttrs}>
-        <i class='fa-solid fa-list fa-xs' aria-hidden='true'></i> Show all {total} {noun}{' '}
-        <span class='opacity-75'>({hidden} more)</span>
+    <div class="mt-3">
+      <a class="btn btn-info" href={allHref} {...swapAttrs}>
+        <i class="fa-solid fa-list fa-xs" aria-hidden="true"></i> Show all {total} {noun}{' '}
+        <span class="opacity-75">({hidden} more)</span>
       </a>
-      <p class='small text-body-secondary mt-2 mb-0'>
+      <p class="small text-body-secondary mt-2 mb-0">
         The list shows {noun} updated within {RECENT_WINDOW_DAYS} days of the most recent one.
       </p>
     </div>
@@ -112,9 +117,9 @@ interface PublicMapsProps {
 export function PublicMaps({ groups, total, showAll, now }: PublicMapsProps) {
   return (
     <>
-      <section class='ft-section'>
-        <h5 class='ft-section-title'>
-          <i class='fa-solid fa-earth-europe ft-heading-icon' aria-hidden='true'></i> Public maps
+      <section class="ft-section">
+        <h5 class="ft-section-title">
+          <i class="fa-solid fa-earth-europe ft-heading-icon" aria-hidden="true"></i> Public maps
         </h5>
         <PublicGroupsTable groups={groups} total={total} now={now} />
       </section>
@@ -125,64 +130,62 @@ export function PublicMaps({ groups, total, showAll, now }: PublicMapsProps) {
 
 export function HomePage({ user, path, groups, total, showAll, now }: HomePageProps) {
   return (
-    <Layout title='Home' user={user} path={path} card='wide'>
+    <Layout title="Home" user={user} path={path} card="wide">
       <h5>
         With Flytrace, watch groups of{' '}
-        <External href='http://www.findmespot.com/en/index.php?cid=102'>SPOT</External> and{' '}
-        <External href='https://explore.garmin.com/inreach/'>Garmin inReach</External>{' '}
-        satellite communicators on a single map page.
+        <External href="http://www.findmespot.com/en/index.php?cid=102">SPOT</External> and{' '}
+        <External href="https://explore.garmin.com/inreach/">Garmin inReach</External> satellite
+        communicators on a single map page.
       </h5>
 
-      <p class='lead'>
+      <p class="lead">
         It's similar to the original SPOT Shared Pages and Garmin MapShares, but with many trackers
         on a single, mobile-friendly map. <b>It's free.</b>
       </p>
 
-      <div class='accordion ft-accordion mb-4' id='gettingStarted'>
-        <div class='accordion-item'>
-          <h2 class='accordion-header'>
+      <div class="accordion ft-accordion mb-4" id="gettingStarted">
+        <div class="accordion-item">
+          <h2 class="accordion-header">
             <button
-              class='accordion-button collapsed'
-              type='button'
-              data-bs-toggle='collapse'
-              data-bs-target='#gettingStartedBody'
-              aria-expanded='false'
-              aria-controls='gettingStartedBody'
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#gettingStartedBody"
+              aria-expanded="false"
+              aria-controls="gettingStartedBody"
             >
-              <i class='fa-regular fa-lightbulb me-2' aria-hidden='true'></i>
+              <i class="fa-regular fa-lightbulb me-2" aria-hidden="true"></i>
               I'm new here, show me screenshots
             </button>
           </h2>
           <div
-            id='gettingStartedBody'
-            class='accordion-collapse collapse'
-            data-bs-parent='#gettingStarted'
+            id="gettingStartedBody"
+            class="accordion-collapse collapse"
+            data-bs-parent="#gettingStarted"
           >
-            <div class='accordion-body'>
+            <div class="accordion-body">
               <p>
-                The only hardware you need on the pilots' side is a satellite communicator such as a
-                {' '}
-                <External href='http://www.findmespot.com/en/index.php?cid=102'>SPOT</External> or a
-                {' '}
-                <External href='https://explore.garmin.com/inreach/'>Garmin inReach</External>. And
+                The only hardware you need on the pilots' side is a satellite communicator such as a{' '}
+                <External href="http://www.findmespot.com/en/index.php?cid=102">SPOT</External> or a{' '}
+                <External href="https://explore.garmin.com/inreach/">Garmin inReach</External>. And
                 then&hellip;
               </p>
 
-              <div class='row g-3'>
-                <div class='col-12 col-lg-6'>
-                  <Screenshot n='01' alt='Map with two pilots and their latest tracks' />
+              <div class="row g-3">
+                <div class="col-12 col-lg-6">
+                  <Screenshot n="01" alt="Map with two pilots and their latest tracks" />
                 </div>
-                <div class='col-12 col-lg-6'>
-                  <Screenshot n='02' alt='Map with three pilots and full tracks shown' />
+                <div class="col-12 col-lg-6">
+                  <Screenshot n="02" alt="Map with three pilots and full tracks shown" />
                 </div>
-                <div class='col-12 col-lg-6'>
-                  <Screenshot n='03' alt="A pilot's message and coordinates in a map popup" />
+                <div class="col-12 col-lg-6">
+                  <Screenshot n="03" alt="A pilot's message and coordinates in a map popup" />
                 </div>
-                <div class='col-12 col-lg-6'>
-                  <p class='mb-2'>
-                    <small class='fw-bold text-uppercase'>Real maps are listed below</small>
+                <div class="col-12 col-lg-6">
+                  <p class="mb-2">
+                    <small class="fw-bold text-uppercase">Real maps are listed below</small>
                   </p>
-                  <p class='mb-1'>Here you can (everything is free):</p>
+                  <p class="mb-1">Here you can (everything is free):</p>
                   <ul>
                     <li>
                       Watch group pages created by others. You can do it without registration; for
@@ -200,11 +203,11 @@ export function HomePage({ user, path, groups, total, showAll, now }: HomePagePr
                 </div>
               </div>
 
-              <p class='mt-3'>
+              <p class="mt-3">
                 Originally it was made for flying sports like hang-, para- and just gliding. That's
                 why you can see the word "<u>Pilot</u>" on almost every page on this site.
               </p>
-              <p class='mb-0'>
+              <p class="mb-0">
                 It can also be used with any other activity where several trackers need to be
                 displayed on a single page.
               </p>
@@ -213,7 +216,7 @@ export function HomePage({ user, path, groups, total, showAll, now }: HomePagePr
         </div>
       </div>
 
-      <div id='public-maps'>
+      <div id="public-maps">
         <PublicMaps groups={groups} total={total} showAll={showAll} now={now} />
       </div>
     </Layout>

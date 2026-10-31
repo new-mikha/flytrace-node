@@ -40,7 +40,7 @@ const ip = '10.5.0.1';
 beforeAll(async () => {
   const config = loadConfig();
   pool = createPool(config.DATABASE_URL);
-  const { rows } = await pool.query<{ id: string; }>(
+  const { rows } = await pool.query<{ id: string }>(
     'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id',
     [USER, await hashPassword('correct horse')],
   );
@@ -78,43 +78,41 @@ const post = (url: string, payload: Record<string, string>) =>
 
 describe('settings', () => {
   it('need a login', async () => {
-    for (
-      const url of [
-        '/settings',
-        '/settings/events-mode',
-        '/settings/altitude',
-        '/settings/messages',
-      ]
-    ) {
+    for (const url of [
+      '/settings',
+      '/settings/events-mode',
+      '/settings/altitude',
+      '/settings/messages',
+    ]) {
       const res = await app.inject({ url });
       expect(res.statusCode).toBe(302);
       expect(res.headers.location).toBe(`/login?returnUrl=${encodeURIComponent(url)}`);
     }
     expect(
-      (await app.inject({
-        method: 'POST',
-        url: '/settings/altitude',
-        payload: 'altitude=m',
-        headers: FORM,
-      })).statusCode,
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/settings/altitude',
+          payload: 'altitude=m',
+          headers: FORM,
+        })
+      ).statusCode,
     ).toBe(302);
   });
 
   it('list every page in two groups, with the current values for phones', async () => {
     const res = await app.inject({ url: '/settings', cookies });
     expect(res.statusCode).toBe(200);
-    for (
-      const href of [
-        '/account',
-        '/account/email',
-        '/account/password',
-        '/account/2fa',
-        '/account/personal-data',
-        '/settings/events-mode',
-        '/settings/altitude',
-        '/settings/messages',
-      ]
-    )
+    for (const href of [
+      '/account',
+      '/account/email',
+      '/account/password',
+      '/account/2fa',
+      '/account/personal-data',
+      '/settings/events-mode',
+      '/settings/altitude',
+      '/settings/messages',
+    ])
       expect(res.body).toContain(`href="${href}"`);
 
     expect(res.body).toContain('>Account</h2>');
@@ -181,12 +179,11 @@ describe('settings', () => {
 
   it('reject a value that is not one of the choices and keep the saved settings', async () => {
     await post('/settings/altitude', { altitude: 'ft' });
-    for (
-      const [url, fields] of [['/settings/altitude', { altitude: 'km' }], [
-        '/settings/events-mode',
-        { eventsMode: 'many' },
-      ], ['/settings/messages', {}]] as const
-    ) {
+    for (const [url, fields] of [
+      ['/settings/altitude', { altitude: 'km' }],
+      ['/settings/events-mode', { eventsMode: 'many' }],
+      ['/settings/messages', {}],
+    ] as const) {
       const res = await post(url, fields);
       expect(res.statusCode).toBe(422);
       expect(res.body).toContain('Please choose one of the options.');

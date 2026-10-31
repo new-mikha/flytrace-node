@@ -40,7 +40,9 @@ async function addGroup(
   newest: string | null,
   owner = OWNER,
 ): Promise<number> {
-  const { rows: [g] } = await pool.query<{ id: number; }>(
+  const {
+    rows: [g],
+  } = await pool.query<{ id: number }>(
     `INSERT INTO groups (name, user_id, is_public, newest_coord_ts)
      SELECT $1, id, $2, $3 FROM users WHERE username = $4 RETURNING id`,
     [name, isPublic, newest, owner],
@@ -109,8 +111,7 @@ describe('GET / (anonymous)', () => {
     const html = res.body;
     for (const shown of ['Newest', 'EdgeIn', 'EdgeOut', 'Older', 'NoFix'])
       expect(html).toContain(`${shown} ${run}`);
-    for (const hidden of ['Private', 'Single'])
-      expect(html).not.toContain(`${hidden} ${run}`);
+    for (const hidden of ['Private', 'Single']) expect(html).not.toContain(`${hidden} ${run}`);
     expect(at(html, 'EdgeIn')).toBeLessThan(at(html, 'EdgeOut'));
     expect(at(html, 'EdgeOut')).toBeLessThan(at(html, 'Older'));
     expect(at(html, 'Older')).toBeLessThan(at(html, 'NoFix'));
@@ -151,8 +152,11 @@ describe("GET / (signed in): others' groups", () => {
       url: '/login',
       remoteAddress: ip,
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      payload: new URLSearchParams({ username, password: 'correct horse', returnUrl: '/' })
-        .toString(),
+      payload: new URLSearchParams({
+        username,
+        password: 'correct horse',
+        returnUrl: '/',
+      }).toString(),
     });
     const cookie = login.cookies.find((c) => c.name === 'flytrace.sid');
     const cookies: Record<string, string> = cookie ? { [cookie.name]: cookie.value } : {};
@@ -184,8 +188,7 @@ describe("GET / (signed in): others' groups", () => {
     const html = (await get('/?others=1&all=1')).body;
     for (const shown of ['Newest', 'EdgeIn', 'EdgeOut', 'Older', 'NoFix'])
       expect(html).toContain(`${shown} ${run}`);
-    for (const hidden of ['Private', 'Single'])
-      expect(html).not.toContain(`${hidden} ${run}`);
+    for (const hidden of ['Private', 'Single']) expect(html).not.toContain(`${hidden} ${run}`);
     expect(at(html, 'EdgeIn')).toBeLessThan(at(html, 'EdgeOut'));
     expect(at(html, 'Older')).toBeLessThan(at(html, 'NoFix'));
     expect(html).toContain('Show only the latest week');

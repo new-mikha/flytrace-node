@@ -35,11 +35,11 @@
   };
   const write = (value) => {
     try {
-      if (value)
-        sessionStorage.setItem(KEY, JSON.stringify(value));
-      else
-        sessionStorage.removeItem(KEY);
-    } catch { /* storage blocked: the page just starts at the top */ }
+      if (value) sessionStorage.setItem(KEY, JSON.stringify(value));
+      else sessionStorage.removeItem(KEY);
+    } catch {
+      /* storage blocked: the page just starts at the top */
+    }
   };
 
   document.addEventListener('submit', (event) => {
@@ -51,14 +51,11 @@
 
   // The "Saved." message again, as a toast, when it is out of sight. Also used by swap.js after a change that was sent in place.
   function showIfHidden(alert) {
-    if (!alert)
-      return;
+    if (!alert) return;
     requestAnimationFrame(() => {
       const box = alert.getBoundingClientRect();
-      if (box.bottom > 0 && box.top < window.innerHeight)
-        return; // in sight: nothing to add
-      for (const old of document.querySelectorAll('.ft-toast'))
-        old.remove();
+      if (box.bottom > 0 && box.top < window.innerHeight) return; // in sight: nothing to add
+      for (const old of document.querySelectorAll('.ft-toast')) old.remove();
       const toast = alert.cloneNode(true);
       toast.classList.add('ft-toast', 'shadow');
       toast.removeAttribute('id');
@@ -72,10 +69,12 @@
 
   const saved = read();
   write(null); // used once
-  if (!saved ||
+  if (
+    !saved ||
     saved.path !== location.pathname ||
     Date.now() - saved.at > MAX_AGE_MS ||
-    location.hash)
+    location.hash
+  )
     return;
 
   window.scrollTo({ top: saved.y, behavior: 'instant' });

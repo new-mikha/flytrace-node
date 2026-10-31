@@ -18,8 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// ESLint is used for one thing only: the brace rule for if / else / for / while, which dprint cannot enforce for if-else chains.
-// `npm run format` runs `eslint --fix` first, then dprint (the layout of everything else; see dprint.json).
+// ESLint is used for one thing only: the brace rule for if / else / for / while, which Prettier does not enforce (it keeps braces as written).
+// `npm run format` runs `eslint --fix` first, then Prettier (the layout of everything else; see .prettierrc.json).
 import tsParser from '@typescript-eslint/parser';
 
 export default [

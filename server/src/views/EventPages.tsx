@@ -29,8 +29,8 @@ import { Layout } from './Layout.tsx';
 
 /** What was typed into a form that was refused, to show it again with its message. */
 export interface EventDraft {
-  name?: { value: string; error: string; };
-  task?: { rows: Array<{ wpt: string; radius: string; }>; error: string; };
+  name?: { value: string; error: string };
+  task?: { rows: Array<{ wpt: string; radius: string }>; error: string };
 }
 
 interface PageProps {
@@ -43,26 +43,30 @@ interface PageProps {
   now: Date;
 }
 
-const naturalByName = (a: { name: string; }, b: { name: string; }) =>
+const naturalByName = (a: { name: string }, b: { name: string }) =>
   a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
 
-function TaskRow(
-  { index, last, wpt, radius, options }: {
-    index: number;
-    last: boolean;
-    wpt: string;
-    radius: string;
-    options: EditableEvent['waypoints'];
-  },
-) {
+function TaskRow({
+  index,
+  last,
+  wpt,
+  radius,
+  options,
+}: {
+  index: number;
+  last: boolean;
+  wpt: string;
+  radius: string;
+  options: EditableEvent['waypoints'];
+}) {
   return (
-    <tr class='ft-task-row'>
-      <th scope='row' class='ft-task-no'>
+    <tr class="ft-task-row">
+      <th scope="row" class="ft-task-no">
         {last ? 'Add new ->' : index === 0 ? 'Start' : String(index)}
       </th>
       <td>
-        <select class='form-select form-select-sm' name='wpt' aria-label='Turn point'>
-          <option value='' selected={wpt === ''}></option>
+        <select class="form-select form-select-sm" name="wpt" aria-label="Turn point">
+          <option value="" selected={wpt === ''}></option>
           {options.map((w) => (
             <option key={w.id} value={String(w.id)} selected={String(w.id) === wpt}>
               {w.name}
@@ -71,98 +75,103 @@ function TaskRow(
         </select>
       </td>
       <td>
-        <div class='input-group input-group-sm'>
+        <div class="input-group input-group-sm">
           <input
-            class='form-control'
-            name='radius'
-            inputmode='numeric'
-            pattern='[0-9]{1,6}'
+            class="form-control"
+            name="radius"
+            inputmode="numeric"
+            pattern="[0-9]{1,6}"
             maxlength={6}
             value={radius}
-            aria-label='Radius in meters'
+            aria-label="Radius in meters"
           />
-          <span class='input-group-text'>m</span>
+          <span class="input-group-text">m</span>
         </div>
       </td>
       <td>
         <button
-          class='btn btn-outline-danger btn-sm ft-needs-js ft-task-remove'
-          type='button'
+          class="btn btn-outline-danger btn-sm ft-needs-js ft-task-remove"
+          type="button"
           data-task-remove
-          aria-label='Remove this point'
-          title='Remove'
+          aria-label="Remove this point"
+          title="Remove"
         >
-          <i class='fa-solid fa-xmark' aria-hidden='true'></i>
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
       </td>
     </tr>
   );
 }
 
-function TaskEditor({ event, draft }: { event: EditableEvent; draft?: EventDraft['task']; }) {
+function TaskEditor({ event, draft }: { event: EditableEvent; draft?: EventDraft['task'] }) {
   const options = [...event.waypoints].sort(naturalByName);
   const saved = event.task.map((p) => ({ wpt: String(p.waypointId), radius: String(p.radius) }));
-  const rows = [...(draft?.rows ?? saved).filter((r) => r.wpt !== ''), {
-    wpt: '',
-    radius: String(DEFAULT_RADIUS),
-  }];
+  const rows = [
+    ...(draft?.rows ?? saved).filter((r) => r.wpt !== ''),
+    {
+      wpt: '',
+      radius: String(DEFAULT_RADIUS),
+    },
+  ];
   const initial = saved.map((r) => `${r.wpt}:${r.radius}`).join(',');
   return (
     <form
-      id='ft-task-form'
-      method='post'
+      id="ft-task-form"
+      method="post"
       action={`/events/${event.id}/task`}
-      class='ft-form'
-      data-guard='changed'
-      data-swap='ft-flash task'
+      class="ft-form"
+      data-guard="changed"
+      data-swap="ft-flash task"
       data-initial={initial}
       data-default-radius={String(DEFAULT_RADIUS)}
       data-wpts={JSON.stringify(event.waypoints)}
     >
       {draft?.error && <Alert flash={{ kind: 'danger', text: draft.error }} />}
-      <div class='d-flex flex-wrap align-items-center gap-3 mb-2'>
-        <button class='btn btn-outline-secondary btn-sm ft-needs-js' type='button' data-task-clear>
+      <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+        <button class="btn btn-outline-secondary btn-sm ft-needs-js" type="button" data-task-clear>
           Clear task
         </button>
         <button
-          class='btn btn-link p-0 ft-needs-js ft-bulk-toggle'
-          type='button'
-          data-bs-toggle='collapse'
-          data-bs-target='#ft-bulk'
-          aria-expanded='false'
-          aria-controls='ft-bulk'
+          class="btn btn-link p-0 ft-needs-js ft-bulk-toggle"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#ft-bulk"
+          aria-expanded="false"
+          aria-controls="ft-bulk"
         >
-          <i class='fa-solid fa-caret-right ft-bulk-caret' aria-hidden='true'></i>{' '}
-          Show bulk update controls
+          <i class="fa-solid fa-caret-right ft-bulk-caret" aria-hidden="true"></i> Show bulk update
+          controls
         </button>
       </div>
-      <div class='collapse' id='ft-bulk'>
-        <div class='d-flex flex-wrap align-items-center gap-2 pb-2'>
-          <label class='form-label mb-0' for='ft-bulk-radius'>Radius (meters)</label>
+      <div class="collapse" id="ft-bulk">
+        <div class="d-flex flex-wrap align-items-center gap-2 pb-2">
+          <label class="form-label mb-0" for="ft-bulk-radius">
+            Radius (meters)
+          </label>
           <input
-            class='form-control form-control-sm ft-bulk-radius'
-            id='ft-bulk-radius'
-            inputmode='numeric'
+            class="form-control form-control-sm ft-bulk-radius"
+            id="ft-bulk-radius"
+            inputmode="numeric"
             value={String(DEFAULT_RADIUS)}
           />
-          <button class='btn btn-outline-secondary btn-sm' type='button' data-task-bulk='name'>
+          <button class="btn btn-outline-secondary btn-sm" type="button" data-task-bulk="name">
             Use all waypoints, sorted by name
           </button>
-          <button class='btn btn-outline-secondary btn-sm' type='button' data-task-bulk='order'>
+          <button class="btn btn-outline-secondary btn-sm" type="button" data-task-bulk="order">
             Use all waypoints, in the order added
           </button>
         </div>
       </div>
-      <div class='mb-3'></div>
-      <div class='ft-table-wrap ft-task-wrap mb-3'>
-        <table class='table table-striped align-middle ft-table ft-task-rows mb-0'>
+      <div class="mb-3"></div>
+      <div class="ft-table-wrap ft-task-wrap mb-3">
+        <table class="table table-striped align-middle ft-table ft-task-rows mb-0">
           <thead>
             <tr>
-              <th scope='col'>Point #</th>
-              <th scope='col'>Turn point</th>
-              <th scope='col'>Radius</th>
-              <th scope='col'>
-                <span class='visually-hidden'>Remove</span>
+              <th scope="col">Point #</th>
+              <th scope="col">Turn point</th>
+              <th scope="col">Radius</th>
+              <th scope="col">
+                <span class="visually-hidden">Remove</span>
               </th>
             </tr>
           </thead>
@@ -180,9 +189,9 @@ function TaskEditor({ event, draft }: { event: EditableEvent; draft?: EventDraft
           </tbody>
         </table>
       </div>
-      <p class='form-text'>
+      <p class="form-text">
         Pick a waypoint in the last line to add a point{' '}
-        <span class='ft-no-js'>(to take one out, choose the empty entry in its line)</span>. The
+        <span class="ft-no-js">(to take one out, choose the empty entry in its line)</span>. The
         radius is in meters, 1 to {MAX_RADIUS}.
       </p>
       <Submit>Save task</Submit>
@@ -190,78 +199,81 @@ function TaskEditor({ event, draft }: { event: EditableEvent; draft?: EventDraft
   );
 }
 
-function PostButton(
-  { event, action, fields, kind = 'outline-secondary', children }: {
-    event: EditableEvent;
-    action: string;
-    fields?: Record<string, string>;
-    kind?: string;
-    children: preact.ComponentChildren;
-  },
-) {
+function PostButton({
+  event,
+  action,
+  fields,
+  kind = 'outline-secondary',
+  children,
+}: {
+  event: EditableEvent;
+  action: string;
+  fields?: Record<string, string>;
+  kind?: string;
+  children: preact.ComponentChildren;
+}) {
   return (
     <form
-      method='post'
+      method="post"
       action={`/events/${event.id}/${action}`}
-      class='d-inline'
-      data-swap='ft-flash old-points'
+      class="d-inline"
+      data-swap="ft-flash old-points"
     >
       {Object.entries(fields ?? {}).map(([name, value]) => (
-        <input type='hidden' name={name} value={value} />
+        <input type="hidden" name={name} value={value} />
       ))}
-      <button class={`btn btn-${kind}`} type='submit'>{children}</button>
+      <button class={`btn btn-${kind}`} type="submit">
+        {children}
+      </button>
     </form>
   );
 }
 
-function OldPoints({ event, now }: { event: EditableEvent; now: Date; }) {
+function OldPoints({ event, now }: { event: EditableEvent; now: Date }) {
   const since = event.startTs;
   return (
-    <section class='ft-section' id='old-points'>
-      <h5 class='ft-section-title'>
-        <i class='fa-solid fa-broom ft-heading-icon' aria-hidden='true'></i> Old points removal{' '}
-        <span class='ft-section-note'>optional</span>
+    <section class="ft-section" id="old-points">
+      <h5 class="ft-section-title">
+        <i class="fa-solid fa-broom ft-heading-icon" aria-hidden="true"></i> Old points removal{' '}
+        <span class="ft-section-note">optional</span>
       </h5>
-      {since
-        ? (
-          <div class='alert alert-warning' role='status'>
-            <strong>Maps that show this event are hiding the old points now.</strong>{' '}
-            The threshold is{' '}
-            <strong>{formatAge(since, now).text}</strong>: only the points that appeared after{' '}
-            <strong>{formatTimestamp(since, now)}</strong> are shown, which is{' '}
-            <strong>{formatTimestamp(since, now, 'UTC')}</strong>.
-          </div>
-        )
-        : (
-          <p class='text-body-secondary'>
-            Maps that show this event show every point, however old.
-          </p>
-        )}
-      <p class='mb-2'>
-        <PostButton event={event} action='hide-old' fields={{ hours: '0' }}>
+      {since ? (
+        <div class="alert alert-warning" role="status">
+          <strong>Maps that show this event are hiding the old points now.</strong> The threshold is{' '}
+          <strong>{formatAge(since, now).text}</strong>: only the points that appeared after{' '}
+          <strong>{formatTimestamp(since, now)}</strong> are shown, which is{' '}
+          <strong>{formatTimestamp(since, now, 'UTC')}</strong>.
+        </div>
+      ) : (
+        <p class="text-body-secondary">Maps that show this event show every point, however old.</p>
+      )}
+      <p class="mb-2">
+        <PostButton event={event} action="hide-old" fields={{ hours: '0' }}>
           Hide points older than now
         </PostButton>
       </p>
-      <p class='small text-body-secondary'>
+      <p class="small text-body-secondary">
         Hides all the trackers on the maps of this event until new positions are received. That can
         be useful when only new positions make sense for the moment, e.g. at the beginning of the
         competition day: without such a clean-up a map can show points and tracks from previous days
         for a while, until the trackers are switched on, which could be annoying.
       </p>
-      <details class='mb-3'>
+      <details class="mb-3">
         <summary>Show additional clean-up controls...</summary>
-        <div class='d-flex flex-wrap gap-2 mt-2'>
+        <div class="d-flex flex-wrap gap-2 mt-2">
           {[1, 2, 3, 5, 24].map((h) => (
-            <PostButton key={h} event={event} action='hide-old' fields={{ hours: String(h) }}>
+            <PostButton key={h} event={event} action="hide-old" fields={{ hours: String(h) }}>
               Hide points older than now minus {h} hour{h === 1 ? '' : 's'}
             </PostButton>
           ))}
         </div>
       </details>
-      <p class='mb-2'>
-        <PostButton event={event} action='restore-old'>Restore old points</PostButton>
+      <p class="mb-2">
+        <PostButton event={event} action="restore-old">
+          Restore old points
+        </PostButton>
       </p>
-      <p class='small text-body-secondary mb-0'>
+      <p class="small text-body-secondary mb-0">
         Brings back all the trackers on the maps of this event, however old their positions are. In
         other words, it cancels an earlier click on a "Hide points older than now" button.
       </p>
@@ -277,45 +289,45 @@ export function EventPage({ user, event, single, flash, draft, now }: PageProps)
       title={title}
       user={user}
       path={`/events/${event.id}`}
-      card='wide'
+      card="wide"
       scripts={['confirm-dialog.js', 'swap.js', 'task-editor.js', 'keep-scroll.js']}
     >
-      <p class='mb-2'>
-        <a class='ft-group-link' href='/'>
-          <i class='fa-solid fa-arrow-left fa-xs' aria-hidden='true'></i> My groups
+      <p class="mb-2">
+        <a class="ft-group-link" href="/">
+          <i class="fa-solid fa-arrow-left fa-xs" aria-hidden="true"></i> My groups
         </a>
       </p>
-      <div id='ft-head'>
-        <h1 class='h3 mb-3 ft-wrap'>{title}</h1>
+      <div id="ft-head">
+        <h1 class="h3 mb-3 ft-wrap">{title}</h1>
       </div>
-      <div id='ft-flash'>
+      <div id="ft-flash">
         <Alert flash={flash} />
       </div>
-      <div class='ft-event-page'>
+      <div class="ft-event-page">
         {!single && (
-          <section class='ft-section' id='details'>
-            <h5 class='ft-section-title'>
-              <i class='fa-solid fa-flag-checkered ft-heading-icon' aria-hidden='true'></i>{' '}
+          <section class="ft-section" id="details">
+            <h5 class="ft-section-title">
+              <i class="fa-solid fa-flag-checkered ft-heading-icon" aria-hidden="true"></i>{' '}
               {event.name} details
             </h5>
             <form
-              method='post'
+              method="post"
               action={`/events/${event.id}`}
-              class='ft-form'
-              data-guard='changed'
-              data-swap='ft-head ft-flash details'
+              class="ft-form"
+              data-guard="changed"
+              data-swap="ft-head ft-flash details"
             >
               <Field
-                name='name'
-                label='Competition or fly-in name'
+                name="name"
+                label="Competition or fly-in name"
                 value={draft?.name?.value ?? event.name}
                 maxlength={256}
                 error={draft?.name?.error}
               />
-              <div class='d-flex flex-wrap gap-2'>
+              <div class="d-flex flex-wrap gap-2">
                 <Submit>Rename</Submit>
                 <a
-                  class='btn btn-outline-danger'
+                  class="btn btn-outline-danger"
                   {...confirmAttrs(
                     confirmDeleteEvent({
                       id: event.id,
@@ -330,22 +342,22 @@ export function EventPage({ user, event, single, flash, draft, now }: PageProps)
               </div>
             </form>
             {event.isDefault && (
-              <p class='small text-body-secondary mt-3 mb-0'>
+              <p class="small text-body-secondary mt-3 mb-0">
                 This is your default event: new pilot groups will use it.
               </p>
             )}
           </section>
         )}
-        <section class='ft-section' id='task'>
-          <h5 class='ft-section-title'>
-            <i class='fa-solid fa-route ft-heading-icon' aria-hidden='true'></i> Today Task
+        <section class="ft-section" id="task">
+          <h5 class="ft-section-title">
+            <i class="fa-solid fa-route ft-heading-icon" aria-hidden="true"></i> Today Task
           </h5>
-          <p class='mb-1'>
-            <strong>{event.waypoints.length}</strong>{' '}
-            waypoint{event.waypoints.length === 1 ? ' is' : 's are'} available for the task.
+          <p class="mb-1">
+            <strong>{event.waypoints.length}</strong> waypoint
+            {event.waypoints.length === 1 ? ' is' : 's are'} available for the task.
           </p>
           {single && (
-            <p class='mb-1'>After you save the task below it will be displayed on your maps.</p>
+            <p class="mb-1">After you save the task below it will be displayed on your maps.</p>
           )}
           <p>
             <a href={`/events/${event.id}/waypoints`}>
@@ -353,14 +365,14 @@ export function EventPage({ user, event, single, flash, draft, now }: PageProps)
             </a>
           </p>
           <hr />
-          {none
-            ? (
-              <p class='mb-0'>
-                There are no waypoints yet, so there is nothing to put in a task. Load the waypoints
-                first.
-              </p>
-            )
-            : <TaskEditor event={event} draft={draft?.task} />}
+          {none ? (
+            <p class="mb-0">
+              There are no waypoints yet, so there is nothing to put in a task. Load the waypoints
+              first.
+            </p>
+          ) : (
+            <TaskEditor event={event} draft={draft?.task} />
+          )}
         </section>
         <OldPoints event={event} now={now} />
       </div>

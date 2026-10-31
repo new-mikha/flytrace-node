@@ -25,9 +25,8 @@ import { formatAge, formatTimestamp } from './format.ts';
 /** A task of fewer than two points is not drawn on the map. */
 const isEmptyTask = (group: UserGroup) => group.event !== null && group.event.taskPoints < 2;
 
-function TaskCell({ group, simple }: { group: UserGroup; simple: boolean; }) {
-  if (!group.event)
-    return <span class='text-body-secondary'>{simple ? 'No' : 'none'}</span>;
+function TaskCell({ group, simple }: { group: UserGroup; simple: boolean }) {
+  if (!group.event) return <span class="text-body-secondary">{simple ? 'No' : 'none'}</span>;
   return (
     <span class={isEmptyTask(group) ? 'text-body-secondary' : undefined}>
       {simple ? 'Yes' : group.event.name}
@@ -36,46 +35,57 @@ function TaskCell({ group, simple }: { group: UserGroup; simple: boolean; }) {
   );
 }
 
-function Row(
-  { group, now, admin, task }: {
-    group: UserGroup;
-    now: Date;
-    admin: boolean;
-    task: { simple: boolean; } | null;
-  },
-) {
+function Row({
+  group,
+  now,
+  admin,
+  task,
+}: {
+  group: UserGroup;
+  now: Date;
+  admin: boolean;
+  task: { simple: boolean } | null;
+}) {
   const age = group.newestCoordTs ? formatAge(group.newestCoordTs, now) : null;
   return (
     <tr>
-      <td class='fw-semibold ft-name-cell ft-card-full'>{group.name}</td>
-      <td class='text-end ft-card-stat' data-label='Pilots'>
-        <span class='badge rounded-pill ft-pilots'>{group.trackers}</span>
+      <td class="fw-semibold ft-name-cell ft-card-full">{group.name}</td>
+      <td class="text-end ft-card-stat" data-label="Pilots">
+        <span class="badge rounded-pill ft-pilots">{group.trackers}</span>
       </td>
-      <td class='text-nowrap ft-card-full'>
+      <td class="text-nowrap ft-card-full">
         {group.newestCoordTs && (
           <>
             <div>{formatTimestamp(group.newestCoordTs, now)}</div>
-            {age?.recent && <div class='ft-age'>{age.text}</div>}
+            {age?.recent && <div class="ft-age">{age.text}</div>}
           </>
         )}
       </td>
       {task && (
         <td
           class={`ft-task-cell ft-card-task${group.event ? '' : ' ft-card-hide'}`}
-          data-label='Task'
+          data-label="Task"
         >
           <TaskCell group={group} simple={task.simple} />
         </td>
       )}
-      <td class='text-end ft-card-stat' data-label='Views'>{group.views}</td>
-      {admin && <td class='text-end ft-card-stat' data-label='Updates'>{group.updates}</td>}
-      <td class='text-end text-nowrap ft-card-link ft-actions'>
-        <a class='ft-group-link' href={`/groups/${group.id}`}>Edit</a>
-        <a class='ft-danger-link' {...confirmAttrs(confirmDeleteGroup(group, group.trackers))}>
+      <td class="text-end ft-card-stat" data-label="Views">
+        {group.views}
+      </td>
+      {admin && (
+        <td class="text-end ft-card-stat" data-label="Updates">
+          {group.updates}
+        </td>
+      )}
+      <td class="text-end text-nowrap ft-card-link ft-actions">
+        <a class="ft-group-link" href={`/groups/${group.id}`}>
+          Edit
+        </a>
+        <a class="ft-danger-link" {...confirmAttrs(confirmDeleteGroup(group, group.trackers))}>
           Delete
         </a>
-        <a class='ft-group-link' href={`/map/${group.id}`} target='_blank' rel='noopener'>
-          Public map <i class='fa-solid fa-arrow-up-right-from-square fa-xs' aria-hidden='true'></i>
+        <a class="ft-group-link" href={`/map/${group.id}`} target="_blank" rel="noopener">
+          Public map <i class="fa-solid fa-arrow-up-right-from-square fa-xs" aria-hidden="true"></i>
         </a>
       </td>
     </tr>
@@ -87,31 +97,40 @@ function Row(
  * (`ft-cards`, under 1200 px) every row becomes a card, with `data-label` as the label of the cells that need one; the
  * `table-responsive-xl` box only keeps a table that is still too wide scrollable.
  */
-export function UserGroupsTable(
-  { list: { groups, showTask, simpleEvents }, now, admin }: {
-    list: UserGroupsList;
-    now: Date;
-    admin: boolean;
-  },
-) {
-  if (groups.length === 0)
-    return <p class='text-muted'>You don't have any pilot groups yet.</p>;
+export function UserGroupsTable({
+  list: { groups, showTask, simpleEvents },
+  now,
+  admin,
+}: {
+  list: UserGroupsList;
+  now: Date;
+  admin: boolean;
+}) {
+  if (groups.length === 0) return <p class="text-muted">You don't have any pilot groups yet.</p>;
   const task = showTask ? { simple: simpleEvents } : null;
   return (
     <>
-      <div class='table-responsive-xl ft-table-wrap ft-sticky-head'>
-        <table class='table table-striped table-hover align-middle ft-table ft-cards mb-0'>
-          <caption class='visually-hidden'>My pilot groups</caption>
+      <div class="table-responsive-xl ft-table-wrap ft-sticky-head">
+        <table class="table table-striped table-hover align-middle ft-table ft-cards mb-0">
+          <caption class="visually-hidden">My pilot groups</caption>
           <thead>
             <tr>
-              <th scope='col'>Name</th>
-              <th scope='col' class='text-end'>Pilots</th>
-              <th scope='col'>Updated</th>
-              {task && <th scope='col'>Task</th>}
-              <th scope='col' class='text-end'>Views</th>
-              {admin && <th scope='col' class='text-end'>Updates</th>}
-              <th scope='col'>
-                <span class='visually-hidden'>Actions</span>
+              <th scope="col">Name</th>
+              <th scope="col" class="text-end">
+                Pilots
+              </th>
+              <th scope="col">Updated</th>
+              {task && <th scope="col">Task</th>}
+              <th scope="col" class="text-end">
+                Views
+              </th>
+              {admin && (
+                <th scope="col" class="text-end">
+                  Updates
+                </th>
+              )}
+              <th scope="col">
+                <span class="visually-hidden">Actions</span>
               </th>
             </tr>
           </thead>
@@ -123,7 +142,7 @@ export function UserGroupsTable(
         </table>
       </div>
       {task && groups.some(isEmptyTask) && (
-        <p class='small text-body-secondary mt-2 mb-0'>
+        <p class="small text-body-secondary mt-2 mb-0">
           ^ The task is empty, so no task is shown on the group's map.
         </p>
       )}

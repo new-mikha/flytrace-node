@@ -31,10 +31,11 @@ export async function homeRoutes(app: FastifyInstance, pool: Pool): Promise<void
   // `?all=1`: the full list. `?fragment=1`: only the list section, which public/js/app.js swaps into the open page
   // so that the address bar keeps its short URL and a refresh shows the short list again.
   // Signed in, `?others=1` adds other people's groups under their own (with `all=1` for the full list).
-  app.get<{ Querystring: { all?: string; fragment?: string; others?: string; }; }>(
+  app.get<{ Querystring: { all?: string; fragment?: string; others?: string } }>(
     '/',
     async (request, reply) => {
-      if (request.user) { // signed in: their own groups instead of the introduction and the public maps
+      if (request.user) {
+        // signed in: their own groups instead of the introduction and the public maps
         const user = request.user;
         const showAll = request.query.all === '1';
         const [list, events, today, others] = await Promise.all([
@@ -43,9 +44,9 @@ export async function homeRoutes(app: FastifyInstance, pool: Pool): Promise<void
           getTodayTask(pool, user.id),
           request.query.others === '1'
             ? listOthersGroups(pool, user.id, {
-              all: showAll,
-              admin: user.roles.includes('Admins'),
-            })
+                all: showAll,
+                admin: user.roles.includes('Admins'),
+              })
             : null,
         ]);
         return sendHtml(

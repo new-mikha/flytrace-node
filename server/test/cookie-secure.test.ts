@@ -66,8 +66,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await pool.query('DELETE FROM users WHERE username = $1', [USER]);
   await pool.end();
-  for (const app of apps)
-    await app.close();
+  for (const app of apps) await app.close();
 });
 
 describe('session cookie in production', () => {

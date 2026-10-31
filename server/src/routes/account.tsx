@@ -72,23 +72,20 @@ export async function accountRoutes(
   const accountOf = async (request: FastifyRequest) => (await getAccount(pool, request.user!.id))!;
   const wrongPassword = (request: FastifyRequest, action: string) =>
     audit(request, 'reauth.failed', `Wrong current password (${action})`, { action });
-  const recipientOf = (a: { id: string; username: string; email: string | null; }) =>
+  const recipientOf = (a: { id: string; username: string; email: string | null }) =>
     a.email ? { id: a.id, username: a.username, email: a.email } : null;
 
   // ---- profile ----
 
-  app.get(
-    '/account',
-    guard,
-    async (request, reply) =>
-      sendHtml(
-        reply,
-        <ProfilePage
-          {...common(request)}
-          account={await accountOf(request)}
-          mailKind={mail.mailer.kind}
-        />,
-      ),
+  app.get('/account', guard, async (request, reply) =>
+    sendHtml(
+      reply,
+      <ProfilePage
+        {...common(request)}
+        account={await accountOf(request)}
+        mailKind={mail.mailer.kind}
+      />,
+    ),
   );
 
   app.post(
@@ -120,9 +117,8 @@ export async function accountRoutes(
       );
     } else {
       const result = await mail.sendTest(to);
-      const detail = request.user!.roles.includes('Admins') && result.error
-        ? ` (${result.error})`
-        : '';
+      const detail =
+        request.user!.roles.includes('Admins') && result.error ? ` (${result.error})` : '';
       if (result.ok)
         setFlash(
           request,
@@ -141,14 +137,11 @@ export async function accountRoutes(
 
   // ---- email ----
 
-  app.get(
-    '/account/email',
-    guard,
-    async (request, reply) =>
-      sendHtml(
-        reply,
-        <EmailPage {...common(request)} account={await accountOf(request)} errors={{}} />,
-      ),
+  app.get('/account/email', guard, async (request, reply) =>
+    sendHtml(
+      reply,
+      <EmailPage {...common(request)} account={await accountOf(request)} errors={{}} />,
+    ),
   );
 
   app.post('/account/email', { ...guard, config: emailRateLimit }, async (request, reply) => {
@@ -157,8 +150,7 @@ export async function accountRoutes(
     const email = f.email.trim();
     const errors: Record<string, string | undefined> = {};
     const parsed = emailSchema.safeParse(email);
-    if (!parsed.success)
-      errors.email = parsed.error.issues[0]?.message;
+    if (!parsed.success) errors.email = parsed.error.issues[0]?.message;
     else if (account.email?.toLowerCase() === email.toLowerCase())
       errors.email = 'This is already your email address.';
     else if (!(await canUseEmail(pool, email, account.id)))
@@ -180,7 +172,7 @@ export async function accountRoutes(
       `Asked to change the email address to ${maskEmail(email)}`,
     );
     mail.queue(() =>
-      mail.sendChangeEmail({ id: account.id, username: account.username, email }, email)
+      mail.sendChangeEmail({ id: account.id, username: account.username, email }, email),
     );
     setFlash(
       request,
@@ -192,14 +184,11 @@ export async function accountRoutes(
 
   // ---- password ----
 
-  app.get(
-    '/account/password',
-    guard,
-    async (request, reply) =>
-      sendHtml(
-        reply,
-        <PasswordPage {...common(request)} account={await accountOf(request)} errors={{}} />,
-      ),
+  app.get('/account/password', guard, async (request, reply) =>
+    sendHtml(
+      reply,
+      <PasswordPage {...common(request)} account={await accountOf(request)} errors={{}} />,
+    ),
   );
 
   app.post('/account/password', { ...guard, config: strictRateLimit }, async (request, reply) => {
@@ -224,8 +213,7 @@ export async function accountRoutes(
     await setPassword(pool, account.id, f.password, request.session.sessionId); // other devices are logged out
     audit(request, 'password.changed', 'Password changed; other sessions ended');
     const to = recipientOf(account);
-    if (to)
-      mail.queue(() => mail.sendPasswordChanged(to));
+    if (to) mail.queue(() => mail.sendPasswordChanged(to));
     setFlash(request, 'success', 'Your password has been changed.');
     return reply.redirect('/account/password', 302);
   });
@@ -267,8 +255,7 @@ export async function accountRoutes(
 
   app.post('/account/2fa/setup', { ...guard, config: strictRateLimit }, async (request, reply) => {
     const secret = request.session.pendingTotpSecret;
-    if (!secret)
-      return reply.redirect('/account/2fa/setup', 302);
+    if (!secret) return reply.redirect('/account/2fa/setup', 302);
     const { code } = formFields(request, 'code');
     const step = checkCode(secret, code);
     if (step === null)
@@ -287,8 +274,7 @@ export async function accountRoutes(
     async (request, reply) => {
       const { currentPassword } = formFields(request, 'currentPassword');
       const account = await accountOf(request);
-      if (!account.twoFactorEnabled)
-        return reply.redirect('/account/2fa', 302);
+      if (!account.twoFactorEnabled) return reply.redirect('/account/2fa', 302);
       if (!(await checkCurrentPassword(pool, account.id, currentPassword))) {
         wrongPassword(request, 'new recovery codes');
         return sendHtml(
@@ -342,28 +328,23 @@ export async function accountRoutes(
 
   // ---- personal data ----
 
-  app.get(
-    '/account/personal-data',
-    guard,
-    async (request, reply) =>
-      sendHtml(reply, <PersonalDataPage {...common(request)} errors={{}} />),
+  app.get('/account/personal-data', guard, async (request, reply) =>
+    sendHtml(reply, <PersonalDataPage {...common(request)} errors={{}} />),
   );
 
   app.get('/account/personal-data/download', guard, async (request, reply) => {
     const data = await exportPersonalData(pool, request.user!.id);
     audit(request, 'data.exported', 'Downloaded their personal data');
-    return reply.type('application/json').header(
-      'Content-Disposition',
-      'attachment; filename="flytrace-data.json"',
-    )
+    return reply
+      .type('application/json')
+      .header('Content-Disposition', 'attachment; filename="flytrace-data.json"')
       .send(JSON.stringify(data, null, 2));
   });
 
   app.post('/account/delete', { ...guard, config: strictRateLimit }, async (request, reply) => {
     const f = formFields(request, 'currentPassword', 'confirm');
     const errors: Record<string, string | undefined> = {};
-    if (f.confirm !== 'yes')
-      errors.confirm = 'Tick the box to confirm.';
+    if (f.confirm !== 'yes') errors.confirm = 'Tick the box to confirm.';
     if (!(await checkCurrentPassword(pool, request.user!.id, f.currentPassword))) {
       errors.currentPassword = 'Wrong password.';
       wrongPassword(request, 'delete account');

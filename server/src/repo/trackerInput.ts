@@ -41,15 +41,13 @@ export const MAX_FOREIGN_ID = 445;
 export function parseTrackerInput(
   input: string,
   type?: 'S' | 'G',
-): ParsedTracker | { error: string; } {
+): ParsedTracker | { error: string } {
   const text = input.trim();
-  if (text.length > MAX_FOREIGN_ID)
-    return { error: 'That link is too long.' };
+  if (text.length > MAX_FOREIGN_ID) return { error: 'That link is too long.' };
   const inReach = type ? type === 'G' : /garmin\.com|#/i.test(text);
   if (!inReach) {
     const spot = SPOT.exec(text);
-    if (spot)
-      return { type: 'S', foreignId: spot[1]! };
+    if (spot) return { type: 'S', foreignId: spot[1]! };
     if (type)
       return {
         error:
@@ -65,8 +63,7 @@ export function parseTrackerInput(
 
   if (!m.groups.imei)
     return {
-      error:
-        `An inReach feed needs the device's IMEI after a # sign, e.g. ${m.groups.id}#300434031769290.`,
+      error: `An inReach feed needs the device's IMEI after a # sign, e.g. ${m.groups.id}#300434031769290.`,
     };
 
   return { type: 'G', foreignId: `share.garmin.com/Feed/Share/${m.groups.id}#${m.groups.imei}` };

@@ -33,51 +33,64 @@ interface Common {
 
 /** The first screen of the settings on phones (the list); wide screens show the same list at the left of every page. */
 export function SettingsIndexPage({ user, settings, flash }: Omit<Common, 'error'>) {
-  return <SettingsShell user={user} path='/settings' flash={flash} settings={settings} />;
+  return <SettingsShell user={user} path="/settings" flash={flash} settings={settings} />;
 }
 
-function Choice(
-  { name, value, current, label, children }: {
-    name: string;
-    value: string;
-    current: string;
-    label: string;
-    children?: ComponentChildren;
-  },
-) {
+function Choice({
+  name,
+  value,
+  current,
+  label,
+  children,
+}: {
+  name: string;
+  value: string;
+  current: string;
+  label: string;
+  children?: ComponentChildren;
+}) {
   const id = `s-${name}-${value}`;
   return (
-    <div class='form-check mb-2'>
+    <div class="form-check mb-2">
       <input
-        class='form-check-input'
-        type='radio'
+        class="form-check-input"
+        type="radio"
         name={name}
         id={id}
         value={value}
         checked={current === value}
       />
-      <label class='form-check-label' for={id}>{label}</label>
-      {children && <div class='form-text mt-0'>{children}</div>}
+      <label class="form-check-label" for={id}>
+        {label}
+      </label>
+      {children && <div class="form-text mt-0">{children}</div>}
     </div>
   );
 }
 
 /** One preference on its own page: an introduction, the choices and a Save button. */
-function PreferencePage(
-  { title, path, intro, children, user, settings, flash, error }: Common & {
-    title: string;
-    path: string;
-    intro: ComponentChildren;
-    children: ComponentChildren;
-  },
-) {
+function PreferencePage({
+  title,
+  path,
+  intro,
+  children,
+  user,
+  settings,
+  flash,
+  error,
+}: Common & {
+  title: string;
+  path: string;
+  intro: ComponentChildren;
+  children: ComponentChildren;
+}) {
   return (
     <SettingsShell title={title} user={user} path={path} flash={flash} settings={settings}>
-      <p class='text-body-secondary'>{intro}</p>
+      <p class="text-body-secondary">{intro}</p>
       {error && <Alert flash={{ kind: 'danger', text: error }} />}
-      <form method='post' action={path} class='ft-form' data-guard='changed'>
+      <form method="post" action={path} class="ft-form" data-guard="changed">
         {children}
-        <div class='mt-3'>
+        <div class="mt-3">
           <Submit>Save</Submit>
         </div>
       </form>
@@ -88,25 +101,25 @@ function PreferencePage(
 export function EventsModePage(c: Common) {
   return (
     <PreferencePage
-      title='Events mode'
-      path='/settings/events-mode'
+      title="Events mode"
+      path="/settings/events-mode"
       {...c}
-      intro='An event is e.g. a competition or fly-in. A pilot group can have an event assigned; its map then shows the Today Task of the event.'
+      intro="An event is e.g. a competition or fly-in. A pilot group can have an event assigned; its map then shows the Today Task of the event."
     >
       <Choice
-        name='eventsMode'
-        value='single'
+        name="eventsMode"
+        value="single"
         current={c.settings.eventsMode}
-        label='Single Task Mode'
+        label="Single Task Mode"
       >
         You have only one default event, so one Today Task for all your groups. Simple mode is OK
         for most cases.
       </Choice>
       <Choice
-        name='eventsMode'
-        value='multiple'
+        name="eventsMode"
+        value="multiple"
         current={c.settings.eventsMode}
-        label='Multiple Events Mode'
+        label="Multiple Events Mode"
       >
         You can have many events, e.g. for a joint competition with more than one task running
         together. Your events are listed on the home page.
@@ -118,30 +131,30 @@ export function EventsModePage(c: Common) {
 export function AltitudePage(c: Common) {
   return (
     <PreferencePage
-      title='Altitude display'
-      path='/settings/altitude'
+      title="Altitude display"
+      path="/settings/altitude"
       {...c}
-      intro='Some tracker models (e.g. SPOT Gen3) send their altitude. When it is available, it can be shown on your maps.'
+      intro="Some tracker models (e.g. SPOT Gen3) send their altitude. When it is available, it can be shown on your maps."
     >
       <Choice
-        name='altitude'
-        value='none'
+        name="altitude"
+        value="none"
         current={c.settings.altitude}
-        label='Do not show altitude on your maps'
+        label="Do not show altitude on your maps"
       />
       <Choice
-        name='altitude'
-        value='ft'
+        name="altitude"
+        value="ft"
         current={c.settings.altitude}
-        label='Show altitude in feet'
+        label="Show altitude in feet"
       >
         When available, altitude will be shown as FT for trackers that send it.
       </Choice>
       <Choice
-        name='altitude'
-        value='m'
+        name="altitude"
+        value="m"
         current={c.settings.altitude}
-        label='Show altitude in kilometers'
+        label="Show altitude in kilometers"
       >
         When available, altitude will be shown as KM for trackers that send it.
       </Choice>
@@ -152,24 +165,24 @@ export function AltitudePage(c: Common) {
 export function MessagesPage(c: Common) {
   return (
     <PreferencePage
-      title='Owner-defined messages'
-      path='/settings/messages'
+      title="Owner-defined messages"
+      path="/settings/messages"
       {...c}
-      intro='Whether a newly created group shows or hides the messages that you define for it. Each group can still be changed later.'
+      intro="Whether a newly created group shows or hides the messages that you define for it. Each group can still be changed later."
     >
       <Choice
-        name='messagesByDefault'
-        value='show'
+        name="messagesByDefault"
+        value="show"
         current={c.settings.messagesByDefault}
-        label='Show owner-defined messages by default'
+        label="Show owner-defined messages by default"
       >
         A newly created group will have its "Owner-defined messages" option set to "Show".
       </Choice>
       <Choice
-        name='messagesByDefault'
-        value='hide'
+        name="messagesByDefault"
+        value="hide"
         current={c.settings.messagesByDefault}
-        label='Hide owner-defined messages by default'
+        label="Hide owner-defined messages by default"
       >
         A newly created group will have its "Owner-defined messages" option set to "Hide".
       </Choice>

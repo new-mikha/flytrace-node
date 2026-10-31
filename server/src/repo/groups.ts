@@ -64,17 +64,15 @@ async function listGroups(
   const eligible = (offset: number) =>
     `SELECT * FROM (${GROUP_ROWS} WHERE ${withParams(where, offset)}) rows WHERE trackers > 1`;
   const [list, count] = await Promise.all([
-    pool.query<
-      {
-        id: number;
-        name: string;
-        owner: string;
-        trackers: number;
-        views: number;
-        newest_coord_ts: Date | null;
-        is_public: boolean;
-      }
-    >(
+    pool.query<{
+      id: number;
+      name: string;
+      owner: string;
+      trackers: number;
+      views: number;
+      newest_coord_ts: Date | null;
+      is_public: boolean;
+    }>(
       `WITH listed AS (${eligible(2)}),
             latest AS (SELECT max(newest_coord_ts) AS ts FROM listed)
        SELECT l.* FROM listed l, latest
@@ -82,7 +80,7 @@ async function listGroups(
        ORDER BY l.newest_coord_ts DESC NULLS LAST, l.id`,
       [all, RECENT_WINDOW_DAYS, ...params],
     ),
-    pool.query<{ total: number; }>(
+    pool.query<{ total: number }>(
       `SELECT count(*)::int AS total FROM (${eligible(0)}) listed`,
       params,
     ),
@@ -102,10 +100,7 @@ async function listGroups(
 }
 
 /** Groups shown to anonymous visitors on the home page: the public ones. */
-export function listPublicGroups(
-  pool: Pool,
-  { all }: { all: boolean; },
-): Promise<PublicGroupsList> {
+export function listPublicGroups(pool: Pool, { all }: { all: boolean }): Promise<PublicGroupsList> {
   return listGroups(pool, all, 'g.is_public', []);
 }
 
@@ -113,7 +108,7 @@ export function listPublicGroups(
 export function listOthersGroups(
   pool: Pool,
   userId: string,
-  { all, admin }: { all: boolean; admin: boolean; },
+  { all, admin }: { all: boolean; admin: boolean },
 ): Promise<PublicGroupsList> {
   return listGroups(pool, all, 'g.user_id <> {1} AND ({2}::boolean OR g.is_public)', [
     userId,
@@ -130,7 +125,7 @@ export interface UserGroup {
   updates: number;
   newestCoordTs: Date | null;
   /** The event (task) the group's map shows, when it is relevant to the user's events mode; `taskPoints` is how many points its task has. */
-  event: { name: string; taskPoints: number; } | null;
+  event: { name: string; taskPoints: number } | null;
 }
 
 export interface UserGroupsList {
@@ -144,18 +139,16 @@ export interface UserGroupsList {
 /** The groups a user owns, by name (public or not). */
 export async function listUserGroups(pool: Pool, userId: string): Promise<UserGroupsList> {
   const [list, profile] = await Promise.all([
-    pool.query<
-      {
-        id: number;
-        name: string;
-        trackers: number;
-        views: number;
-        updates: string;
-        newest_coord_ts: Date | null;
-        event_name: string | null;
-        task_points: number;
-      }
-    >(
+    pool.query<{
+      id: number;
+      name: string;
+      trackers: number;
+      views: number;
+      updates: string;
+      newest_coord_ts: Date | null;
+      event_name: string | null;
+      task_points: number;
+    }>(
       // The event only counts when the user is in the multiple-events mode or it is their default event.
       `SELECT g.id, g.name, g.views_num AS views, g.page_updates_num::text AS updates, g.newest_coord_ts,
               (SELECT count(*)::int FROM group_trackers t WHERE t.group_id = g.id) AS trackers,
@@ -167,7 +160,7 @@ export async function listUserGroups(pool: Pool, userId: string): Promise<UserGr
        WHERE g.user_id = $1 ORDER BY lower(g.name), g.id`,
       [userId],
     ),
-    pool.query<{ simple: boolean; default_wpts: number; }>(
+    pool.query<{ simple: boolean; default_wpts: number }>(
       `SELECT is_simple_events_model AS simple,
               (SELECT count(*)::int FROM waypoints w WHERE w.event_id = up.default_event_id) AS default_wpts
        FROM user_profiles up WHERE up.user_id = $1`,

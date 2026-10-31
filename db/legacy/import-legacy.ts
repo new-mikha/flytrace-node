@@ -69,17 +69,18 @@ async function copyCsv(client: Client, table: string, csvPath: string): Promise<
 
 /** Lists the rows whose name was changed because the old data had duplicates (see transform.sql). */
 async function reportRenames(client: Client): Promise<void> {
-  const { rows } = await client.query<
-    { entity: string; id: number; context: string; old_name: string; new_name: string; }
-  >(
-    'SELECT entity, id, context, old_name, new_name FROM legacy_renames ORDER BY entity, id',
-  );
+  const { rows } = await client.query<{
+    entity: string;
+    id: number;
+    context: string;
+    old_name: string;
+    new_name: string;
+  }>('SELECT entity, id, context, old_name, new_name FROM legacy_renames ORDER BY entity, id');
   const counts = new Map<string, number>();
-  for (const r of rows)
-    counts.set(r.entity, (counts.get(r.entity) ?? 0) + 1);
-  const summary = [...counts].map(([entity, n]) => `${n} ${entity}${n === 1 ? '' : 's'}`).join(
-    ', ',
-  );
+  for (const r of rows) counts.set(r.entity, (counts.get(r.entity) ?? 0) + 1);
+  const summary = [...counts]
+    .map(([entity, n]) => `${n} ${entity}${n === 1 ? '' : 's'}`)
+    .join(', ');
   console.log(
     `\nRenamed ${rows.length} duplicate name${rows.length === 1 ? '' : 's'}${
       summary ? ` (${summary})` : ''
@@ -87,9 +88,9 @@ async function reportRenames(client: Client): Promise<void> {
   );
   for (const r of rows)
     console.log(
-      `  ${r.entity.padEnd(8)} ${String(r.id).padStart(6)} (${r.context}): ${
-        JSON.stringify(r.old_name)
-      } -> ${JSON.stringify(r.new_name)}`,
+      `  ${r.entity.padEnd(8)} ${String(r.id).padStart(6)} (${r.context}): ${JSON.stringify(
+        r.old_name,
+      )} -> ${JSON.stringify(r.new_name)}`,
     );
 }
 
@@ -100,16 +101,15 @@ async function main(): Promise<void> {
     process.exit(2);
   }
   const dumpDir = resolve(dumpArg);
-  for (const t of TABLES)
-    await access(join(dumpDir, `${t}.csv`));
+  for (const t of TABLES) await access(join(dumpDir, `${t}.csv`));
 
   const config = loadConfig();
   const excluded = legacyExcludedUsers(config);
   const pool = createPool(config.DATABASE_URL);
   try {
-    const { rows: [existing] } = await pool.query<{ n: string; }>(
-      'SELECT count(*) AS n FROM users',
-    );
+    const {
+      rows: [existing],
+    } = await pool.query<{ n: string }>('SELECT count(*) AS n FROM users');
     if (Number(existing?.n) > 0) {
       console.error(
         `Target database already has ${existing?.n} users; import only into an empty schema (see npm run db:reset).`,
@@ -136,16 +136,14 @@ async function main(): Promise<void> {
       console.log('\nVerification:');
       for (const c of rows)
         console.log(
-          `  ${c.ok ? 'ok  ' : 'FAIL'} ${c.check_name.padEnd(44)} expected ${
-            String(c.expected).padStart(6)
-          }  actual ${String(c.actual).padStart(6)}`,
+          `  ${c.ok ? 'ok  ' : 'FAIL'} ${c.check_name.padEnd(44)} expected ${String(
+            c.expected,
+          ).padStart(6)}  actual ${String(c.actual).padStart(6)}`,
         );
 
-      if (rows.some((c) => !c.ok))
-        throw new Error('Verification failed; transaction rolled back.');
+      if (rows.some((c) => !c.ok)) throw new Error('Verification failed; transaction rolled back.');
 
-      for (const t of TABLES)
-        await client.query(`DROP TABLE orig_${t}`);
+      for (const t of TABLES) await client.query(`DROP TABLE orig_${t}`);
       await client.query('DROP TABLE legacy_exclude');
       return rows;
     });

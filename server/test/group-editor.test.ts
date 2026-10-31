@@ -56,8 +56,7 @@ async function loginAs(username: string) {
     post: (url: string, payload: Record<string, string | string[]> = {}) => {
       const body = new URLSearchParams();
       for (const [k, v] of Object.entries(payload))
-        for (const x of Array.isArray(v) ? v : [v])
-          body.append(k, x);
+        for (const x of Array.isArray(v) ? v : [v]) body.append(k, x);
 
       return app.inject({
         method: 'POST',
@@ -77,7 +76,10 @@ beforeAll(async () => {
   const hash = await hashPassword(PASSWORD);
   for (const name of [OWNER, OTHER, ADMIN, READER])
     await pool.query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [name, hash]);
-  for (const [name, role] of [[ADMIN, 'Admins'], [READER, 'SpotIdReaders']])
+  for (const [name, role] of [
+    [ADMIN, 'Admins'],
+    [READER, 'SpotIdReaders'],
+  ])
     await pool.query(
       `INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1 AND r.name = $2`,
       [name, role],
@@ -92,15 +94,19 @@ afterAll(async () => {
 });
 
 const groupRow = async (id: number) =>
-  (await pool.query(
-    'SELECT name, is_public, display_user_messages, version FROM groups WHERE id = $1',
-    [id],
-  )).rows[0];
+  (
+    await pool.query(
+      'SELECT name, is_public, display_user_messages, version FROM groups WHERE id = $1',
+      [id],
+    )
+  ).rows[0];
 const trackerRows = async (id: number) =>
-  (await pool.query(
-    'SELECT id, name, tracker_type, foreign_id, is_on FROM group_trackers WHERE group_id = $1 ORDER BY id',
-    [id],
-  )).rows;
+  (
+    await pool.query(
+      'SELECT id, name, tracker_type, foreign_id, is_on FROM group_trackers WHERE group_id = $1 ORDER BY id',
+      [id],
+    )
+  ).rows;
 
 async function newGroup(
   owner: ReturnType<typeof loginAs> extends Promise<infer T> ? T : never,
@@ -120,8 +126,9 @@ describe('parseTrackerInput', () => {
     ).toEqual({ type: 'S', foreignId: SPOT_ID });
   });
   it('recognizes inReach feeds, which need the IMEI after #', () => {
-    expect(parseTrackerInput('https://aus.inreach.garmin.com/Feed/Share/Phillm#300434031769290'))
-      .toEqual({ type: 'G', foreignId: 'share.garmin.com/Feed/Share/Phillm#300434031769290' });
+    expect(
+      parseTrackerInput('https://aus.inreach.garmin.com/Feed/Share/Phillm#300434031769290'),
+    ).toEqual({ type: 'G', foreignId: 'share.garmin.com/Feed/Share/Phillm#300434031769290' });
     expect(parseTrackerInput('Phillm#300434031769290')).toMatchObject({ type: 'G' });
     expect(parseTrackerInput('Phillm')).toHaveProperty('error');
     expect(parseTrackerInput('garmin.com/Feed/Share/Phillm')).toHaveProperty('error');
@@ -211,10 +218,12 @@ describe('creating and editing', () => {
         .statusCode,
     ).toBe(302);
     expect(
-      (await owner.post(`/groups/${id}/trackers`, {
-        trackerName: 'Bob',
-        link: 'Phillm#300434031769290',
-      })).statusCode,
+      (
+        await owner.post(`/groups/${id}/trackers`, {
+          trackerName: 'Bob',
+          link: 'Phillm#300434031769290',
+        })
+      ).statusCode,
     ).toBe(302);
     const sameName = await owner.post(`/groups/${id}/trackers`, {
       trackerName: 'Ann',
@@ -243,8 +252,7 @@ describe('creating and editing', () => {
     expect(plain).toMatch(/id="ft-confirm" tabindex="-1"/i); // the dialog Bootstrap opens
     for (const swap of ['ft-head ft-flash settings', 'ft-flash task'])
       expect(plain).toContain(`data-swap="${swap}"`); // forms sent in place
-    for (const part of ['id="settings"', 'id="task"'])
-      expect(plain).toContain(part);
+    for (const part of ['id="settings"', 'id="task"']) expect(plain).toContain(part);
     expect(plain).toContain('/assets/js/swap.js');
     expect(plain).toContain('/assets/js/keep-scroll.js'); // a posted form comes back at the same scroll position
     const home = (await owner.get('/')).body; // the group list's Delete opens the same dialog
@@ -297,8 +305,9 @@ describe('creating and editing', () => {
     const tid = (await trackerRows(id))[0].id;
     const editor = (await owner.get(`/groups/${id}`)).body;
     const dialogText = (action: string) =>
-      new RegExp(`data-confirm-action="${action}"[^>]*?data-confirm-text="([^"]*)"`).exec(editor)
-        ?.[1];
+      new RegExp(`data-confirm-action="${action}"[^>]*?data-confirm-text="([^"]*)"`).exec(
+        editor,
+      )?.[1];
     const pageText = async (url: string) =>
       /<p>(.*?)<\/p>/.exec((await owner.get(url)).body)?.[1]?.replace(/<\/?strong>/g, '');
     for (const url of [`/groups/${id}/trackers/${tid}/delete`, `/groups/${id}/delete`]) {
@@ -335,24 +344,24 @@ describe('who may open a group', () => {
       expect(res.body).not.toContain('Add a tracker');
       expect(res.body).not.toContain('Rename');
       expect(res.body).not.toContain('ft-check'); // no checkboxes, no on/off button
-      for (
-        const url of [
-          `/groups/${id}`,
-          `/groups/${id}/delete`,
-          `/groups/${id}/trackers`,
-          `/groups/${id}/trackers/on-off`,
-          `/groups/${id}/trackers/${tid}/rename`,
-          `/groups/${id}/trackers/${tid}/delete`,
-        ]
-      )
+      for (const url of [
+        `/groups/${id}`,
+        `/groups/${id}/delete`,
+        `/groups/${id}/trackers`,
+        `/groups/${id}/trackers/on-off`,
+        `/groups/${id}/trackers/${tid}/rename`,
+        `/groups/${id}/trackers/${tid}/delete`,
+      ])
         expect(
-          (await viewer.post(url, {
-            name: 'Hacked',
-            visibility: 'public',
-            messages: 'show',
-            trackerName: 'X',
-            link: SPOT_ID,
-          })).headers.location,
+          (
+            await viewer.post(url, {
+              name: 'Hacked',
+              visibility: 'public',
+              messages: 'show',
+              trackerName: 'X',
+              link: SPOT_ID,
+            })
+          ).headers.location,
         ).toBe('/403');
 
       expect((await viewer.get(`/groups/${id}/delete`)).headers.location).toBe('/403');

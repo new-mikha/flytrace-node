@@ -31,8 +31,7 @@ const SKIP = new Set(['node_modules', 'dist', '.git', 'dump', 'orig-mssql-db-scr
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    if (SKIP.has(entry.name))
-      return [];
+    if (SKIP.has(entry.name)) return [];
     const path = join(dir, entry.name);
     return entry.isDirectory() ? sourceFiles(path) : EXTENSIONS.test(entry.name) ? [path] : [];
   });
@@ -40,11 +39,13 @@ function sourceFiles(dir: string): string[] {
 
 describe('license headers', () => {
   it('are on every source file', () => {
-    const files = ['server', 'public', 'scripts', 'db'].flatMap((d) => sourceFiles(join(ROOT, d)))
+    const files = ['server', 'public', 'scripts', 'db']
+      .flatMap((d) => sourceFiles(join(ROOT, d)))
       .concat(join(ROOT, 'vitest.config.ts'));
     expect(files.length).toBeGreaterThan(50);
-    const missing = files.filter((f) =>
-      !readFileSync(f, 'utf8').slice(0, 1200).includes('GNU Affero General Public License as')
+    const missing = files.filter(
+      (f) =>
+        !readFileSync(f, 'utf8').slice(0, 1200).includes('GNU Affero General Public License as'),
     );
     expect(missing.map((f) => relative(ROOT, f))).toEqual([]);
   });

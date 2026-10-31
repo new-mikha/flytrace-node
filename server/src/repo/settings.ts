@@ -37,16 +37,17 @@ export const DEFAULT_SETTINGS: UserSettings = {
 };
 
 export async function getSettings(pool: Pool, userId: string): Promise<UserSettings> {
-  const { rows } = await pool.query<
-    { simple: boolean; altitude_unit: 'm' | 'ft' | null; messages: boolean; }
-  >(
+  const { rows } = await pool.query<{
+    simple: boolean;
+    altitude_unit: 'm' | 'ft' | null;
+    messages: boolean;
+  }>(
     `SELECT is_simple_events_model AS simple, altitude_unit, show_user_messages_by_default AS messages
      FROM user_profiles WHERE user_id = $1`,
     [userId],
   );
   const row = rows[0];
-  if (!row)
-    return DEFAULT_SETTINGS;
+  if (!row) return DEFAULT_SETTINGS;
   return {
     eventsMode: row.simple ? 'single' : 'multiple',
     altitude: row.altitude_unit ?? 'none',
@@ -74,7 +75,7 @@ export function parseSetting<K extends keyof UserSettings>(
   key: K,
   value: string,
 ): UserSettings[K] | null {
-  const choices: { [P in keyof UserSettings]: readonly string[]; } = {
+  const choices: { [P in keyof UserSettings]: readonly string[] } = {
     eventsMode: ['single', 'multiple'],
     altitude: ['none', 'ft', 'm'],
     messagesByDefault: ['show', 'hide'],

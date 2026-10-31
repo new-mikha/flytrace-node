@@ -36,18 +36,15 @@ import { formFields, setFlash, takeFlash } from './util.ts';
 export async function settingsRoutes(app: FastifyInstance, pool: Pool): Promise<void> {
   const guard = { preHandler: requireLogin };
 
-  app.get(
-    '/settings',
-    guard,
-    async (request, reply) =>
-      sendHtml(
-        reply,
-        <SettingsIndexPage
-          user={request.user!}
-          flash={takeFlash(request)}
-          settings={await getSettings(pool, request.user!.id)}
-        />,
-      ),
+  app.get('/settings', guard, async (request, reply) =>
+    sendHtml(
+      reply,
+      <SettingsIndexPage
+        user={request.user!}
+        flash={takeFlash(request)}
+        settings={await getSettings(pool, request.user!.id)}
+      />,
+    ),
   );
 
   // Each preference: a page with its choices (GET) and the save (POST, which comes back to the page).
@@ -57,18 +54,15 @@ export async function settingsRoutes(app: FastifyInstance, pool: Pool): Promise<
     Page: typeof EventsModePage,
     what: string,
   ) => {
-    app.get(
-      path,
-      guard,
-      async (request, reply) =>
-        sendHtml(
-          reply,
-          <Page
-            user={request.user!}
-            settings={await getSettings(pool, request.user!.id)}
-            flash={takeFlash(request)}
-          />,
-        ),
+    app.get(path, guard, async (request, reply) =>
+      sendHtml(
+        reply,
+        <Page
+          user={request.user!}
+          settings={await getSettings(pool, request.user!.id)}
+          flash={takeFlash(request)}
+        />,
+      ),
     );
 
     app.post(path, guard, async (request, reply) => {
@@ -78,7 +72,7 @@ export async function settingsRoutes(app: FastifyInstance, pool: Pool): Promise<
       if (value === null)
         return sendHtml(
           reply,
-          <Page user={user} settings={before} error='Please choose one of the options.' />,
+          <Page user={user} settings={before} error="Please choose one of the options." />,
           422,
         );
 

@@ -25,18 +25,19 @@ import { hashPassword, verifyPassword } from './password.ts';
 // ---- input rules ----
 
 // No '@' in usernames: a username must never look like (or equal) somebody's email, because both are login names.
-export const usernameSchema = z.string().trim()
+export const usernameSchema = z
+  .string()
+  .trim()
   .regex(/^[A-Za-z0-9._-]{3,64}$/, 'Use 3 to 64 letters, digits, dots, dashes or underscores.');
 export const emailSchema = z.string().trim().max(256).pipe(z.email('Enter a valid email address.'));
 export const MIN_PASSWORD_LENGTH = 6;
-export const newPasswordSchema = z.string()
-  .min(MIN_PASSWORD_LENGTH, `Use at least ${MIN_PASSWORD_LENGTH} characters.`).max(
-    128,
-    'Use at most 128 characters.',
-  );
+export const newPasswordSchema = z
+  .string()
+  .min(MIN_PASSWORD_LENGTH, `Use at least ${MIN_PASSWORD_LENGTH} characters.`)
+  .max(128, 'Use at most 128 characters.');
 
-export function isUniqueViolation(err: unknown): err is { code: string; constraint?: string; } {
-  return typeof err === 'object' && err !== null && (err as { code?: string; }).code === '23505';
+export function isUniqueViolation(err: unknown): err is { code: string; constraint?: string } {
+  return typeof err === 'object' && err !== null && (err as { code?: string }).code === '23505';
 }
 
 export interface Account {
@@ -63,26 +64,29 @@ export async function getAccount(pool: Pool, userId: string): Promise<Account | 
     [userId],
   );
   const r = rows[0];
-  return !r ? null : {
-    id: r.id,
-    username: r.username,
-    email: r.email,
-    emailConfirmed: r.email_confirmed,
-    twoFactorEnabled: r.two_factor_enabled,
-    createdAt: r.created_at,
-    lastLoginAt: r.last_login_at,
-  };
+  return !r
+    ? null
+    : {
+        id: r.id,
+        username: r.username,
+        email: r.email,
+        emailConfirmed: r.email_confirmed,
+        twoFactorEnabled: r.two_factor_enabled,
+        createdAt: r.created_at,
+        lastLoginAt: r.last_login_at,
+      };
 }
 
 export async function findByLogin(
   pool: Pool,
   login: string,
-): Promise<
-  { id: string; username: string; email: string | null; emailConfirmed: boolean; } | null
-> {
-  const { rows } = await pool.query<
-    { id: string; username: string; email: string | null; email_confirmed: boolean; }
-  >(
+): Promise<{ id: string; username: string; email: string | null; emailConfirmed: boolean } | null> {
+  const { rows } = await pool.query<{
+    id: string;
+    username: string;
+    email: string | null;
+    email_confirmed: boolean;
+  }>(
     `SELECT id, username, email, email_confirmed FROM users
      WHERE (username = $1 OR email = $1) AND is_approved AND NOT is_locked_out
      ORDER BY (username = $1) DESC LIMIT 1`,
@@ -97,8 +101,7 @@ export async function findByLogin(
 // ---- registration ----
 
 export type RegisterResult =
-  | { ok: true; userId: string; }
-  | { ok: false; field: 'username' | 'email'; message: string; };
+  { ok: true; userId: string } | { ok: false; field: 'username' | 'email'; message: string };
 
 /** A new address must not equal anybody's username either (both are login names). */
 export async function emailTaken(
@@ -115,7 +118,7 @@ export async function emailTaken(
 
 export async function registerUser(
   pool: Pool,
-  input: { username: string; email: string; password: string; },
+  input: { username: string; email: string; password: string },
 ): Promise<RegisterResult> {
   const taken: RegisterResult = {
     ok: false,
@@ -127,10 +130,9 @@ export async function registerUser(
     field: 'username',
     message: 'This username is taken.',
   };
-  if (await emailTaken(pool, input.email))
-    return taken;
+  if (await emailTaken(pool, input.email)) return taken;
   try {
-    const { rows } = await pool.query<{ id: string; }>(
+    const { rows } = await pool.query<{ id: string }>(
       `INSERT INTO users (username, email, password_hash, email_confirmed) VALUES ($1, $2, $3, false) RETURNING id`,
       [input.username, input.email, await hashPassword(input.password)],
     );
@@ -139,8 +141,7 @@ export async function registerUser(
     ]);
     return { ok: true, userId: rows[0]!.id };
   } catch (err) {
-    if (isUniqueViolation(err))
-      return err.constraint?.includes('email') ? taken : nameTaken;
+    if (isUniqueViolation(err)) return err.constraint?.includes('email') ? taken : nameTaken;
     throw err;
   }
 }
@@ -158,8 +159,7 @@ export async function confirmEmail(pool: Pool, userId: string): Promise<void> {
 
 /** Sets a new, already confirmed address. False if somebody else has it by now. */
 export async function changeEmail(pool: Pool, userId: string, email: string): Promise<boolean> {
-  if (await emailTaken(pool, email, userId))
-    return false;
+  if (await emailTaken(pool, email, userId)) return false;
   try {
     await pool.query('UPDATE users SET email = $2, email_confirmed = true WHERE id = $1', [
       userId,
@@ -167,8 +167,7 @@ export async function changeEmail(pool: Pool, userId: string, email: string): Pr
     ]);
     return true;
   } catch (err) {
-    if (isUniqueViolation(err))
-      return false;
+    if (isUniqueViolation(err)) return false;
     throw err;
   }
 }
@@ -184,7 +183,7 @@ export async function checkCurrentPassword(
   userId: string,
   password: string,
 ): Promise<boolean> {
-  const { rows } = await pool.query<{ password_hash: string; }>(
+  const { rows } = await pool.query<{ password_hash: string }>(
     'SELECT password_hash FROM users WHERE id = $1',
     [userId],
   );
@@ -249,8 +248,7 @@ export async function deleteAccount(pool: Pool, userId: string): Promise<void> {
 /** Everything we hold about the user that is theirs to take away (never the password hash or 2FA secret). */
 export async function exportPersonalData(pool: Pool, userId: string): Promise<object | null> {
   const account = await getAccount(pool, userId);
-  if (!account)
-    return null;
+  if (!account) return null;
   const [roles, profile, events, groups] = await Promise.all([
     pool.query(
       'SELECT r.name FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = $1 ORDER BY r.name',
@@ -274,7 +272,7 @@ export async function exportPersonalData(pool: Pool, userId: string): Promise<ob
       createdAt: account.createdAt,
       lastLoginAt: account.lastLoginAt,
     },
-    roles: roles.rows.map((r: { name: string; }) => r.name),
+    roles: roles.rows.map((r: { name: string }) => r.name),
     profile: profile.rows[0] ?? null,
     events: events.rows,
     groups: groups.rows,

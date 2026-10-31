@@ -32,8 +32,7 @@ export function packageDir(name: string): string {
     if (existsSync(manifest) && JSON.parse(readFileSync(manifest, 'utf8')).name === name)
       return dir;
     const up = dirname(dir);
-    if (up === dir)
-      throw new Error(`Package ${name} not found`);
+    if (up === dir) throw new Error(`Package ${name} not found`);
     dir = up;
   }
 }
@@ -43,8 +42,7 @@ export function projectRoot(): string {
   let dir = import.meta.dirname;
   while (!existsSync(join(dir, 'package.json'))) {
     const up = dirname(dir);
-    if (up === dir)
-      throw new Error('Project root not found');
+    if (up === dir) throw new Error('Project root not found');
     dir = up;
   }
   return dir;

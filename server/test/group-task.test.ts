@@ -82,23 +82,29 @@ afterAll(async () => {
 });
 
 const userId = async (name: string) =>
-  (await pool.query<{ id: string; }>('SELECT id FROM users WHERE username = $1', [name])).rows[0]!
+  (await pool.query<{ id: string }>('SELECT id FROM users WHERE username = $1', [name])).rows[0]!
     .id;
 const groupEvent = async (id: number) =>
-  (await pool.query<{ event_id: number | null; version: number; }>(
-    'SELECT event_id, version FROM groups WHERE id = $1',
-    [id],
-  )).rows[0]!;
+  (
+    await pool.query<{ event_id: number | null; version: number }>(
+      'SELECT event_id, version FROM groups WHERE id = $1',
+      [id],
+    )
+  ).rows[0]!;
 const events = async (name: string) =>
-  (await pool.query<{ id: number; name: string; }>(
-    'SELECT id, name FROM events WHERE user_id = (SELECT id FROM users WHERE username = $1) ORDER BY id',
-    [name],
-  )).rows;
+  (
+    await pool.query<{ id: number; name: string }>(
+      'SELECT id, name FROM events WHERE user_id = (SELECT id FROM users WHERE username = $1) ORDER BY id',
+      [name],
+    )
+  ).rows;
 const defaultEvent = async (name: string) =>
-  (await pool.query<{ d: number | null; }>(
-    'SELECT default_event_id AS d FROM user_profiles WHERE user_id = (SELECT id FROM users WHERE username = $1)',
-    [name],
-  )).rows[0]?.d ?? null;
+  (
+    await pool.query<{ d: number | null }>(
+      'SELECT default_event_id AS d FROM user_profiles WHERE user_id = (SELECT id FROM users WHERE username = $1)',
+      [name],
+    )
+  ).rows[0]?.d ?? null;
 
 describe('single-event mode: the Today Task', () => {
   it('makes the default event with the first group and shows it on the group', async () => {
@@ -148,10 +154,12 @@ describe("multiple-events mode: the group's event", () => {
     const res = await owner.post('/events-mode', { to: 'multiple' });
     expect(res.headers.location).toBe('/');
     expect(
-      (await pool.query(
-        'SELECT is_simple_events_model AS s FROM user_profiles WHERE user_id = $1',
-        [await userId(OWNER)],
-      )).rows[0]!.s,
+      (
+        await pool.query(
+          'SELECT is_simple_events_model AS s FROM user_profiles WHERE user_id = $1',
+          [await userId(OWNER)],
+        )
+      ).rows[0]!.s,
     ).toBe(false);
     expect((await owner.get('/')).body).toContain('My events');
   });

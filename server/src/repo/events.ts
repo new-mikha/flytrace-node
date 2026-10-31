@@ -40,9 +40,13 @@ export interface UserEventsList {
 /** The events a user owns, by name. */
 export async function listUserEvents(pool: Pool, userId: string): Promise<UserEventsList> {
   const [list, profile] = await Promise.all([
-    pool.query<
-      { id: number; name: string; waypoints: number; groups: number; is_default: boolean; }
-    >(
+    pool.query<{
+      id: number;
+      name: string;
+      waypoints: number;
+      groups: number;
+      is_default: boolean;
+    }>(
       `SELECT e.id, e.name, (up.default_event_id = e.id) AS is_default,
               (SELECT count(*)::int FROM waypoints w WHERE w.event_id = e.id) AS waypoints,
               (SELECT count(*)::int FROM groups g WHERE g.event_id = e.id) AS groups
@@ -50,7 +54,7 @@ export async function listUserEvents(pool: Pool, userId: string): Promise<UserEv
        WHERE e.user_id = $1 ORDER BY lower(e.name), e.id`,
       [userId],
     ),
-    pool.query<{ simple: boolean; }>(
+    pool.query<{ simple: boolean }>(
       'SELECT is_simple_events_model AS simple FROM user_profiles WHERE user_id = $1',
       [userId],
     ),
@@ -71,23 +75,23 @@ export async function listUserEvents(pool: Pool, userId: string): Promise<UserEv
 export async function createEvent(
   db: Pool | Client,
   userId: string,
-): Promise<{ id: number; name: string; }> {
+): Promise<{ id: number; name: string }> {
   for (;;) {
-    const { rows } = await db.query<{ name: string; }>(
+    const { rows } = await db.query<{ name: string }>(
       'SELECT name FROM events WHERE user_id = $1',
       [userId],
     );
     const used = new Set(rows.map((r) => r.name.toLowerCase()));
     let n = 1;
-    while (used.has(`event ${String(n).padStart(2, '0')}`))
-      n++;
+    while (used.has(`event ${String(n).padStart(2, '0')}`)) n++;
     const name = `Event ${String(n).padStart(2, '0')}`;
-    const { rows: [e] } = await db.query<{ id: number; }>(
+    const {
+      rows: [e],
+    } = await db.query<{ id: number }>(
       'INSERT INTO events (user_id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
       [userId, name],
     );
-    if (e)
-      return { id: e.id, name }; // no row: two creations at once picked the same name, look again
+    if (e) return { id: e.id, name }; // no row: two creations at once picked the same name, look again
   }
 }
 
@@ -98,12 +102,13 @@ export async function ensureDefaultEvent(pool: Pool, userId: string): Promise<nu
       'INSERT INTO user_profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING',
       [userId],
     );
-    const { rows: [p] } = await c.query<{ default_event_id: number | null; }>(
+    const {
+      rows: [p],
+    } = await c.query<{ default_event_id: number | null }>(
       'SELECT default_event_id FROM user_profiles WHERE user_id = $1 FOR UPDATE',
       [userId],
     );
-    if (p?.default_event_id)
-      return p.default_event_id;
+    if (p?.default_event_id) return p.default_event_id;
     const event = await createEvent(c, userId);
     await c.query('UPDATE user_profiles SET default_event_id = $2 WHERE user_id = $1', [
       userId,
@@ -121,7 +126,9 @@ export interface TodayTask {
 }
 
 export async function getTodayTask(pool: Pool, userId: string): Promise<TodayTask> {
-  const { rows: [r] } = await pool.query<{ id: number | null; waypoints: number; task: number; }>(
+  const {
+    rows: [r],
+  } = await pool.query<{ id: number | null; waypoints: number; task: number }>(
     `SELECT up.default_event_id AS id,
             (SELECT count(*)::int FROM waypoints w WHERE w.event_id = up.default_event_id) AS waypoints,
             (SELECT count(*)::int FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = up.default_event_id) AS task
@@ -147,8 +154,7 @@ export async function assignEvent(
         eventId,
         ownerId,
       ]);
-      if (!rowCount)
-        return false;
+      if (!rowCount) return false;
     }
     await c.query('UPDATE groups SET event_id = $2, version = version + 1 WHERE id = $1', [
       groupId,

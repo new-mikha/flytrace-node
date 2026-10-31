@@ -34,7 +34,7 @@ function build(
   ctx: MailContext,
   subject: string,
   paragraphs: string[],
-  action?: { label: string; url: string; },
+  action?: { label: string; url: string },
 ): Built {
   const contact = ctx.contactAddress
     ? `If you have any questions, write to ${ctx.contactAddress}.`
@@ -42,17 +42,17 @@ function build(
   const html = `<div style="margin:0;padding:0;font-family:Arial,sans-serif;color:#1f2937">
 ${paragraphs.map((p) => `<p>${esc(p)}</p>`).join('\n')}
 ${
-    action
-      ? `<p style="margin:24px 0"><a href="${
-        esc(action.url)
-      }" style="background:#0d6efd;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block">${
-        esc(action.label)
-      }</a></p>
-<p style="font-size:12px;color:#6b7280">If the button does not work, copy this address into your browser:<br>${
-        esc(action.url)
-      }</p>`
-      : ''
-  }
+  action
+    ? `<p style="margin:24px 0"><a href="${esc(
+        action.url,
+      )}" style="background:#0d6efd;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block">${esc(
+        action.label,
+      )}</a></p>
+<p style="font-size:12px;color:#6b7280">If the button does not work, copy this address into your browser:<br>${esc(
+        action.url,
+      )}</p>`
+    : ''
+}
 ${contact ? `<p>${esc(contact)}</p>` : ''}
 <p>Thank you!</p>
 <div>--</div>
@@ -70,25 +70,40 @@ ${contact ? `<p>${esc(contact)}</p>` : ''}
 }
 
 export function confirmEmailMessage(ctx: MailContext, username: string, url: string): Built {
-  return build(ctx, `Confirm your email for ${ctx.siteName}`, [
-    `Hello ${username}, and welcome to ${ctx.siteName}!`,
-    'Please confirm your email address to activate your account. The link can be used only once and expires in 3 days.',
-  ], { label: 'Confirm email', url });
+  return build(
+    ctx,
+    `Confirm your email for ${ctx.siteName}`,
+    [
+      `Hello ${username}, and welcome to ${ctx.siteName}!`,
+      'Please confirm your email address to activate your account. The link can be used only once and expires in 3 days.',
+    ],
+    { label: 'Confirm email', url },
+  );
 }
 
 export function resetPasswordMessage(ctx: MailContext, username: string, url: string): Built {
-  return build(ctx, `Reset your ${ctx.siteName} password`, [
-    `Hello ${username},`,
-    `We received a request to reset your ${ctx.siteName} password. The link can be used only once and expires in 1 hour.`,
-    'If you did not ask for this, you can ignore this email: your password stays as it is.',
-  ], { label: 'Reset your password', url });
+  return build(
+    ctx,
+    `Reset your ${ctx.siteName} password`,
+    [
+      `Hello ${username},`,
+      `We received a request to reset your ${ctx.siteName} password. The link can be used only once and expires in 1 hour.`,
+      'If you did not ask for this, you can ignore this email: your password stays as it is.',
+    ],
+    { label: 'Reset your password', url },
+  );
 }
 
 export function changeEmailMessage(ctx: MailContext, username: string, url: string): Built {
-  return build(ctx, `Confirm your new email for ${ctx.siteName}`, [
-    `Hello ${username},`,
-    `Please confirm that this is your new email address for ${ctx.siteName}. The link can be used only once and expires in 3 days.`,
-  ], { label: 'Confirm new email', url });
+  return build(
+    ctx,
+    `Confirm your new email for ${ctx.siteName}`,
+    [
+      `Hello ${username},`,
+      `Please confirm that this is your new email address for ${ctx.siteName}. The link can be used only once and expires in 3 days.`,
+    ],
+    { label: 'Confirm new email', url },
+  );
 }
 
 export function testMessage(ctx: MailContext, username: string): Built {

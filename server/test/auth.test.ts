@@ -118,7 +118,7 @@ describe('login', () => {
     const { ok, cookies } = await login(USER, 'correct horse');
     expect(ok).toBe(true);
     expect(await whoami(cookies)).toBe(USER);
-    const { rows } = await pool.query<{ password_hash: string; last_login_at: Date | null; }>(
+    const { rows } = await pool.query<{ password_hash: string; last_login_at: Date | null }>(
       'SELECT password_hash, last_login_at FROM users WHERE username = $1',
       [USER],
     );

@@ -64,9 +64,8 @@ export class MailService {
    * "forgot password" from answering slower for real accounts than for unknown names.
    */
   queue(task: () => Promise<unknown>): void {
-    const run = task().catch((err: unknown) =>
-      this.log.error({ err }, 'Background email task failed')
-    )
+    const run = task()
+      .catch((err: unknown) => this.log.error({ err }, 'Background email task failed'))
       .finally(() => this.running.delete(run));
     this.running.add(run);
   }
@@ -85,7 +84,7 @@ export class MailService {
     to: string,
     username: string,
     message: Omit<Parameters<Mailer['send']>[0], 'to'>,
-  ): Promise<{ ok: boolean; error?: string; }> {
+  ): Promise<{ ok: boolean; error?: string }> {
     const masked = maskEmail(to);
     try {
       await this.mailer.send({ to, ...message });
@@ -95,13 +94,16 @@ export class MailService {
       );
       return { ok: true };
     } catch (err) {
-      this.log.error({
-        event: 'email.failed',
-        err,
-        user: username,
-        to: masked,
-        subject: message.subject,
-      }, `Sending email "${message.subject}" to ${masked} failed`);
+      this.log.error(
+        {
+          event: 'email.failed',
+          err,
+          user: username,
+          to: masked,
+          subject: message.subject,
+        },
+        `Sending email "${message.subject}" to ${masked} failed`,
+      );
       return { ok: false, error: err instanceof Error ? err.message : String(err) };
     }
   }
