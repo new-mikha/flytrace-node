@@ -708,6 +708,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-task-rows .input-group { width: 9rem; }
 .ft-bulk summary, details > summary { cursor: pointer; color: var(--bs-link-color); }
 .ft-bulk-radius { width: 6rem; }
+.ft-bulk { flex: 1 1 0; min-width: 0; align-self: flex-start; } /* stays beside Clear task when open: its content wraps inside instead of pushing the link to a new line */
 @media (max-width: 575.98px) {
   .ft-task-rows th.ft-task-no { width: 3.5rem; font-size: .85rem; }
   .ft-task-rows .input-group { width: 7rem; }
