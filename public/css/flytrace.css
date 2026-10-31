@@ -699,7 +699,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 /* The event page: the Today Task editor and the old-points controls. */
 /* The card is only as wide as the editor needs, so the controls have the same distance to its edges on both sides. */
 @media (min-width: 768px) {
-  .ft-jumbotron-card.ft-jumbotron-wide:has(.ft-event-page) { max-width: 52rem; }
+  .ft-jumbotron-card.ft-jumbotron-wide:has(.ft-event-page) { max-width: 40rem; }
 }
 .ft-task-wrap { display: table; max-width: 100%; } /* only as wide as the rows, so Remove stays close to the point */
 .ft-task-rows select[name="wpt"] { min-width: 14rem; }
