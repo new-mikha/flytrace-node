@@ -27,7 +27,7 @@
 (() => {
   const main = document.querySelector('main');
   if (!main) return;
-  const PARTS = ['ft-flash', 'waypoints', 'add-waypoint'];
+  const PARTS = ['ft-flash', 'load', 'waypoints', 'add-waypoint'];
   const closest = (event, selector) =>
     event.target instanceof Element ? event.target.closest(selector) : null;
   const plainClick = (event) =>

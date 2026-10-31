@@ -434,8 +434,7 @@ function EditRow({
   );
 }
 
-function UploadSection({ event, prefs }: { event: EditableEvent; prefs: CoordPrefs }) {
-  void prefs;
+function UploadSection({ event, count }: { event: EditableEvent; count: number }) {
   return (
     <section class="ft-section" id="load">
       <h5 class="ft-section-title">
@@ -495,6 +494,17 @@ function UploadSection({ event, prefs }: { event: EditableEvent; prefs: CoordPre
           the file, please wait...
         </p>
       </form>
+      {count > 0 && (
+        <p class="mt-3 mb-0">
+          <a
+            class="btn btn-outline-danger btn-sm"
+            {...confirmAttrs(confirmDeleteAllWaypoints(event, count), true)}
+            href={`/events/${event.id}/waypoints/delete-all`}
+          >
+            Delete all waypoints
+          </a>
+        </p>
+      )}
     </section>
   );
 }
@@ -505,7 +515,7 @@ function FormatPicker({ event, prefs }: { event: EditableEvent; prefs: CoordPref
       method="post"
       action={`/events/${event.id}/waypoints/format`}
       class="d-flex flex-wrap align-items-center gap-2 mb-3"
-      data-swap="ft-flash waypoints add-waypoint"
+      data-swap="ft-flash load waypoints add-waypoint"
     >
       <label class="form-label mb-0" for="ft-coord-format">
         Coordinates format:
@@ -563,7 +573,7 @@ export function WaypointsPage(p: WaypointsPageProps) {
       </div>
       {taskLink}
       <div class="ft-waypoints-page">
-        <UploadSection event={event} prefs={prefs} />
+        <UploadSection event={event} count={waypoints.length} />
         <section class="ft-section" id="waypoints">
           <h5 class="ft-section-title">
             <i class="fa-solid fa-location-dot ft-heading-icon" aria-hidden="true"></i>{' '}
@@ -613,15 +623,6 @@ export function WaypointsPage(p: WaypointsPageProps) {
                 {waypoints.length} waypoint{waypoints.length === 1 ? '' : 's'}. A waypoint that is
                 in the task cannot be deleted: take it out of the task first.
               </p>
-              <p class="mb-0">
-                <a
-                  class="btn btn-outline-danger btn-sm"
-                  {...confirmAttrs(confirmDeleteAllWaypoints(event, waypoints.length), true)}
-                  href={`/events/${event.id}/waypoints/delete-all`}
-                >
-                  Delete all waypoints
-                </a>
-              </p>
             </>
           )}
         </section>
@@ -635,11 +636,11 @@ export function WaypointsPage(p: WaypointsPageProps) {
             action={`/events/${event.id}/waypoints`}
             class="ft-form"
             data-guard="changed"
-            data-swap="ft-flash waypoints add-waypoint"
+            data-swap="ft-flash load waypoints add-waypoint"
           >
             <WaypointFields
               idPrefix="add"
-              values={addDraft?.values ?? {}}
+              values={addDraft?.values ?? { alt: '0' }}
               errors={addDraft?.errors ?? {}}
               prefs={prefs}
             />
