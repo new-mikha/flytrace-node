@@ -20,6 +20,7 @@
 
 // Browser test of "Load waypoints first": choosing a file sends it at once (no button click), and the
 // page then shows the task editor with the waypoints. Run with `npm run test:e2e`.
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { chromium, type Browser } from 'playwright-core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -28,6 +29,7 @@ import { buildApp } from '../src/app.ts';
 import { hashPassword } from '../src/auth/password.ts';
 import { loadConfig } from '../src/config.ts';
 import { createPool, type Pool } from '../src/db.ts';
+import { parseWaypointFile } from '../src/repo/waypointFiles.ts';
 
 const run = Math.random().toString(36).slice(2, 8);
 const USER = `__test_e2eup_${run}`;
@@ -158,6 +160,25 @@ describe('real files', () => {
       ).toBe(
         count + 1, // and the empty entry
       );
+      // and the database holds exactly what the parser reads from the file, in file order
+      const path = fileURLToPath(new URL(`../test/fixtures/waypoints/${file}`, import.meta.url));
+      const expected = parseWaypointFile(file, readFileSync(path, 'utf8'));
+      const { rows } = await pool.query<{
+        name: string;
+        description: string | null;
+        lat: number;
+        lon: number;
+        alt: number;
+      }>('SELECT name, description, lat, lon, alt FROM waypoints WHERE event_id = $1 ORDER BY id', [
+        e!.id,
+      ]);
+      expect(rows).toHaveLength(count);
+      expect(rows).toEqual(expected);
+      const tasks = await pool.query(
+        'SELECT 1 FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = $1',
+        [e!.id],
+      );
+      expect(tasks.rowCount).toBe(0); // loading waypoints does not make a task
     } finally {
       await page.close();
     }

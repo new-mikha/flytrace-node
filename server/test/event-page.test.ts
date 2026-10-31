@@ -20,12 +20,14 @@
 
 // The event page (/events/:id): the Today Task editor, rename, delete and "old points removal"
 // (against the dev database).
+import { readFileSync } from 'node:fs';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
 import { hashPassword } from '../src/auth/password.ts';
 import { loadConfig } from '../src/config.ts';
 import { createPool, type Pool } from '../src/db.ts';
+import { parseWaypointFile } from '../src/repo/waypointFiles.ts';
 
 const run = Math.random().toString(36).slice(2, 8);
 const OWNER = `__test_eowner_${run}`;
@@ -357,6 +359,22 @@ describe('loading waypoints from a file', () => {
       { name: 'alpha', lat: -31, lon: 151, alt: 0, description: null },
     ]); // in file order, so "the order added" is the file's
   });
+
+  it.each(['Dalby2024.cup', 'Dalby2024.gpx', 'Forbes24.gpx', 'dalby2016.kml'])(
+    'stores the waypoints of the real file %s as the parser reads them, in file order',
+    async (file) => {
+      const owner = await loginAs(OWNER);
+      const ev = await eventWithWaypoints(OWNER, `Real ${file} ${run}`, []);
+      const text = readFileSync(new URL(`./fixtures/waypoints/${file}`, import.meta.url), 'utf8');
+      expect((await upload(owner, ev.id, file, text)).statusCode).toBe(302);
+      const { rows } = await pool.query(
+        'SELECT name, description, lat, lon, alt FROM waypoints WHERE event_id = $1 ORDER BY id',
+        [ev.id],
+      );
+      expect(rows).toEqual(parseWaypointFile(file, text));
+      expect(rows.length).toBeGreaterThan(100);
+    },
+  );
 
   it('stores coordinates exactly, including a zero right after the decimal point', async () => {
     // Legacy bug report: a latitude like -26.06966 lost its zero when edited, and the map failed.
