@@ -562,7 +562,7 @@ export function WaypointsPage(p: WaypointsPageProps) {
         <Alert flash={p.flash} />
       </div>
       {taskLink}
-      <div class="ft-event-page">
+      <div class="ft-waypoints-page">
         <UploadSection event={event} prefs={prefs} />
         <section class="ft-section" id="waypoints">
           <h5 class="ft-section-title">
