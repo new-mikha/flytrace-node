@@ -174,7 +174,7 @@ function CoordInputs({
       <div class="input-group input-group-sm flex-nowrap ft-coord-group">
         {format === 'Deg' ? (
           <input
-            class={`form-control${bad}`}
+            class={`form-control${bad} ft-coord-single`}
             id={id('')}
             name={kind}
             value={values[kind] ?? ''}
@@ -271,41 +271,49 @@ function WaypointFields({
 }) {
   return (
     <>
-      <TextField
-        idPrefix={idPrefix}
-        name="name"
-        label="Waypoint name"
-        value={values.name ?? ''}
-        error={errors.name}
-        required
-        maxlength={50}
-      />
       <div class="row">
-        <div class="col-md-6">
-          <CoordInputs
-            kind="lat"
-            format={prefs.format}
-            values={values}
+        <div class="col-md-5">
+          <TextField
             idPrefix={idPrefix}
-            error={errors.lat}
-            ns={prefs.ns}
-            ew={prefs.ew}
+            name="name"
+            label="Waypoint name"
+            value={values.name ?? ''}
+            error={errors.name}
+            required
+            maxlength={50}
           />
         </div>
-        <div class="col-md-6">
-          <CoordInputs
-            kind="lon"
-            format={prefs.format}
-            values={values}
+        <div class="col-md-7">
+          <TextField
             idPrefix={idPrefix}
-            error={errors.lon}
-            ns={prefs.ns}
-            ew={prefs.ew}
+            name="description"
+            label="Description (optional)"
+            value={values.description ?? ''}
+            error={errors.description}
+            maxlength={500}
           />
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-4">
+      <div class="ft-coord-row">
+        <CoordInputs
+          kind="lat"
+          format={prefs.format}
+          values={values}
+          idPrefix={idPrefix}
+          error={errors.lat}
+          ns={prefs.ns}
+          ew={prefs.ew}
+        />
+        <CoordInputs
+          kind="lon"
+          format={prefs.format}
+          values={values}
+          idPrefix={idPrefix}
+          error={errors.lon}
+          ns={prefs.ns}
+          ew={prefs.ew}
+        />
+        <div class="ft-alt-field">
           <TextField
             idPrefix={idPrefix}
             name="alt"
@@ -315,16 +323,6 @@ function WaypointFields({
             required
             maxlength={10}
             inputmode="decimal"
-          />
-        </div>
-        <div class="col-md-8">
-          <TextField
-            idPrefix={idPrefix}
-            name="description"
-            label="Description (optional)"
-            value={values.description ?? ''}
-            error={errors.description}
-            maxlength={500}
           />
         </div>
       </div>

@@ -775,3 +775,17 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 /* a refused coordinate: red borders, but no icon and no extra padding (the fields are small) */
 .ft-coord-group .form-control.is-invalid { background-image: none; padding-right: 0.5rem; }
 .ft-coord-group .form-select.is-invalid:not([multiple]):not([size]) { background-image: var(--bs-form-select-bg-img); background-position: right 0.5rem center; background-size: 16px 12px; padding-right: 2rem; }
+/* Lat, Lon and Altitude share a line on wide screens and are only as wide as their values; the fields stack on phones */
+.ft-coord-row { display: flex; flex-wrap: wrap; column-gap: 1.5rem; }
+.ft-coord-group { width: auto; }
+@media (max-width: 767.98px) {
+  .ft-coord-row { display: block; }
+  .ft-coord-group { width: 100%; }
+}
+@media (min-width: 768px) {
+  .ft-coord-group .ft-coord-deg { flex: 0 0 4.25rem; }
+  .ft-coord-group .ft-coord-min { flex: 0 0 5.25rem; }
+  .ft-coord-group .ft-coord-sec { flex: 0 0 4.5rem; }
+  .ft-coord-group .ft-coord-single { flex: 0 0 9rem; }
+  .ft-alt-field { width: 8rem; }
+}
