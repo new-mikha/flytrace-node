@@ -722,3 +722,12 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-table-events th:first-child, .ft-table-events td:first-child { width: 45%; white-space: normal; } /* as wide as it was before the columns were narrowed */
   .ft-table-events .ft-actions > * + * { margin-left: 1.25rem; }
 }
+
+/* The "Show ..." sections of the event page open and close with a slide. Pure CSS (::details-content, interpolate-size): browsers
+   without it simply open at once. */
+.ft-event-page details { interpolate-size: allow-keywords; }
+.ft-event-page details::details-content { block-size: 0; overflow: clip; transition: block-size .25s ease, content-visibility .25s allow-discrete; }
+.ft-event-page details[open]::details-content { block-size: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .ft-event-page details::details-content { transition: none; }
+}
