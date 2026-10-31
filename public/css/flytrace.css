@@ -761,6 +761,9 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-coord-deg, .ft-coord-min, .ft-coord-sec { min-width: 3.5rem; }
 .ft-coord-min, .ft-coord-sec { min-width: 4.25rem; }
 .ft-wpt-edit td { padding: 1rem; }
-tr:target { animation: ft-wpt-flash 3s ease-out; }
+tr:target, .ft-wpt-new { animation: ft-wpt-flash 3s ease-out; }
 @keyframes ft-wpt-flash { from { background-color: rgba(var(--bs-success-rgb), 0.35); } }
 #ft-flash .alert { white-space: pre-line; }
+/* a refused coordinate: red borders, but no icon and no extra padding (the fields are small) */
+.ft-coord-group .form-control.is-invalid { background-image: none; padding-right: 0.5rem; }
+.ft-coord-group .form-select.is-invalid:not([multiple]):not([size]) { background-image: var(--bs-form-select-bg-img); background-position: right 0.5rem center; background-size: 16px 12px; padding-right: 2rem; }

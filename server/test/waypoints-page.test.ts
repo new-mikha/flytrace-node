@@ -271,6 +271,25 @@ describe('adding', () => {
   });
 });
 
+describe('the highlight', () => {
+  it('marks the row just added, once', async () => {
+    const id = await makeEvent(OWNER, 'Hl');
+    const owner = await loginAs(OWNER);
+    await owner.post(`/events/${id}/waypoints`, { name: 'A', lat: '1', lon: '2', alt: '0' });
+    await owner.post(`/events/${id}/waypoints`, { name: 'B', lat: '1', lon: '2', alt: '0' });
+    const html = (await owner.get(`/events/${id}/waypoints`)).body;
+    const [b] = await pool
+      .query<{ id: number }>('SELECT id FROM waypoints WHERE event_id = $1 AND name = $2', [
+        id,
+        'B',
+      ])
+      .then((r) => r.rows);
+    expect(html).toContain(`<tr id="wpt-${b!.id}" class="ft-wpt-new">`);
+    expect(html.match(/ft-wpt-new/g)).toHaveLength(1);
+    expect((await owner.get(`/events/${id}/waypoints`)).body).not.toContain('ft-wpt-new');
+  });
+});
+
 describe('updating and deleting', () => {
   async function seeded(name: string) {
     const id = await makeEvent(OWNER, name);

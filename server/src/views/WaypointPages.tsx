@@ -65,6 +65,8 @@ export interface WaypointsPageProps {
   sort: WaypointSort;
   /** The row open for editing without JavaScript (`?edit=`). */
   editId?: number;
+  /** The waypoint just added or updated. */
+  highlightId?: number;
   flash?: Flash | null;
   draft?: WaypointDraft;
 }
@@ -169,7 +171,7 @@ function CoordInputs({
       <label class="form-label" for={id(format === 'Deg' ? '' : 'D')}>
         {label}
       </label>
-      <div class="input-group input-group-sm has-validation flex-nowrap">
+      <div class="input-group input-group-sm flex-nowrap ft-coord-group">
         {format === 'Deg' ? (
           <input
             class={`form-control${bad}`}
@@ -207,8 +209,8 @@ function CoordInputs({
             )}
           </>
         )}
-        {error && <div class="invalid-feedback">{error}</div>}
       </div>
+      {error && <div class="invalid-feedback d-block">{error}</div>}
     </div>
   );
 }
@@ -346,14 +348,16 @@ function Row({
   event,
   prefs,
   sort,
+  highlight,
 }: {
   w: ManagedWaypoint;
   event: EditableEvent;
   prefs: CoordPrefs;
   sort: WaypointSort;
+  highlight: boolean;
 }) {
   return (
-    <tr id={`wpt-${w.id}`}>
+    <tr id={`wpt-${w.id}`} class={highlight ? 'ft-wpt-new' : undefined}>
       <td class="fw-semibold ft-name-cell">
         <a href={mapLink(w)} target="_blank" rel="noopener" title="Show on Google Maps">
           {w.name}
@@ -613,7 +617,14 @@ export function WaypointsPage(p: WaypointsPageProps) {
                           draft={draft?.editId === w.id ? draft : undefined}
                         />
                       ) : (
-                        <Row key={w.id} w={w} event={event} prefs={prefs} sort={sort} />
+                        <Row
+                          key={w.id}
+                          w={w}
+                          event={event}
+                          prefs={prefs}
+                          sort={sort}
+                          highlight={w.id === p.highlightId}
+                        />
                       ),
                     )}
                   </tbody>

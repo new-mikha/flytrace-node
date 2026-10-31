@@ -43,6 +43,8 @@ declare module '@fastify/session' {
     pendingTotpSecret?: string;
     /** One-time message shown on the next page. */
     flash?: { kind: 'success' | 'info' | 'danger'; text: string };
+    /** The waypoint just added or updated: the manager page highlights it once. */
+    highlightWaypoint?: number;
   }
 }
 

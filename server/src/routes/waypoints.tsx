@@ -95,6 +95,8 @@ export async function waypointRoutes(app: FastifyInstance, pool: Pool): Promise<
     const query = (request.query ?? {}) as Record<string, unknown>;
     const edit = /^\d+$/.test(text(query.edit)) ? Number(query.edit) : undefined;
     const sort = parseWaypointSort(query.sort, query.dir);
+    const highlightId = request.session.highlightWaypoint;
+    request.session.highlightWaypoint = undefined;
     const [waypoints, prefs] = await Promise.all([
       listWaypoints(pool, found.event.id, sort),
       getCoordPrefs(pool, request.user!.id),
@@ -108,6 +110,7 @@ export async function waypointRoutes(app: FastifyInstance, pool: Pool): Promise<
         prefs={prefs}
         sort={sort}
         editId={edit}
+        highlightId={highlightId}
         flash={takeFlash(request)}
         draft={extra.draft}
       />,
@@ -200,6 +203,7 @@ export async function waypointRoutes(app: FastifyInstance, pool: Pool): Promise<
       waypointId: result.id,
       name: read.input.name,
     });
+    request.session.highlightWaypoint = result.id;
     return back(
       request,
       reply,
@@ -238,6 +242,7 @@ export async function waypointRoutes(app: FastifyInstance, pool: Pool): Promise<
         waypointId: wid,
         name: read.input.name,
       });
+      request.session.highlightWaypoint = wid;
       return back(
         request,
         reply,

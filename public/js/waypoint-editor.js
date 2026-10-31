@@ -69,6 +69,17 @@
     closest(event, '.ft-wpt-edit')?.querySelector('a[data-wpt-cancel]')?.click();
   });
 
+  // ---- the row just added or updated (the server marks it) is brought into view after a swap
+  const holder = document.querySelector('.ft-waypoints-page');
+  if (holder)
+    new MutationObserver(() => {
+      const row = holder.querySelector('.ft-wpt-new');
+      if (!row) return;
+      const box = row.getBoundingClientRect();
+      if (box.top < 0 || box.bottom > window.innerHeight)
+        row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }).observe(holder, { childList: true });
+
   // ---- Delete: the dialog's form is sent in place
   const dialog = document.getElementById('ft-confirm');
   const dialogForm = document.getElementById('ft-confirm-form');
