@@ -79,18 +79,21 @@ function TaskEditor({ event, draft }: { event: EditableEvent; draft?: EventDraft
     <form id="ft-task-form" method="post" action={`/events/${event.id}/task`} class="ft-form" data-guard="changed" data-swap="ft-flash task"
           data-initial={initial} data-default-radius={String(DEFAULT_RADIUS)} data-wpts={JSON.stringify(event.waypoints)}>
       {draft?.error && <Alert flash={{ kind: 'danger', text: draft.error }} />}
-      <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+      <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
         <button class="btn btn-outline-secondary btn-sm ft-needs-js" type="button" data-task-clear>Clear task</button>
-        <details class="ft-bulk ft-needs-js">
-          <summary>Show bulk update controls</summary>
-          <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-            <label class="form-label mb-0" for="ft-bulk-radius">Radius (meters)</label>
-            <input class="form-control form-control-sm ft-bulk-radius" id="ft-bulk-radius" inputmode="numeric" value={String(DEFAULT_RADIUS)} />
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-task-bulk="name">Use all waypoints, sorted by name</button>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-task-bulk="order">Use all waypoints, in the order added</button>
-          </div>
-        </details>
+        <button class="btn btn-link p-0 ft-needs-js ft-bulk-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#ft-bulk" aria-expanded="false" aria-controls="ft-bulk">
+          <i class="fa-solid fa-caret-right ft-bulk-caret" aria-hidden="true"></i> Show bulk update controls
+        </button>
       </div>
+      <div class="collapse" id="ft-bulk">
+        <div class="d-flex flex-wrap align-items-center gap-2 pb-2">
+          <label class="form-label mb-0" for="ft-bulk-radius">Radius (meters)</label>
+          <input class="form-control form-control-sm ft-bulk-radius" id="ft-bulk-radius" inputmode="numeric" value={String(DEFAULT_RADIUS)} />
+          <button class="btn btn-outline-secondary btn-sm" type="button" data-task-bulk="name">Use all waypoints, sorted by name</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" data-task-bulk="order">Use all waypoints, in the order added</button>
+        </div>
+      </div>
+      <div class="mb-3"></div>
       <div class="ft-table-wrap ft-task-wrap mb-3">
       <table class="table table-striped align-middle ft-table ft-task-rows mb-0">
         <thead>
