@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import fastifyFormbody from '@fastify/formbody';
+import fastifyMultipart from '@fastify/multipart';
 import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyInstance, LogController } from 'fastify';
@@ -136,6 +137,10 @@ export async function buildApp(
   });
 
   await app.register(fastifyFormbody);
+  // File uploads (waypoint files): one small file per request.
+  await app.register(fastifyMultipart, {
+    limits: { fileSize: 4 * 1024 * 1024, files: 1, fields: 5 },
+  });
   await app.register(fastifyRateLimit, { global: false });
   await registerSession(app, config, pool);
   const mail = new MailService(config, pool, mailer ?? createMailer(config, app.log), app.log);

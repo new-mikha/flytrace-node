@@ -50,6 +50,8 @@ async function loginAs(username: string) {
   const cookies: Record<string, string> = cookie ? { [cookie.name]: cookie.value } : {};
   return {
     get: (url: string) => app.inject({ url, remoteAddress: ip, cookies }),
+    raw: (url: string, headers: Record<string, string>, payload: string) =>
+      app.inject({ method: 'POST', url, remoteAddress: ip, cookies, headers, payload }),
     post: (url: string, payload: Array<[string, string]> | Record<string, string> = {}) => {
       const body = new URLSearchParams();
       for (const [k, v] of Array.isArray(payload) ? payload : Object.entries(payload))
@@ -119,9 +121,11 @@ describe('single-event mode: the Today Task', () => {
     expect(res.statusCode).toBe(302);
     const page = (await owner.get(String(res.headers.location))).body;
     expect(page).toContain('<h1 class="h3 mb-3 ft-wrap">Today task</h1>');
-    expect(page).toContain('After you save the task below it will be displayed on your maps.');
     expect(page).not.toContain('Delete the whole event');
-    expect(page).toContain('There are no waypoints yet');
+    // no waypoints yet: the page asks for a file first, instead of the task editor
+    expect(page).toContain('Load waypoints first');
+    expect(page).toContain('enctype="multipart/form-data"');
+    expect(page).not.toContain('id="ft-task-form"');
     // the same event again:
     expect((await owner.get('/events/default')).headers.location).toBe(res.headers.location);
   });
@@ -292,5 +296,146 @@ describe('multiple-events mode: an event page', () => {
     const res = await owner.post('/events');
     expect(res.headers.location).toMatch(/^\/events\/\d+$/);
     expect((await owner.get(String(res.headers.location))).statusCode).toBe(200);
+  });
+});
+
+function multipart(fileName: string, content: string, fields: Record<string, string> = {}) {
+  const boundary = '----ftTestBoundary';
+  let body = '';
+  for (const [k, v] of Object.entries(fields))
+    body += `--${boundary}\r\nContent-Disposition: form-data; name="${k}"\r\n\r\n${v}\r\n`;
+  body += `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName}"\r\n`;
+  body += `Content-Type: application/octet-stream\r\n\r\n${content}\r\n--${boundary}--\r\n`;
+  return { headers: { 'content-type': `multipart/form-data; boundary=${boundary}` }, body };
+}
+
+describe('loading waypoints from a file', () => {
+  const KML = `<?xml version="1.0"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document>
+    <Placemark><name>ZULU</name><description>last letter</description><Point><coordinates>150.5,-30.25,120</coordinates></Point></Placemark>
+    <Placemark><name>alpha</name><Point><coordinates>151,-31,0</coordinates></Point></Placemark>
+  </Document></kml>`;
+
+  async function upload(
+    who: Awaited<ReturnType<typeof loginAs>>,
+    eventId: number,
+    fileName: string,
+    content: string,
+    fields = {},
+  ) {
+    const m = multipart(fileName, content, fields);
+    return who.raw(`/events/${eventId}/waypoints/upload`, m.headers, m.body);
+  }
+
+  it('is a page with the box when the event has no waypoints, and the task editor once it has', async () => {
+    const owner = await loginAs(OWNER);
+    await owner.post('/events-mode', { to: 'multiple' });
+    const ev = await eventWithWaypoints(OWNER, `Upload ${run}`, []);
+    const page = (await owner.get(`/events/${ev.id}`)).body;
+    expect(page).toContain('Load waypoints first');
+    expect(page).toContain(`action="/events/${ev.id}/waypoints/upload"`);
+    expect(page).toContain('accept=".kml,.cup,.gpx"');
+    expect(page).toContain('data-autosubmit');
+    expect(page).toContain('Old points removal');
+
+    const res = await upload(owner, ev.id, 'comp.kml', KML);
+    expect(res.statusCode).toBe(302);
+    const after = (await owner.get(`/events/${ev.id}`)).body;
+    expect(after).toContain('Waypoints loaded: 2 added.');
+    expect(after).not.toContain('Load waypoints first');
+    expect(after).toContain('id="ft-task-form"');
+    const { rows } = await pool.query<{
+      name: string;
+      lat: number;
+      lon: number;
+      alt: number;
+      description: string | null;
+    }>('SELECT name, lat, lon, alt, description FROM waypoints WHERE event_id = $1 ORDER BY id', [
+      ev.id,
+    ]);
+    expect(rows).toEqual([
+      { name: 'ZULU', lat: -30.25, lon: 150.5, alt: 120, description: 'last letter' },
+      { name: 'alpha', lat: -31, lon: 151, alt: 0, description: null },
+    ]); // in file order, so "the order added" is the file's
+  });
+
+  it('replaces waypoints with the same name (any case), or keeps them when asked to', async () => {
+    const owner = await loginAs(OWNER);
+    const ev = await eventWithWaypoints(OWNER, `Merge ${run}`, ['ALPHA']);
+    const names = async () =>
+      (
+        await pool.query<{ name: string; alt: number }>(
+          'SELECT name, alt FROM waypoints WHERE event_id = $1 ORDER BY id',
+          [ev.id],
+        )
+      ).rows;
+    await upload(owner, ev.id, 'a.kml', KML, { existing: 'skip' });
+    expect(await names()).toEqual([
+      { name: 'ALPHA', alt: 100 },
+      { name: 'ZULU', alt: 120 },
+    ]); // alpha kept as it was
+    await upload(owner, ev.id, 'a.kml', KML);
+    expect(await names()).toEqual([
+      { name: 'alpha', alt: 0 },
+      { name: 'ZULU', alt: 120 },
+    ]); // replaced, same row
+  });
+
+  it('bumps the groups that show the event, and audits the counts only', async () => {
+    const owner = await loginAs(OWNER);
+    const ev = await eventWithWaypoints(OWNER, `Bump ${run}`, []);
+    const {
+      rows: [g],
+    } = await pool.query<{ id: number }>(
+      'INSERT INTO groups (name, user_id, event_id) VALUES ($1, $2, $3) RETURNING id',
+      [`GU ${run}`, await userId(OWNER), ev.id],
+    );
+    const version = async () =>
+      (await pool.query<{ version: number }>('SELECT version FROM groups WHERE id = $1', [g!.id]))
+        .rows[0]!.version;
+    const before = await version();
+    await upload(owner, ev.id, 'a.kml', KML);
+    expect(await version()).toBe(before + 1);
+  });
+
+  it('refuses what it cannot read, with the reason, and changes nothing', async () => {
+    const owner = await loginAs(OWNER);
+    const ev = await eventWithWaypoints(OWNER, `Refuse upload ${run}`, []);
+    const count = async () =>
+      (await pool.query('SELECT 1 FROM waypoints WHERE event_id = $1', [ev.id])).rowCount;
+    for (const [file, content, text] of [
+      ['a.txt', 'x', 'files are not supported for waypoints upload'],
+      [
+        'a.kml',
+        '<kml><Placemark><name>X</name></Placemark></kml>',
+        'Problem with X: At least one required value is absent (coordinates)',
+      ],
+      ['a.kml', '<kml><Placemark>', 'The file is not valid XML'],
+      [
+        'a.cup',
+        'name,code,country,lat,lon,elev,style,rwdir,rwlen,freq,desc\n"A",A,,3318.830X,14750.088E,227.0m,1,,,,\n',
+        'with a correct hemisphere symbol',
+      ],
+      ['a.kml', '<kml></kml>', 'No waypoints found in the uploaded file.'],
+    ] as const) {
+      const res = await upload(owner, ev.id, file, content);
+      expect(res.statusCode).toBe(422);
+      expect(res.body).toContain(text);
+    }
+    expect(await count()).toBe(0);
+    const noFile = await owner.raw(
+      `/events/${ev.id}/waypoints/upload`,
+      { 'content-type': 'application/x-www-form-urlencoded' },
+      '',
+    );
+    expect(noFile.statusCode).toBe(422);
+    expect(noFile.body).toContain('No file loaded.');
+  });
+
+  it('is for the owner only', async () => {
+    const ev = await eventWithWaypoints(OWNER, `Foreign upload ${run}`, []);
+    expect((await upload(await loginAs(OTHER), ev.id, 'a.kml', KML)).statusCode).toBe(404);
+    expect(
+      (await pool.query('SELECT 1 FROM waypoints WHERE event_id = $1', [ev.id])).rowCount,
+    ).toBe(0);
   });
 });

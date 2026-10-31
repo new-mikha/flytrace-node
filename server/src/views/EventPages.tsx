@@ -32,6 +32,7 @@ import { Layout } from './Layout.tsx';
 export interface EventDraft {
   name?: { value: string; error: string };
   task?: { rows: Array<{ wpt: string; radius: string }>; error: string };
+  upload?: { error: string };
 }
 
 interface PageProps {
@@ -292,6 +293,59 @@ function OldPoints({ event, now }: { event: EditableEvent; now: Date }) {
   );
 }
 
+/**
+ * An event with no waypoints has nothing to build a task from, so the page asks for them first:
+ * a file (KML, CUP or GPX) can be sent straight from here, which saves a trip to the waypoints
+ * page (the legacy "Load waypoints first" box). A file input with `data-autosubmit` sends the form
+ * as soon as the file is chosen; the button is for browsers without the script.
+ */
+function LoadWaypoints({ event, error }: { event: EditableEvent; error?: string }) {
+  return (
+    <section class="ft-section" id="load-waypoints">
+      <h5 class="ft-section-title">
+        <i class="fa-solid fa-file-arrow-up ft-heading-icon" aria-hidden="true"></i> Load waypoints
+        first
+      </h5>
+      <p>Before setting up a task, waypoints for the event should be loaded (or added manually).</p>
+      {error && (
+        <div class="alert alert-danger ft-pre-line" role="alert">
+          <i class="fa-solid fa-circle-exclamation me-1" aria-hidden="true"></i> {error}
+        </div>
+      )}
+      <form
+        method="post"
+        action={`/events/${event.id}/waypoints/upload`}
+        enctype="multipart/form-data"
+        class="ft-form"
+      >
+        <div class="mb-3">
+          <label for="ft-wpt-file" class="form-label">
+            This should be a Google Earth (*.KML), SeeYou (*.CUP) or GPS Exchange (*.GPX) file:
+          </label>
+          <input
+            id="ft-wpt-file"
+            class="form-control"
+            type="file"
+            name="file"
+            accept=".kml,.cup,.gpx"
+            required
+            data-autosubmit
+          />
+        </div>
+        <Submit>Load waypoints</Submit>
+        <p class="mt-2 mb-0 text-body-secondary" data-uploading hidden>
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Uploading &amp; processing
+          the file, please wait...
+        </p>
+      </form>
+      <p class="my-3 text-body-secondary">- OR -</p>
+      <p class="mb-0">
+        <a href={`/events/${event.id}/waypoints`}>Add the waypoints manually one by one...</a>
+      </p>
+    </section>
+  );
+}
+
 export function EventPage({ user, event, single, flash, draft, now }: PageProps) {
   const title = single ? 'Today task' : `'${event.name}' today task`;
   const none = event.waypoints.length === 0;
@@ -359,32 +413,29 @@ export function EventPage({ user, event, single, flash, draft, now }: PageProps)
             )}
           </section>
         )}
-        <section class="ft-section" id="task">
-          <h5 class="ft-section-title">
-            <i class="fa-solid fa-route ft-heading-icon" aria-hidden="true"></i> Today Task
-          </h5>
-          <p class="mb-1">
-            <strong>{event.waypoints.length}</strong> waypoint
-            {event.waypoints.length === 1 ? ' is' : 's are'} available for the task.
-          </p>
-          {single && (
-            <p class="mb-1">After you save the task below it will be displayed on your maps.</p>
-          )}
-          <p>
-            <a href={`/events/${event.id}/waypoints`}>
-              Manage available waypoints (add new waypoints, edit etc)...
-            </a>
-          </p>
-          <hr />
-          {none ? (
-            <p class="mb-0">
-              There are no waypoints yet, so there is nothing to put in a task. Load the waypoints
-              first.
+        {none ? (
+          <LoadWaypoints event={event} error={draft?.upload?.error} />
+        ) : (
+          <section class="ft-section" id="task">
+            <h5 class="ft-section-title">
+              <i class="fa-solid fa-route ft-heading-icon" aria-hidden="true"></i> Today Task
+            </h5>
+            <p class="mb-1">
+              <strong>{event.waypoints.length}</strong> waypoint
+              {event.waypoints.length === 1 ? ' is' : 's are'} available for the task.
             </p>
-          ) : (
+            {single && (
+              <p class="mb-1">After you save the task below it will be displayed on your maps.</p>
+            )}
+            <p>
+              <a href={`/events/${event.id}/waypoints`}>
+                Manage available waypoints (add new waypoints, edit etc)...
+              </a>
+            </p>
+            <hr />
             <TaskEditor event={event} draft={draft?.task} />
-          )}
-        </section>
+          </section>
+        )}
         <OldPoints event={event} now={now} />
       </div>
       <ConfirmDialog />

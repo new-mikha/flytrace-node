@@ -29,6 +29,7 @@ import {
   deleteEvent,
   type EditableEvent,
   getEvent,
+  loadWaypoints,
   MAX_RADIUS,
   renameEvent,
   saveTask,
@@ -36,6 +37,7 @@ import {
   type TaskPoint,
 } from '../repo/eventEditor.ts';
 import { createEvent, ensureDefaultEvent } from '../repo/events.ts';
+import { parseWaypointFile, waypointFileKind, WaypointFileError } from '../repo/waypointFiles.ts';
 import { getSettings, saveSettings } from '../repo/settings.ts';
 import { confirmDeleteEvent, ConfirmDeletePage } from '../views/confirmDelete.tsx';
 import { type EventDraft, EventPage } from '../views/EventPages.tsx';
@@ -191,6 +193,58 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
         : `Task saved (${points.length} point${points.length === 1 ? '' : 's'}).`,
     );
   });
+
+  // "Load waypoints first": a KML, CUP or GPX file with the event's waypoints (the legacy upload).
+  // Waypoints the event already has (same name, any case) are replaced by the file's, or kept when
+  // the form says `existing=skip`. Nothing of the file is kept or logged but the counts.
+  app.post<{ Params: { id: string } }>(
+    '/events/:id/waypoints/upload',
+    guard,
+    async (request, reply) => {
+      const found = await load(request, reply);
+      if (!found) return reply;
+      const { event } = found;
+      const refuse = (error: string) => show(request, reply, found, { upload: { error } });
+      if (!request.isMultipart()) return refuse('No file loaded.');
+      let text: string;
+      let fileName: string;
+      let skipExisting = false;
+      try {
+        const file = await request.file();
+        if (!file || !file.filename) return refuse('No file loaded.');
+        fileName = file.filename;
+        const existing = file.fields.existing;
+        skipExisting =
+          !!existing &&
+          !Array.isArray(existing) &&
+          'value' in existing &&
+          existing.value === 'skip';
+        text = (await file.toBuffer()).toString('utf8');
+      } catch {
+        return refuse('The file could not be read, or it is too large (up to 4 MB).');
+      }
+      let points;
+      try {
+        points = parseWaypointFile(fileName, text);
+      } catch (err) {
+        if (!(err instanceof WaypointFileError)) throw err;
+        return refuse(`Error in processing the uploaded file:\n${err.message}`);
+      }
+      if (points.length === 0) return refuse('No waypoints found in the uploaded file.');
+      const result = await loadWaypoints(pool, event.id, points, !skipExisting);
+      audit(request, 'event.waypoints-loaded', 'Waypoints loaded from a file', {
+        eventId: event.id,
+        format: waypointFileKind(fileName),
+        ...result,
+      });
+      const parts = [
+        result.added > 0 && `${result.added} added`,
+        result.updated > 0 && `${result.updated} updated`,
+        result.skipped > 0 && `${result.skipped} already there`,
+      ].filter(Boolean);
+      return back(request, reply, event, `Waypoints loaded: ${parts.join(', ')}.`);
+    },
+  );
 
   // "Hide old points" (older than now minus some hours) and "Restore old points".
   app.post<{ Params: { id: string } }>('/events/:id/hide-old', guard, async (request, reply) => {

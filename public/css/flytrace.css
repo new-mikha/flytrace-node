@@ -753,3 +753,5 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 @media (prefers-reduced-motion: reduce) {
   .ft-event-page details::details-content { transition: none; }
 }
+
+.ft-pre-line { white-space: pre-line; } /* error messages with line breaks (the file loader's) */

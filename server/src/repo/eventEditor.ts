@@ -23,6 +23,7 @@
 // `groups.version` of the groups that use the event, in the same transaction.
 import type { Client, Pool } from '../db.ts';
 import { withTransaction } from '../db.ts';
+import type { ParsedWaypoint } from './waypointFiles.ts';
 
 export interface EventWaypoint {
   id: number;
@@ -95,6 +96,53 @@ export async function getEvent(pool: Pool, id: number): Promise<EditableEvent | 
 
 const bumpGroups = (c: Client, eventId: number) =>
   c.query('UPDATE groups SET version = version + 1 WHERE event_id = $1', [eventId]);
+
+export interface LoadResult {
+  added: number;
+  updated: number;
+  skipped: number;
+}
+
+/**
+ * Puts the waypoints of an uploaded file into the event. A waypoint whose name the event already
+ * has (any case) is replaced with the file's values or, when `replaceExisting` is false, left as it
+ * is. New ones are added in file order, so their ids keep it ("the order added").
+ */
+export async function loadWaypoints(
+  pool: Pool,
+  eventId: number,
+  points: ParsedWaypoint[],
+  replaceExisting: boolean,
+): Promise<LoadResult> {
+  return withTransaction(pool, async (c) => {
+    const { rows } = await c.query<{ id: number; key: string }>(
+      'SELECT id, lower(name) AS key FROM waypoints WHERE event_id = $1',
+      [eventId],
+    );
+    const existing = new Map(rows.map((r) => [r.key, r.id]));
+    const result: LoadResult = { added: 0, updated: 0, skipped: 0 };
+    for (const p of points) {
+      const id = existing.get(p.name.toLowerCase());
+      if (id === undefined) {
+        await c.query(
+          'INSERT INTO waypoints (event_id, name, lat, lon, alt, description) VALUES ($1, $2, $3, $4, $5, $6)',
+          [eventId, p.name, p.lat, p.lon, p.alt, p.description],
+        );
+        result.added++;
+      } else if (replaceExisting) {
+        await c.query(
+          'UPDATE waypoints SET name = $2, lat = $3, lon = $4, alt = $5, description = $6 WHERE id = $1',
+          [id, p.name, p.lat, p.lon, p.alt, p.description],
+        );
+        result.updated++;
+      } else {
+        result.skipped++;
+      }
+    }
+    if (result.added + result.updated > 0) await bumpGroups(c, eventId);
+    return result;
+  });
+}
 
 /** False when the owner already has another event with that name. */
 export async function renameEvent(pool: Pool, eventId: number, name: string): Promise<boolean> {
