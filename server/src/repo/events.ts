@@ -33,7 +33,10 @@ export interface UserEvent {
 
 export interface UserEventsList {
   events: UserEvent[];
-  /** Legacy rule: the events list is for the multiple-events mode; single-event mode has just the default event ("Today Task"). */
+  /**
+   * Legacy rule: the events list is for the multiple-events mode; single-event mode has just the
+   * default event ("Today Task").
+   */
   show: boolean;
 }
 
@@ -71,7 +74,10 @@ export async function listUserEvents(pool: Pool, userId: string): Promise<UserEv
   };
 }
 
-/** `Event 01`, `Event 02`, ...: the first free number (the legacy names). Safe inside a transaction (a clash retries instead of failing). */
+/**
+ * `Event 01`, `Event 02`, ...: the first free number (the legacy names). Safe inside a transaction
+ * (a clash retries instead of failing).
+ */
 export async function createEvent(
   db: Pool | Client,
   userId: string,
@@ -91,11 +97,15 @@ export async function createEvent(
       'INSERT INTO events (user_id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
       [userId, name],
     );
-    if (e) return { id: e.id, name }; // no row: two creations at once picked the same name, look again
+    // no row: two creations at once picked the same name, look again
+    if (e) return { id: e.id, name };
   }
 }
 
-/** The user's default event ("Today Task" in the single-event mode), made when there is none yet (legacy EnsureDefaultTask). */
+/**
+ * The user's default event ("Today Task" in the single-event mode), made when there is none yet
+ * (legacy EnsureDefaultTask).
+ */
 export async function ensureDefaultEvent(pool: Pool, userId: string): Promise<number> {
   return withTransaction(pool, async (c) => {
     await c.query(
@@ -118,7 +128,10 @@ export async function ensureDefaultEvent(pool: Pool, userId: string): Promise<nu
   });
 }
 
-/** The "Today Task" panel of the single-event mode: the default event and what it holds (legacy GetDefaultEventParams). */
+/**
+ * The "Today Task" panel of the single-event mode: the default event and what it holds (legacy
+ * GetDefaultEventParams).
+ */
 export interface TodayTask {
   eventId: number | null;
   waypoints: number;
@@ -130,8 +143,10 @@ export async function getTodayTask(pool: Pool, userId: string): Promise<TodayTas
     rows: [r],
   } = await pool.query<{ id: number | null; waypoints: number; task: number }>(
     `SELECT up.default_event_id AS id,
-            (SELECT count(*)::int FROM waypoints w WHERE w.event_id = up.default_event_id) AS waypoints,
-            (SELECT count(*)::int FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = up.default_event_id) AS task
+            (SELECT count(*)::int FROM waypoints w
+              WHERE w.event_id = up.default_event_id) AS waypoints,
+            (SELECT count(*)::int FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id
+              WHERE w.event_id = up.default_event_id) AS task
      FROM user_profiles up WHERE up.user_id = $1`,
     [userId],
   );
@@ -139,8 +154,9 @@ export async function getTodayTask(pool: Pool, userId: string): Promise<TodayTas
 }
 
 /**
- * Show an event's task on a group's map, or nothing (`null`). False when the event is not the group owner's. Choosing an event
- * also makes it the owner's default event, which new groups use (legacy AssignEventToGroup). Bumps the group's version.
+ * Show an event's task on a group's map, or nothing (`null`). False when the event is not the group
+ * owner's. Choosing an event also makes it the owner's default event, which new groups use (legacy
+ * AssignEventToGroup). Bumps the group's version.
  */
 export async function assignEvent(
   pool: Pool,

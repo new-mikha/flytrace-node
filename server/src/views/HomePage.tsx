@@ -56,8 +56,9 @@ function External({ href, children }: { href: string; children: ComponentChildre
 }
 
 /**
- * Below the table: a plain link switches between "recent only" and "all", so it works without JavaScript. The anonymous home page
- * swaps the list in place (`swap`); the signed-in one follows the links (`recentHref` and `allHref` are theirs).
+ * Below the table: a plain link switches between "recent only" and "all", so it works without
+ * JavaScript. The anonymous home page swaps the list in place (`swap`); the signed-in one follows
+ * the links (`recentHref` and `allHref` are theirs).
  */
 export function MoreMaps({
   showAll,
@@ -113,7 +114,10 @@ interface PublicMapsProps {
   now: Date;
 }
 
-/** Heading, table and the show-all link: also served on its own (`/?fragment=1`) for the in-place swap. */
+/**
+ * Heading, table and the show-all link: also served on its own (`/?fragment=1`) for the in-place
+ * swap.
+ */
 export function PublicMaps({ groups, total, showAll, now }: PublicMapsProps) {
   return (
     <>

@@ -24,7 +24,10 @@ import type { Pool } from '../db.ts';
 export interface UserSettings {
   /** `single`: one default event ("Today Task"); `multiple`: many events. */
   eventsMode: 'single' | 'multiple';
-  /** How maps show altitude: not at all, in feet or in kilometers (the legacy name of the metric choice is "Meters", stored as `m`, but the map shows km). */
+  /**
+   * How maps show altitude: not at all, in feet or in kilometers (the legacy name of the metric
+   * choice is "Meters", stored as `m`, but the map shows km).
+   */
   altitude: 'none' | 'ft' | 'm';
   /** Whether a new group shows or hides owner-defined messages. */
   messagesByDefault: 'show' | 'hide';
@@ -42,7 +45,8 @@ export async function getSettings(pool: Pool, userId: string): Promise<UserSetti
     altitude_unit: 'm' | 'ft' | null;
     messages: boolean;
   }>(
-    `SELECT is_simple_events_model AS simple, altitude_unit, show_user_messages_by_default AS messages
+    `SELECT is_simple_events_model AS simple, altitude_unit, show_user_messages_by_default AS
+      messages
      FROM user_profiles WHERE user_id = $1`,
     [userId],
   );
@@ -57,10 +61,12 @@ export async function getSettings(pool: Pool, userId: string): Promise<UserSetti
 
 export async function saveSettings(pool: Pool, userId: string, s: UserSettings): Promise<void> {
   await pool.query(
-    `INSERT INTO user_profiles (user_id, is_simple_events_model, altitude_unit, show_user_messages_by_default)
+    `INSERT INTO user_profiles (user_id, is_simple_events_model, altitude_unit,
+      show_user_messages_by_default)
      VALUES ($1, $2, $3, $4)
      ON CONFLICT (user_id) DO UPDATE SET is_simple_events_model = EXCLUDED.is_simple_events_model,
-       altitude_unit = EXCLUDED.altitude_unit, show_user_messages_by_default = EXCLUDED.show_user_messages_by_default`,
+       altitude_unit = EXCLUDED.altitude_unit, show_user_messages_by_default
+         = EXCLUDED.show_user_messages_by_default`,
     [
       userId,
       s.eventsMode === 'single',

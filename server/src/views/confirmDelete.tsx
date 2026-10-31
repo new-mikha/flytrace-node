@@ -18,9 +18,10 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// What the group editor asks before deleting a tracker or the group, written once. The Delete link carries it as
-// `data-confirm-*` attributes (public/js/confirm-dialog.js shows it in the dialog, `ConfirmDialog` below), and the confirmation page, which the same
-// link opens without JavaScript, renders it as a page: so the wording cannot differ between the two.
+// What the group editor asks before deleting a tracker or the group, written once. The Delete link
+// carries it as `data-confirm-*` attributes (public/js/confirm-dialog.js shows it in the dialog,
+// `ConfirmDialog` below), and the confirmation page, which the same link opens without JavaScript,
+// renders it as a page: so the wording cannot differ between the two.
 import type { CurrentUser } from '../auth/service.ts';
 import type { EditableGroup, GroupTracker } from '../repo/groupEditor.ts';
 import { Alert, Submit } from './forms.tsx';
@@ -33,7 +34,10 @@ export interface ConfirmDelete {
   action: string;
   /** Where "Cancel" goes. */
   back: string;
-  /** The question: text, and `{ name }` for what the page shows in bold (the dialog shows plain text). */
+  /**
+   * The question: text, and `{ name }` for what the page shows in bold (the dialog shows plain
+   * text).
+   */
   question: Array<string | { name: string }>;
 }
 
@@ -89,7 +93,10 @@ export function confirmDeleteEvent(event: {
   };
 }
 
-/** The attributes that make a Delete link open the dialog. `swap`: the change is sent in place (a tracker) rather than posted. */
+/**
+ * The attributes that make a Delete link open the dialog. `swap`: the change is sent in place (a
+ * tracker) rather than posted.
+ */
 export function confirmAttrs(c: ConfirmDelete, swap = false) {
   return {
     href: c.action,
@@ -101,7 +108,10 @@ export function confirmAttrs(c: ConfirmDelete, swap = false) {
   };
 }
 
-/** The one dialog of a page (a Bootstrap modal); public/js/confirm-dialog.js fills it from the Delete link that was clicked. */
+/**
+ * The one dialog of a page (a Bootstrap modal); public/js/confirm-dialog.js fills it from the
+ * Delete link that was clicked.
+ */
 export function ConfirmDialog() {
   return (
     <div

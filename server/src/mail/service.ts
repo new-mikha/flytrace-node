@@ -36,7 +36,10 @@ export interface Recipient {
   email: string;
 }
 
-/** The emails the site sends, with their links. Sending never throws: callers get true/false and the failure is logged. */
+/**
+ * The emails the site sends, with their links. Sending never throws: callers get true/false and the
+ * failure is logged.
+ */
 export class MailService {
   private readonly ctx: templates.MailContext;
 
@@ -60,8 +63,9 @@ export class MailService {
   private readonly running = new Set<Promise<unknown>>();
 
   /**
-   * Runs a send in the background so the page does not wait for the mail server. Besides being faster, this keeps
-   * "forgot password" from answering slower for real accounts than for unknown names.
+   * Runs a send in the background so the page does not wait for the mail server. Besides being
+   * faster, this keeps "forgot password" from answering slower for real accounts than for unknown
+   * names.
    */
   queue(task: () => Promise<unknown>): void {
     const run = task()

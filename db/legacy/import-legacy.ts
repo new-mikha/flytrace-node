@@ -24,7 +24,8 @@
 //
 // Everything runs in one transaction: create staging tables, COPY the CSVs in, transform into the
 // real tables, run verify.sql. Any failed check rolls the whole thing back. On success the staging
-// tables are dropped. Usernames listed in LEGACY_EXCLUDE_USERS (and everything they own) are skipped.
+// tables are dropped. Usernames listed in LEGACY_EXCLUDE_USERS (and everything they own) are
+// skipped.
 import { createReadStream } from 'node:fs';
 import { access, readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
@@ -67,7 +68,9 @@ async function copyCsv(client: Client, table: string, csvPath: string): Promise<
   return stream.rowCount ?? 0;
 }
 
-/** Lists the rows whose name was changed because the old data had duplicates (see transform.sql). */
+/**
+ * Lists the rows whose name was changed because the old data had duplicates (see transform.sql).
+ */
 async function reportRenames(client: Client): Promise<void> {
   const { rows } = await client.query<{
     entity: string;
@@ -112,7 +115,8 @@ async function main(): Promise<void> {
     } = await pool.query<{ n: string }>('SELECT count(*) AS n FROM users');
     if (Number(existing?.n) > 0) {
       console.error(
-        `Target database already has ${existing?.n} users; import only into an empty schema (see npm run db:reset).`,
+        `Target database already has ${existing?.n} users; import only into an empty schema (see npm
+          run db:reset).`,
       );
       process.exit(1);
     }

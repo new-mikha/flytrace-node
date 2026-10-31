@@ -18,7 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The event page (/events/:id): the Today Task editor, rename, delete and "old points removal" (against the dev database).
+// The event page (/events/:id): the Today Task editor, rename, delete and "old points removal"
+// (against the dev database).
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
@@ -105,7 +106,8 @@ async function eventWithWaypoints(owner: string, name: string, wpts: string[]) {
 const task = async (eventId: number) =>
   (
     await pool.query<{ waypoint_id: number; radius: number; wpt_order: number }>(
-      `SELECT t.waypoint_id, t.radius, t.wpt_order FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = $1 ORDER BY t.wpt_order`,
+      `SELECT t.waypoint_id, t.radius, t.wpt_order FROM tasks t
+        JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = $1 ORDER BY t.wpt_order`,
       [eventId],
     )
   ).rows;
@@ -120,7 +122,8 @@ describe('single-event mode: the Today Task', () => {
     expect(page).toContain('After you save the task below it will be displayed on your maps.');
     expect(page).not.toContain('Delete the whole event');
     expect(page).toContain('There are no waypoints yet');
-    expect((await owner.get('/events/default')).headers.location).toBe(res.headers.location); // the same event again
+    // the same event again
+    expect((await owner.get('/events/default')).headers.location).toBe(res.headers.location);
   });
 
   it('refuses to delete the Today Task', async () => {

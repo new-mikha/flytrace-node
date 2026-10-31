@@ -39,7 +39,10 @@ export interface GroupDraft {
 interface PageProps {
   user: CurrentUser;
   group: EditableGroup;
-  /** The owner changes things; an admin or a SpotIdReaders member only looks (no controls at all, the values are plain text). */
+  /**
+   * The owner changes things; an admin or a SpotIdReaders member only looks (no controls at all,
+   * the values are plain text).
+   */
   canEdit: boolean;
   /** The task of the group's map (what the owner's events mode makes of it). */
   task: GroupTaskInfo;
@@ -49,7 +52,9 @@ interface PageProps {
   altitude?: string;
   /** Tracker being renamed (`?rename=`), when no draft says so. */
   renaming?: number | null;
-  /** The on/off selection is open (`?onoff=1`, without JavaScript): the trackers show checkboxes. */
+  /**
+   * The on/off selection is open (`?onoff=1`, without JavaScript): the trackers show checkboxes.
+   */
   selecting?: boolean;
 }
 
@@ -82,9 +87,10 @@ function TypeBadge({ type }: { type: GroupTracker['type'] }) {
 }
 
 /**
- * The On/Off cell: the state as a pill and, for the owner, a checkbox that replaces it while the trackers are being turned
- * on and off (`data-selecting` on #trackers, see the toolbar). The checkboxes belong to the form of that toolbar (`form=`),
- * as they sit inside the list, which has forms of its own.
+ * The On/Off cell: the state as a pill and, for the owner, a checkbox that replaces it while the
+ * trackers are being turned on and off (`data-selecting` on #trackers, see the toolbar). The
+ * checkboxes belong to the form of that toolbar (`form=`), as they sit inside the list, which has
+ * forms of its own.
  */
 function Slot({ t, canEdit }: { t: GroupTracker; canEdit: boolean }) {
   return (
@@ -108,7 +114,10 @@ function Slot({ t, canEdit }: { t: GroupTracker; canEdit: boolean }) {
   );
 }
 
-/** "Turn the trackers on & off", and while that is open: Save, Select all, Select none, Cancel (the legacy buttons). */
+/**
+ * "Turn the trackers on & off", and while that is open: Save, Select all, Select none, Cancel (the
+ * legacy buttons).
+ */
 function OnOffTools({ group }: { group: EditableGroup }) {
   return (
     <div class="ft-onoff-tools">
@@ -169,8 +178,9 @@ function TrackerItem({
           {t.name}
         </div>
         {canEdit && (
-          // Always in the page, hidden until Rename: public/js/group-editor.js swaps it with the name without a request.
-          // Without JavaScript the Rename link reloads the page with `?rename=`, which renders it visible.
+          // Always in the page, hidden until Rename: public/js/group-editor.js swaps it with the
+          // name without a request. Without JavaScript the Rename link reloads the page with
+          // `?rename=`, which renders it visible.
           <form
             method="post"
             action={`/groups/${group.id}/trackers/${t.id}/rename`}
@@ -223,7 +233,10 @@ function TrackerItem({
           >
             Rename
           </a>
-          {/* The link opens the confirmation page; with the script the data-confirm-* attributes fill the dialog instead. */}
+          {/*
+             The link opens the confirmation page; with the script the data-confirm-* attributes
+             fill the dialog instead.
+          */}
           <a class="ft-danger-link" {...confirmAttrs(confirmDeleteTracker(group, t), true)}>
             Delete
           </a>
@@ -342,7 +355,10 @@ function SettingsForm({ group, draft }: { group: EditableGroup; draft?: GroupDra
   );
 }
 
-/** Where the group's map gets its task from: the Today Task (single-event mode, a checkbox) or one of the owner's events (multiple-events mode, a choice). */
+/**
+ * Where the group's map gets its task from: the Today Task (single-event mode, a checkbox) or one
+ * of the owner's events (multiple-events mode, a choice).
+ */
 function TaskSection({
   group,
   task,
@@ -501,8 +517,9 @@ function AddTracker({ group, add }: { group: EditableGroup; add?: GroupDraft['ad
 }
 
 /**
- * The group editor. Wide screens: the group settings at the left, the trackers (switch, name, id, rename and delete on each
- * row) and under them the form for a new tracker at the right; phones stack them in that order. Anybody but the owner gets the same page read-only.
+ * The group editor. Wide screens: the group settings at the left, the trackers (switch, name, id,
+ * rename and delete on each row) and under them the form for a new tracker at the right; phones
+ * stack them in that order. Anybody but the owner gets the same page read-only.
  */
 export function GroupPage({
   user,

@@ -18,7 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// Admin user management against the dev database (needs `npm run db:migrate`). Emails are captured instead of sent.
+// Admin user management against the dev database (needs `npm run db:migrate`). Emails are captured
+// instead of sent.
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
@@ -93,7 +94,8 @@ beforeAll(async () => {
     ids[name] = rows[0]!.id;
   }
   await pool.query(
-    `INSERT INTO user_roles (user_id, role_id) SELECT $1, r.id FROM roles r WHERE r.name = 'Admins'`,
+    `INSERT INTO user_roles (user_id, role_id) SELECT $1, r.id FROM roles r
+      WHERE r.name = 'Admins'`,
     [ids[ADMIN]],
   );
   app = await buildApp(config, pool, mailer);
@@ -180,11 +182,13 @@ describe('sorting the list', () => {
   it('sorts by groups and by last login, newest and biggest first on a first click, never-seen last', async () => {
     const admin = await loginAs(ADMIN);
     await pool.query(
-      `INSERT INTO groups (name, user_id) VALUES ('g1 ${run}', $1), ('g2 ${run}', $1), ('g3 ${run}', $2)`,
+      `INSERT INTO groups (name, user_id)
+        VALUES ('g1 ${run}', $1), ('g2 ${run}', $1), ('g3 ${run}', $2)`,
       [ids[PLAIN], ids[TARGET]],
     );
     await pool.query(
-      `UPDATE users SET last_login_at = CASE username WHEN $1 THEN now() - interval '1 day' WHEN $2 THEN now() - interval '5 days'
+      `UPDATE users SET last_login_at = CASE username WHEN $1 THEN now() - interval '1 day' WHEN $2
+        THEN now() - interval '5 days'
                       WHEN $3 THEN now() ELSE NULL END WHERE username = ANY($4)`,
       [TARGET, PLAIN, ADMIN, [ADMIN, PLAIN, TARGET, NO_MAIL]],
     );
@@ -236,7 +240,8 @@ describe('sorting the list', () => {
     const res = await admin.get(`/admin?q=${all}&sort=email&dir=asc`);
     expect(res.body).toContain('aria-sort="ascending"');
     expect(res.body).toContain(`href="/admin?q=${all}&amp;sort=email&amp;dir=desc"`);
-    expect(res.body).toContain('href="/admin?q=' + all + '&amp;sort=groups&amp;dir=desc"'); // first click on another column
+    // first click on another column
+    expect(res.body).toContain('href="/admin?q=' + all + '&amp;sort=groups&amp;dir=desc"');
     const bad = await admin.get(`/admin?q=${all}&sort=password_hash;drop&dir=sideways`);
     expect(bad.statusCode).toBe(200);
     expect(order(bad.body)).toEqual([ADMIN, NO_MAIL, PLAIN, TARGET]);
@@ -250,7 +255,8 @@ describe('the paginator', () => {
 
   beforeAll(async () => {
     await pool.query(
-      `INSERT INTO users (username, password_hash) SELECT '__test_pg_' || lpad(i::text, 2, '0') || '_${run}', 'x' FROM generate_series(1, 55) i`,
+      `INSERT INTO users (username, password_hash) SELECT '__test_pg_' || lpad(i::text, 2, '0') ||
+        '_${run}', 'x' FROM generate_series(1, 55) i`,
     );
   });
 
@@ -274,7 +280,8 @@ describe('the paginator', () => {
     expect(rowsIn(res.body)).toBe(5);
     expect(res.body).toContain('value="2"');
     expect(res.body.match(/class="page-item disabled"/g)).toHaveLength(2); // Next and Last
-    expect(res.body).toContain(`href="/admin?q=${q}" aria-label="First"`); // First = page 1 without a page parameter
+    // First = page 1 without a page parameter
+    expect(res.body).toContain(`href="/admin?q=${q}" aria-label="First"`);
     const desc = await admin.get(`/admin?q=${q}&sort=username&dir=desc&page=2`);
     expect(desc.body).toContain('name="sort" value="username"');
     expect(desc.body).toContain(`href="/admin?q=${q}&amp;sort=username&amp;dir=desc"`);
@@ -521,7 +528,8 @@ describe('changes', () => {
     expect(ok.statusCode).toBe(302);
     await app.mail.flush();
     expect(sent.find((m) => m.to === next)?.text).toContain('token=');
-    expect((await userRow(TARGET)).email).toBe(`${TARGET}@example.com`); // unchanged until the link is opened
+    // unchanged until the link is opened
+    expect((await userRow(TARGET)).email).toBe(`${TARGET}@example.com`);
   });
 
   it('marks the email confirmed or not', async () => {
@@ -558,7 +566,8 @@ describe('changes', () => {
     expect((await admin.post(url, { confirmName: TARGET })).statusCode).toBe(422);
 
     await pool.query(
-      `UPDATE users SET two_factor_enabled = true, two_factor_secret = 'JBSWY3DPEHPK3PXP' WHERE id = $1`,
+      `UPDATE users SET two_factor_enabled = true, two_factor_secret = 'JBSWY3DPEHPK3PXP'
+        WHERE id = $1`,
       [ids[TARGET]],
     );
     expect((await admin.get(`/admin/users/${ids[TARGET]}/disable-2fa`)).body).toContain(

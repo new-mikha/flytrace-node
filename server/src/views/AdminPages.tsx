@@ -129,7 +129,10 @@ function UserRow({ u }: { u: AdminUserRow }) {
   );
 }
 
-/** One step of the paginator: a link, or a greyed-out stand-in when there is nowhere to go. Words show from 768 px up, icons always. */
+/**
+ * One step of the paginator: a link, or a greyed-out stand-in when there is nowhere to go. Words
+ * show from 768 px up, icons always.
+ */
 function PageStep({
   href,
   icon,
@@ -163,7 +166,10 @@ function PageStep({
   );
 }
 
-/** "N users" and << First | < Prev | Page [n] of N | Next > | Last >> in one bar that stays under the search box. */
+/**
+ * "N users" and << First | < Prev | Page [n] of N | Next > | Last >> in one bar that stays under
+ * the search box.
+ */
 function PagerBar({
   q,
   sort,
@@ -289,7 +295,10 @@ export function AdminUsersPage({
           )}
         </form>
         <PagerBar q={q} sort={sort} total={total} pageNo={pageNo} pages={pages} />
-        {/* The column headers are hidden while the table is cards (below 1200 px), so there the order is chosen here, in a bar that sticks like the others. */}
+        {/*
+           The column headers are hidden while the table is cards (below 1200 px), so there the
+           order is chosen here, in a bar that sticks like the others.
+        */}
         <form method="get" action="/admin" class="ft-sort-bar d-xl-none">
           {q && <input type="hidden" name="q" value={q} />}
           <label class="text-body-secondary" for="sort-by">

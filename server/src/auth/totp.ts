@@ -74,7 +74,9 @@ export function checkCode(secret: string, code: string, now = Date.now()): numbe
   return Math.floor(now / 1000 / STEP_SECONDS) + delta;
 }
 
-/** Verifies the code for the user and records its time step; false for a wrong or already used code. */
+/**
+ * Verifies the code for the user and records its time step; false for a wrong or already used code.
+ */
 export async function verifyUserCode(pool: Pool, userId: string, code: string): Promise<boolean> {
   const { rows } = await pool.query<{ two_factor_secret: string | null }>(
     'SELECT two_factor_secret FROM users WHERE id = $1 AND two_factor_enabled',
@@ -102,7 +104,10 @@ export function normalizeRecoveryCode(input: string): string {
   return input.replace(/[\s-]/g, '').toUpperCase();
 }
 
-/** Replaces the user's recovery codes with a fresh set; returns the plain codes, shown to the user once. */
+/**
+ * Replaces the user's recovery codes with a fresh set; returns the plain codes, shown to the user
+ * once.
+ */
 export async function replaceRecoveryCodes(pool: Pool, userId: string): Promise<string[]> {
   const codes = Array.from({ length: RECOVERY_CODE_COUNT }, newRecoveryCode);
   await pool.query('DELETE FROM recovery_codes WHERE user_id = $1', [userId]);
@@ -116,7 +121,8 @@ export async function replaceRecoveryCodes(pool: Pool, userId: string): Promise<
 /** Uses up one recovery code; false if it is wrong or was used before. */
 export async function useRecoveryCode(pool: Pool, userId: string, code: string): Promise<boolean> {
   const { rowCount } = await pool.query(
-    `UPDATE recovery_codes SET used_at = now() WHERE user_id = $1 AND code_hash = $2 AND used_at IS NULL`,
+    `UPDATE recovery_codes SET used_at = now() WHERE user_id = $1 AND code_hash = $2
+      AND used_at IS NULL`,
     [userId, sha256(normalizeRecoveryCode(code))],
   );
   return rowCount === 1;

@@ -103,7 +103,8 @@ export async function accountRoutes(
     },
   );
 
-  // The test email is sent right away (not in the background) so that the page can say what happened.
+  // The test email is sent right away (not in the background) so that the page can say what
+  // happened.
   app.post('/account/test-email', { ...guard, config: emailRateLimit }, async (request, reply) => {
     const to = recipientOf(await accountOf(request));
     if (!to) {
@@ -210,7 +211,8 @@ export async function accountRoutes(
         422,
       );
 
-    await setPassword(pool, account.id, f.password, request.session.sessionId); // other devices are logged out
+    // other devices are logged out
+    await setPassword(pool, account.id, f.password, request.session.sessionId);
     audit(request, 'password.changed', 'Password changed; other sessions ended');
     const to = recipientOf(account);
     if (to) mail.queue(() => mail.sendPasswordChanged(to));

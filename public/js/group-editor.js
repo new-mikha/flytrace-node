@@ -18,18 +18,26 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// Group editor enhancements. Every control also works without this script (plain links and forms); with it:
-//  - the SPOT / inReach radios follow the tracker link while it is typed, until the person picks one;
-//  - Rename opens in the row itself (the server renders the form hidden in every row), Delete in the dialog of confirm-dialog.js;
-//  - "Turn the trackers on & off" opens the checkboxes in place, with Select all, Select none and Cancel;
-//  - (guard.js keeps the Save, Update and Add buttons disabled until the form holds something to send);
-//  - the changes to the trackers (on/off, rename, add, delete) are sent with fetch (swap.js) and the parts of the page that changed
-//    (the header, the message, the list, the add form) are swapped for those of the answer: no page load, no flicker.
-// The server stays the only place with rules: it answers with the whole page (refused changes come back with their errors).
+// Group editor enhancements. Every control also works without this script (plain links and forms);
+// with it:
+//  - the SPOT / inReach radios follow the tracker link while it is typed, until the person picks
+//    one;
+//  - Rename opens in the row itself (the server renders the form hidden in every row), Delete in
+//    the dialog of confirm-dialog.js;
+//  - "Turn the trackers on & off" opens the checkboxes in place, with Select all, Select none and
+//    Cancel;
+//  - (guard.js keeps the Save, Update and Add buttons disabled until the form holds something to
+//    send);
+//  - the changes to the trackers (on/off, rename, add, delete) are sent with fetch (swap.js) and
+//    the parts of the page that changed (the header, the message, the list, the add form) are
+//    swapped for those of the answer: no page load, no flicker.
+// The server stays the only place with rules: it answers with the whole page (refused changes come
+// back with their errors).
 (() => {
   const main = document.querySelector('main');
   if (!main) return;
-  document.documentElement.classList.add('ft-js'); // shows what needs this script (Select all / none)
+  // shows what needs this script (Select all / none)
+  document.documentElement.classList.add('ft-js');
   const closest = (event, selector) =>
     event.target instanceof Element ? event.target.closest(selector) : null;
   const plainClick = (event) =>
@@ -88,7 +96,8 @@
     rowMode(row, link.hasAttribute('data-rename') ? 'rename' : 'view');
   });
 
-  // ---- "Turn the trackers on & off": the checkboxes are in the page, shown while #trackers has data-selecting
+  // ---- "Turn the trackers on & off": the checkboxes are in the page, shown while #trackers has
+  // data-selecting
   const checks = () => [...main.querySelectorAll('#trackers .ft-check')];
   function selecting(on) {
     const section = document.getElementById('trackers');
@@ -97,7 +106,8 @@
       checks()[0]?.focus();
     } else {
       section.removeAttribute('data-selecting');
-      for (const c of checks()) c.checked = c.dataset.was === '1'; // what a cancelled selection left behind is dropped
+      // what a cancelled selection left behind is dropped
+      for (const c of checks()) c.checked = c.dataset.was === '1';
       section.querySelector('.ft-onoff-start')?.focus();
     }
     window.ftGuard?.();
@@ -128,8 +138,9 @@
     else if (closest(event, '#trackers[data-selecting]')) selecting(false);
   });
 
-  // ---- Delete asks in a dialog (confirm-dialog.js opens it). A tracker's Delete carries `data-confirm-swap`: the dialog's form is
-  // then sent like the other tracker changes; the group's is posted normally and the browser follows the redirect.
+  // ---- Delete asks in a dialog (confirm-dialog.js opens it). A tracker's Delete carries
+  // `data-confirm-swap`: the dialog's form is then sent like the other tracker changes; the group's
+  // is posted normally and the browser follows the redirect.
   const dialog = document.getElementById('ft-confirm');
   const dialogForm = document.getElementById('ft-confirm-form');
   if (dialog && dialogForm && window.bootstrap)
@@ -141,7 +152,8 @@
       send(dialogForm);
     });
 
-  // ---- sending the changes (swap.js does the sending and the swapping; this knows where the cursor goes afterwards)
+  // ---- sending the changes (swap.js does the sending and the swapping; this knows where the
+  // cursor goes afterwards)
   const PARTS = ['ft-head', 'ft-flash', 'trackers', 'add-tracker'];
 
   async function send(form) {
@@ -162,7 +174,8 @@
     const form = event.target;
     if (!(form instanceof HTMLFormElement) || !form.closest('#trackers, #add-tracker')) return;
     event.preventDefault();
-    event.stopPropagation(); // app.js would show its own spinner and wait for a page that never loads
+    // app.js would show its own spinner and wait for a page that never loads
+    event.stopPropagation();
     send(form);
   });
 })();

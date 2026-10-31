@@ -18,11 +18,12 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// A form that is posted comes back as a fresh page (post, redirect, load), which starts at the top. This puts the page back
-// where it was when the person pressed Save: the position is kept in sessionStorage for a few seconds and used by the next
-// load of the same address, unless that address names a section (#...). The "Saved." message is at the top of the page, so when
-// it is out of sight after the page was put back, it is shown once more as a toast.
-// Forms that are sent in place (swap.js, group-editor.js) never reach this: they stop the submit event.
+// A form that is posted comes back as a fresh page (post, redirect, load), which starts at the top.
+// This puts the page back where it was when the person pressed Save: the position is kept in
+// sessionStorage for a few seconds and used by the next load of the same address, unless that
+// address names a section (#...). The "Saved." message is at the top of the page, so when it is out
+// of sight after the page was put back, it is shown once more as a toast. Forms that are sent in
+// place (swap.js, group-editor.js) never reach this: they stop the submit event.
 (() => {
   const KEY = 'ft-scroll';
   const MAX_AGE_MS = 10000;
@@ -49,7 +50,8 @@
     write({ path: location.pathname, y: window.scrollY, at: Date.now() });
   });
 
-  // The "Saved." message again, as a toast, when it is out of sight. Also used by swap.js after a change that was sent in place.
+  // The "Saved." message again, as a toast, when it is out of sight. Also used by swap.js after a
+  // change that was sent in place.
   function showIfHidden(alert) {
     if (!alert) return;
     requestAnimationFrame(() => {

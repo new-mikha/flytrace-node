@@ -18,15 +18,18 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// Live tips on forms that set a username, email or password (register, change email, reset / change password).
+// Live tips on forms that set a username, email or password (register, change email, reset / change
+// password).
 //
-// A tip appears under a field only when one of its rules is broken, and only once the person has left the field; from
-// then on it follows what they type and disappears as soon as the rule is met. While any tip is showing, the submit
-// button is disabled. Whether a username / email is still free is asked from the server (debounced, silently), and
-// the answer shows as a tip the same way. The server checks everything again on submit.
+// A tip appears under a field only when one of its rules is broken, and only once the person has
+// left the field; from then on it follows what they type and disappears as soon as the rule is met.
+// While any tip is showing, the submit button is disabled. Whether a username / email is still free
+// is asked from the server (debounced, silently), and the answer shows as a tip the same way. The
+// server checks everything again on submit.
 //
-// Form attributes: data-min-password, data-forbidden (comma-separated values the password must not equal, for pages
-// that have no username / email field), data-current-email (the address a new one must differ from).
+// Form attributes: data-min-password, data-forbidden (comma-separated values the password must not
+// equal, for pages that have no username / email field), data-current-email (the address a new one
+// must differ from).
 (() => {
   const form = document.querySelector('form[data-live-validate]');
   if (!form) return;
@@ -38,10 +41,12 @@
     .filter(Boolean)
     .map((v) => v.toLowerCase());
   const currentEmail = (form.dataset.currentEmail || '').toLowerCase();
-  const MIN_PASSWORD = Number(form.dataset.minPassword) || 6; // from the server, which owns the rule
+  // from the server, which owns the rule
+  const MIN_PASSWORD = Number(form.dataset.minPassword) || 6;
   const MAX_PASSWORD = 128;
 
-  // field name -> rule name -> test (true = fine). "free" needs the server and is handled separately below.
+  // field name -> rule name -> test (true = fine). "free" needs the server and is handled
+  // separately below.
   const RULES = {
     username: {
       len: (v) => v.trim().length >= 3 && v.trim().length <= 64,
@@ -92,8 +97,8 @@
     window.ftGuard?.();
   }
 
-  // Is the value free? Only asked once the local rules pass, and not on every key press; the answer stays silent
-  // until the field has been left.
+  // Is the value free? Only asked once the local rules pass, and not on every key press; the answer
+  // stays silent until the field has been left.
   function checkFree(name) {
     clearTimeout(timers[name]);
     requests[name]?.abort();
@@ -132,7 +137,8 @@
       touched.add(name);
       update(name);
     });
-    // The browser or a failed submit may have filled it in: look the free-check up quietly so that it is ready.
+    // The browser or a failed submit may have filled it in: look the free-check up quietly so that
+    // it is ready.
     if ((name === 'username' || name === 'email') && value(name) !== '') checkFree(name);
   }
 
@@ -142,7 +148,8 @@
       (name) => Object.values(RULES[name]).every((test) => test(value(name))) && !taken[name],
     );
 
-  // Clicking Register on an untouched form is the other way to "leave" every field: show all problems at once.
+  // Clicking Register on an untouched form is the other way to "leave" every field: show all
+  // problems at once.
   form.addEventListener('submit', (event) => {
     for (const name of names) {
       touched.add(name);

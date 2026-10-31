@@ -101,7 +101,10 @@ export function LoginPage({
           <a href="/resend-confirmation">Send the confirmation email again</a>
         </p>
       )}
-      {/* data-guard="off": Log in is always enabled (see the login form in Nav.tsx); the server checks the fields. */}
+      {/*
+         data-guard="off": Log in is always enabled (see the login form in Nav.tsx); the server
+         checks the fields.
+      */}
       <form method="post" action="/login" data-guard="off">
         <input type="hidden" name="returnUrl" value={returnUrl} />
         <Field name="username" label="Username or email" autocomplete="username" autofocus />
@@ -275,8 +278,8 @@ export function CheckEmailPage({
 // ---- one-time links ----
 
 /**
- * What an emailed link opens: a page with a button, so that mail scanners following the link do not use it up.
- * The token is only spent when the button (a POST) is pressed.
+ * What an emailed link opens: a page with a button, so that mail scanners following the link do not
+ * use it up. The token is only spent when the button (a POST) is pressed.
  */
 export function LinkPage({
   title,
@@ -364,7 +367,10 @@ export function ForgotPasswordPage({ error, ...c }: Common & { error?: string })
   );
 }
 
-/** `forbidden`: the account's username and email, which the new password must not equal (checked by the hints too). */
+/**
+ * `forbidden`: the account's username and email, which the new password must not equal (checked by
+ * the hints too).
+ */
 export function ResetPasswordPage({
   token,
   valid,

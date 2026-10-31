@@ -29,7 +29,10 @@ export interface MailMessage {
 }
 
 export interface Mailer {
-  /** 'smtp' sends for real; 'log' (no SMTP_HOST configured) only writes the message to the server log. */
+  /**
+   * 'smtp' sends for real; 'log' (no SMTP_HOST configured) only writes the message to the server
+   * log.
+   */
   readonly kind: 'smtp' | 'log';
   send(message: MailMessage): Promise<void>;
 }

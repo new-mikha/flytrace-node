@@ -93,9 +93,10 @@ function Row({
 }
 
 /**
- * The signed-in user's own groups, in the same table style as the public maps on the anonymous home page. Below xl
- * (`ft-cards`, under 1200 px) every row becomes a card, with `data-label` as the label of the cells that need one; the
- * `table-responsive-xl` box only keeps a table that is still too wide scrollable.
+ * The signed-in user's own groups, in the same table style as the public maps on the anonymous home
+ * page. Below xl (`ft-cards`, under 1200 px) every row becomes a card, with `data-label` as the
+ * label of the cells that need one; the `table-responsive-xl` box only keeps a table that is still
+ * too wide scrollable.
  */
 export function UserGroupsTable({
   list: { groups, showTask, simpleEvents },

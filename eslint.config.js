@@ -18,8 +18,9 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// ESLint is used for one thing only: the brace rule for if / else / for / while, which Prettier does not enforce (it keeps braces as written).
-// `npm run format` runs `eslint --fix` first, then Prettier (the layout of everything else; see .prettierrc.json).
+// ESLint is used for one thing only: the brace rule for if / else / for / while, which Prettier
+// does not enforce (it keeps braces as written). `npm run format` runs `eslint --fix` first, then
+// Prettier (the layout of everything else; see .prettierrc.json).
 import tsParser from '@typescript-eslint/parser';
 
 export default [
@@ -28,7 +29,8 @@ export default [
     files: ['**/*.{ts,tsx,js}'],
     languageOptions: { parser: tsParser, parserOptions: { ecmaFeatures: { jsx: true } } },
     rules: {
-      // One statement: no braces. If any block of an if / else if / else chain needs braces (more than one statement), all of them get braces.
+      // One statement: no braces. If any block of an if / else if / else chain needs braces (more
+      // than one statement), all of them get braces.
       curly: ['error', 'multi', 'consistent'],
     },
   },

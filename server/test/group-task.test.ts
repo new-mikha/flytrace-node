@@ -18,8 +18,9 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The task of a group's map: the single-event mode's "Today Task" checkbox, the multiple-events mode's choice of event, the
-// switch between the modes and "Create new event" (against the dev database).
+// The task of a group's map: the single-event mode's "Today Task" checkbox, the multiple-events
+// mode's choice of event, the switch between the modes and "Create new event" (against the dev
+// database).
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
@@ -70,14 +71,16 @@ beforeAll(async () => {
   for (const name of [OWNER, OTHER, READER])
     await pool.query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [name, hash]);
   await pool.query(
-    `INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1 AND r.name = 'SpotIdReaders'`,
+    `INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r
+      WHERE u.username = $1 AND r.name = 'SpotIdReaders'`,
     [READER],
   );
   app = await buildApp(config, pool);
 });
 
 afterAll(async () => {
-  await pool.query('DELETE FROM users WHERE username LIKE $1', [`__test_t%_${run}`]); // events and groups cascade
+  // events and groups cascade
+  await pool.query('DELETE FROM users WHERE username LIKE $1', [`__test_t%_${run}`]);
   await app.close();
 });
 
@@ -127,7 +130,8 @@ describe('single-event mode: the Today Task', () => {
       /\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1],
     );
     const before = (await groupEvent(id)).version;
-    expect((await owner.post(`/groups/${id}/task`, {})).statusCode).toBe(302); // box unchecked: nothing is sent for it
+    // box unchecked: nothing is sent for it
+    expect((await owner.post(`/groups/${id}/task`, {})).statusCode).toBe(302);
     expect(await groupEvent(id)).toMatchObject({ event_id: null, version: before + 1 });
     expect((await owner.get(`/groups/${id}`)).body).toContain('not showing the Today Task');
     await owner.post(`/groups/${id}/task`, { show: '1' });
@@ -204,7 +208,8 @@ describe("multiple-events mode: the group's event", () => {
     const res = await owner.post(`/groups/${id}/event`, { event: String(theirs!.id) });
     expect(res.statusCode).toBe(302);
     expect(await groupEvent(id)).toEqual(before);
-    expect((await owner.post(`/groups/${id}/event`, { event: 'x' })).statusCode).toBe(302); // not a number: nothing changes either
+    // not a number: nothing changes either
+    expect((await owner.post(`/groups/${id}/event`, { event: 'x' })).statusCode).toBe(302);
     expect(await groupEvent(id)).toEqual(before);
   });
 

@@ -18,17 +18,22 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The task editor of the event page: rows of waypoint + radius. The server renders the saved rows and one empty line at the end
-// ("Add new ->"), which is all that is needed without JavaScript (the line of a point is cleared by choosing the empty entry).
-// With it:
-//  - choosing a waypoint in the last line adds another empty line; a Remove button takes a line out; Clear task empties the table;
-//  - the bulk controls fill the table with every waypoint of the event, sorted by name or in the order added, with one radius;
-//  - the Save button waits for a change: this answers guard.js (event `ft-changed`) by comparing the lines with `data-initial`.
-// Everything is delegated from <main>, so it keeps working when swap.js replaces the section. The server checks it all again.
+// The task editor of the event page: rows of waypoint + radius. The server renders the saved rows
+// and one empty line at the end ("Add new ->"), which is all that is needed without JavaScript (the
+// line of a point is cleared by choosing the empty entry). With it:
+//  - choosing a waypoint in the last line adds another empty line; a Remove button takes a line
+//    out; Clear task empties the table;
+//  - the bulk controls fill the table with every waypoint of the event, sorted by name or in the
+//    order added, with one radius;
+//  - the Save button waits for a change: this answers guard.js (event `ft-changed`) by comparing
+//    the lines with `data-initial`.
+// Everything is delegated from <main>, so it keeps working when swap.js replaces the section. The
+// server checks it all again.
 (() => {
   const main = document.querySelector('main');
   if (!main) return;
-  document.documentElement.classList.add('ft-js'); // shows what needs this script (Remove, Clear task, bulk controls)
+  // shows what needs this script (Remove, Clear task, bulk controls)
+  document.documentElement.classList.add('ft-js');
   const closest = (event, selector) =>
     event.target instanceof Element ? event.target.closest(selector) : null;
   const rowsOf = (form) => [...form.querySelectorAll('tbody tr')];
@@ -55,7 +60,8 @@
     rows.forEach((row, i) => {
       const last = i === rows.length - 1;
       row.querySelector('th').textContent = last ? 'Add new ->' : i === 0 ? 'Start' : String(i);
-      row.querySelector('.ft-task-remove').style.display = last ? 'none' : ''; // nothing to remove in the empty line
+      // nothing to remove in the empty line
+      row.querySelector('.ft-task-remove').style.display = last ? 'none' : '';
     });
     window.ftGuard?.();
   }
@@ -100,7 +106,8 @@
       const radius =
         /^\d{1,6}$/.test(typed) && Number(typed) > 0 ? typed : form.dataset.defaultRadius;
       const all = JSON.parse(form.dataset.wpts || '[]');
-      // "In the order added" is by id (the order the waypoints were created), whatever order the page listed them in.
+      // "In the order added" is by id (the order the waypoints were created), whatever order the
+      // page listed them in.
       if (button.dataset.taskBulk === 'name')
         all.sort((a, b) =>
           a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }),

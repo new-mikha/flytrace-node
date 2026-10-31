@@ -18,8 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// Registration, email confirmation, password reset, account pages and two-factor login, end to end against the dev database
-// (needs `npm run db:migrate`). Emails are captured instead of sent.
+// Registration, email confirmation, password reset, account pages and two-factor login, end to end
+// against the dev database (needs `npm run db:migrate`). Emails are captured instead of sent.
 import type { FastifyInstance } from 'fastify';
 import * as OTPAuth from 'otpauth';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -48,7 +48,10 @@ function tokenIn(message: MailMessage | undefined): string {
   return decodeURIComponent(match[1]!);
 }
 
-/** A browser: keeps cookies, has its own IP so the per-IP rate limits of one test do not hit another. */
+/**
+ * A browser: keeps cookies, has its own IP so the per-IP rate limits of one test do not hit
+ * another.
+ */
 class Browser {
   cookies: Record<string, string> = {};
   readonly ip = `10.1.${Math.floor(ipCounter / 250)}.${ipCounter++ % 250}`;
@@ -196,7 +199,8 @@ describe('registration', () => {
         .rows[0].email_confirmed,
     ).toBe(true);
 
-    expect((await b.get(`/confirm-email?token=${encodeURIComponent(token)}`)).statusCode).toBe(400); // used up
+    // used up
+    expect((await b.get(`/confirm-email?token=${encodeURIComponent(token)}`)).statusCode).toBe(400);
     expect((await b.get('/confirm-email?token=garbage')).statusCode).toBe(400);
   });
 
@@ -291,7 +295,8 @@ describe('forgot and reset password', () => {
 
     const resetPage = await b.get(`/reset-password?token=${encodeURIComponent(token)}`);
     expect(resetPage.statusCode).toBe(200);
-    expect(resetPage.body).toContain('data-hints="password"'); // the same live hints as on the register page
+    // the same live hints as on the register page
+    expect(resetPage.body).toContain('data-hints="password"');
     expect(resetPage.body).toContain('ft-pw-toggle'); // show / hide password button
     expect(resetPage.body).toContain(`data-forbidden="${userName('reset')},${userEmail('reset')}"`);
     const weak = await b.post('/reset-password', {
@@ -418,7 +423,8 @@ describe('account pages', () => {
     expect(json.account.username).toBe(userName('del'));
     expect(JSON.stringify(json)).not.toContain('argon2');
 
-    expect((await b.post('/account/delete', { currentPassword: PASSWORD })).statusCode).toBe(422); // box not ticked
+    // box not ticked
+    expect((await b.post('/account/delete', { currentPassword: PASSWORD })).statusCode).toBe(422);
     expect(
       (await b.post('/account/delete', { currentPassword: 'wrong', confirm: 'yes' })).statusCode,
     ).toBe(422);
@@ -519,7 +525,8 @@ describe('two-factor login', () => {
     expect(
       (
         await pool.query(
-          `SELECT count(*) AS n FROM recovery_codes r JOIN users u ON u.id = r.user_id WHERE u.username = $1`,
+          `SELECT count(*) AS n FROM recovery_codes r JOIN users u ON u.id = r.user_id
+            WHERE u.username = $1`,
           [userName('mfa3')],
         )
       ).rows[0].n,

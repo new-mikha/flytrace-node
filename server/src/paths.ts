@@ -24,7 +24,10 @@ import { dirname, join } from 'node:path';
 
 const require = createRequire(import.meta.url);
 
-/** Directory of an installed npm package: walks up from its entry file to the package.json with that name. */
+/**
+ * Directory of an installed npm package: walks up from its entry file to the package.json with that
+ * name.
+ */
 export function packageDir(name: string): string {
   let dir = dirname(require.resolve(name));
   for (;;) {
@@ -37,7 +40,10 @@ export function packageDir(name: string): string {
   }
 }
 
-/** The folder holding the project's package.json (works from `server/src` and from `dist/server/src`). */
+/**
+ * The folder holding the project's package.json (works from `server/src` and from
+ * `dist/server/src`).
+ */
 export function projectRoot(): string {
   let dir = import.meta.dirname;
   while (!existsSync(join(dir, 'package.json'))) {

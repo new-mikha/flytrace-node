@@ -35,8 +35,9 @@ export interface SettingsItem {
 export const ALTITUDE_LABEL = { none: 'Off', ft: 'Feet', m: 'Kilometers' } as const;
 
 /**
- * Every settings page, in two groups. Wide screens list them in a column at the left of each page; on phones the list is the
- * first screen (/settings) and every entry opens its own page with a way back.
+ * Every settings page, in two groups. Wide screens list them in a column at the left of each page;
+ * on phones the list is the first screen (/settings) and every entry opens its own page with a way
+ * back.
  */
 export const SETTINGS_GROUPS: { title: string; items: SettingsItem[] }[] = [
   {
@@ -102,7 +103,10 @@ export const SETTINGS_GROUPS: { title: string; items: SettingsItem[] }[] = [
   },
 ];
 
-/** The entry a page belongs to: the longest href that is the page's path or a parent of it (/account/2fa/setup is under /account/2fa). */
+/**
+ * The entry a page belongs to: the longest href that is the page's path or a parent of it
+ * (/account/2fa/setup is under /account/2fa).
+ */
 export function currentItem(path: string): SettingsItem | null {
   let best: SettingsItem | null = null;
   for (const group of SETTINGS_GROUPS)

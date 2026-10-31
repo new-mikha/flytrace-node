@@ -21,7 +21,10 @@
 import 'dotenv/config';
 import { z } from 'zod';
 
-/** Env vars arrive as strings and an unset-but-listed one (`SMTP_HOST=`) as ''; treat '' as "not set". */
+/**
+ * Env vars arrive as strings and an unset-but-listed one (`SMTP_HOST=`) as ''; treat '' as "not
+ * set".
+ */
 const optional = <T extends z.ZodType>(type: T) =>
   z.preprocess((v) => (v === '' ? undefined : v), type.optional());
 const flag = (fallback: boolean) =>
@@ -41,7 +44,9 @@ function isTimeZone(name: string): boolean {
   }
 }
 
-/** A true/false setting that may be left unset (unlike `flag`, there is no fallback to apply here). */
+/**
+ * A true/false setting that may be left unset (unlike `flag`, there is no fallback to apply here).
+ */
 const optionalFlag = z
   .preprocess((v) => (v === '' ? undefined : v), z.enum(['true', 'false', '1', '0']).optional())
   .transform((v) => (v === undefined ? undefined : v === 'true' || v === '1'));
@@ -51,15 +56,17 @@ const schema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  // Time zone for log times and for the times shown on pages, e.g. Europe/Berlin. Unset: the host's time zone.
+  // Time zone for log times and for the times shown on pages, e.g. Europe/Berlin. Unset: the host's
+  // time zone.
   LOG_TIMEZONE: optional(
     z.string().refine(isTimeZone, 'must be a time zone name such as Europe/Berlin or UTC'),
   ),
   // Comma-separated usernames to skip when importing the legacy dump.
   LEGACY_EXCLUDE_USERS: z.string().default(''),
 
-  // Whether the session cookie is marked Secure (sent over HTTPS only). Default: yes in production, no otherwise. The session
-  // library does not send a Secure cookie at all over plain HTTP, so set false only to try the site over HTTP on a home network.
+  // Whether the session cookie is marked Secure (sent over HTTPS only). Default: yes in production,
+  // no otherwise. The session library does not send a Secure cookie at all over plain HTTP, so set
+  // false only to try the site over HTTP on a home network.
   COOKIE_SECURE: optionalFlag,
 
   // Public address of the site, used for the links in emails (no trailing slash needed).
@@ -67,10 +74,12 @@ const schema = z.object({
   // true: a user must confirm the email address before logging in.
   REQUIRE_CONFIRMED_EMAIL: flag(false),
 
-  // Outgoing email. Without SMTP_HOST nothing is sent: the message is written to the server log instead.
+  // Outgoing email. Without SMTP_HOST nothing is sent: the message is written to the server log
+  // instead.
   SMTP_HOST: optional(z.string()),
   SMTP_PORT: optional(z.coerce.number().int().positive()),
-  // true: TLS from the first byte (usually port 465). false: plain connection upgraded with STARTTLS (587).
+  // true: TLS from the first byte (usually port 465). false: plain connection upgraded with
+  // STARTTLS (587).
   SMTP_SECURE: flag(false),
   SMTP_USER: optional(z.string()),
   SMTP_PASSWORD: optional(z.string()),

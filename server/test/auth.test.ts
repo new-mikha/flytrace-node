@@ -37,10 +37,14 @@ const EMAIL = `__test_${run}@example.test`;
 let app: FastifyInstance;
 let pool: Pool;
 
-/** Logs in through the HTML form; `ok` means it redirected to the page asked for, not back to /login. */
+/**
+ * Logs in through the HTML form; `ok` means it redirected to the page asked for, not back to
+ * /login.
+ */
 let ipCounter = 0;
 async function login(username: string, password: string) {
-  // own client IP per login, so the per-IP login rate limit does not trip over the many logins of these tests
+  // own client IP per login, so the per-IP login rate limit does not trip over the many logins of
+  // these tests
   const res = await app.inject({
     method: 'POST',
     url: '/login',
@@ -73,11 +77,13 @@ beforeAll(async () => {
   );
   await pool.query(
     `INSERT INTO user_roles (user_id, role_id)
-                    SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1 AND r.name = 'Admins'`,
+                    SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1
+                      AND r.name = 'Admins'`,
     [ADMIN],
   );
   await pool.query(
-    `INSERT INTO groups (name, user_id) SELECT 'Test group ' || $2, id FROM users WHERE username = $1`,
+    `INSERT INTO groups (name, user_id) SELECT 'Test group ' || $2, id FROM users
+      WHERE username = $1`,
     [USER, run],
   );
   app = await buildApp(config, pool);

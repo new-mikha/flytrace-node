@@ -46,8 +46,9 @@ export type AdminErrors = Record<string, string | undefined>;
 // ---- the sections of one user ----
 
 /**
- * What an admin can do with a user, one page each, laid out like the settings: wide screens list them at the left of every page,
- * phones show the list alone (with the current values) as the first screen and each page alone with a way back.
+ * What an admin can do with a user, one page each, laid out like the settings: wide screens list
+ * them at the left of every page, phones show the list alone (with the current values) as the first
+ * screen and each page alone with a way back.
  */
 export const SECTION_SLUGS = [
   'lock',
@@ -120,7 +121,10 @@ const baseOf = (target: ManagedUser) => `/admin/users/${target.id}`;
 
 // ---- the frame ----
 
-/** Without this the page would look like "My account"; the red frame says whose account is being changed. */
+/**
+ * Without this the page would look like "My account"; the red frame says whose account is being
+ * changed.
+ */
 function Banner({ target }: { target: ManagedUser }) {
   return (
     <div class="alert alert-danger d-flex gap-2 align-items-start" role="note">
@@ -190,7 +194,10 @@ function summaryOf(t: ManagedUser): string {
     .join(' · ');
 }
 
-/** The frame of every page of one user: the list of sections at the left (wide screens) or alone as the first screen (phones). */
+/**
+ * The frame of every page of one user: the list of sections at the left (wide screens) or alone as
+ * the first screen (phones).
+ */
 function UserShell({
   user,
   path,
@@ -296,7 +303,10 @@ function UserShell({
 
 // ---- the pages ----
 
-/** Wide screens: the list and the overview. Phones: the list alone, with a one-line summary above it. */
+/**
+ * Wide screens: the list and the overview. Phones: the list alone, with a one-line summary above
+ * it.
+ */
 export function AdminUserIndexPage(props: Common & { target: ManagedUser }) {
   return <UserShell {...props} />;
 }

@@ -18,7 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The signed-in user's settings: the list (/settings) and one page per website preference. The account pages are in account.tsx.
+// The signed-in user's settings: the list (/settings) and one page per website preference. The
+// account pages are in account.tsx.
 import type { FastifyInstance } from 'fastify';
 import { audit } from '../audit.ts';
 import { requireLogin } from '../auth/guards.ts';
@@ -47,7 +48,8 @@ export async function settingsRoutes(app: FastifyInstance, pool: Pool): Promise<
     ),
   );
 
-  // Each preference: a page with its choices (GET) and the save (POST, which comes back to the page).
+  // Each preference: a page with its choices (GET) and the save (POST, which comes back to the
+  // page).
   const preference = <K extends keyof UserSettings>(
     path: string,
     key: K,

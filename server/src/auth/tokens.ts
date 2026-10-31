@@ -41,8 +41,8 @@ export function sha256(value: string): string {
 }
 
 /**
- * Creates a one-time token for the user and returns the secret part, which goes into the emailed link.
- * Earlier unused tokens of the same purpose stop working, so only the newest email is valid.
+ * Creates a one-time token for the user and returns the secret part, which goes into the emailed
+ * link. Earlier unused tokens of the same purpose stop working, so only the newest email is valid.
  */
 export async function createToken(
   pool: Pool,
@@ -77,7 +77,10 @@ export async function peekToken(
   return rows[0] ? { id: Number(rows[0].id), userId: rows[0].user_id, data: rows[0].data } : null;
 }
 
-/** Uses the token up. Returns null if it is invalid, expired or was already used (also under concurrent calls). */
+/**
+ * Uses the token up. Returns null if it is invalid, expired or was already used (also under
+ * concurrent calls).
+ */
 export async function consumeToken(
   pool: Pool,
   token: string,
@@ -95,6 +98,7 @@ export async function consumeToken(
 /** Housekeeping: drops tokens that are long expired or used. */
 export async function purgeTokens(pool: Pool): Promise<void> {
   await pool.query(
-    `DELETE FROM user_tokens WHERE expires_at < now() - interval '7 days' OR used_at < now() - interval '7 days'`,
+    `DELETE FROM user_tokens WHERE expires_at < now() - interval '7 days'
+      OR used_at < now() - interval '7 days'`,
   );
 }

@@ -21,8 +21,9 @@
 const formatters = new Map<string, Intl.DateTimeFormat>();
 
 /**
- * The time zone of the times on pages: `LOG_TIMEZONE`, which `index.ts` copies to `TZ` at startup, else the host's. Read on every
- * call (and the formatter cached per zone) so that it is always the zone the process currently runs in.
+ * The time zone of the times on pages: `LOG_TIMEZONE`, which `index.ts` copies to `TZ` at startup,
+ * else the host's. Read on every call (and the formatter cached per zone) so that it is always the
+ * zone the process currently runs in.
  */
 function formatterFor(timeZone: string | undefined): Intl.DateTimeFormat {
   const key = timeZone ?? '';
@@ -54,8 +55,9 @@ function partsOf(
 }
 
 /**
- * `ddd d MMM H:mm zone` in the site's time zone, e.g. "Wed 5 Mar 4:07 UTC" or "Wed 5 Mar 15:07 GMT+11". The year is added when
- * it is not the current year (`now`, the year in that same zone): "Wed 5 Mar 2025 15:07 GMT+11". `timeZone` asks for another zone ("UTC").
+ * `ddd d MMM H:mm zone` in the site's time zone, e.g. "Wed 5 Mar 4:07 UTC" or "Wed 5 Mar 15:07
+ * GMT+11". The year is added when it is not the current year (`now`, the year in that same zone):
+ * "Wed 5 Mar 2025 15:07 GMT+11". `timeZone` asks for another zone ("UTC").
  */
 export function formatTimestamp(d: Date, now: Date = new Date(), timeZone?: string): string {
   const zone = timeZone ?? (process.env.TZ || undefined);
@@ -66,7 +68,9 @@ export function formatTimestamp(d: Date, now: Date = new Date(), timeZone?: stri
 
 export interface Age {
   text: string;
-  /** Legacy rule: the age is only highlighted when the time is in the past and less than a day ago. */
+  /**
+   * Legacy rule: the age is only highlighted when the time is in the past and less than a day ago.
+   */
   recent: boolean;
 }
 

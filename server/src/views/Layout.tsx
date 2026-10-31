@@ -26,14 +26,19 @@ interface LayoutProps {
   title: string;
   user: CurrentUser | null;
   path: string;
-  /** Floating card (with shadow) instead of the plain panel: small, 'medium' (account pages), or 'wide' = as wide as the menu bar. Phones show a plain panel. */
+  /**
+   * Floating card (with shadow) instead of the plain panel: small, 'medium' (account pages), or
+   * 'wide' = as wide as the menu bar. Phones show a plain panel.
+   */
   card?: boolean | 'medium' | 'wide';
   /** Extra scripts (paths under /assets/js/) for this page only. */
   scripts?: string[];
   children: ComponentChildren;
 }
 
-/** Page frame shared by every page: background, navigation bar and the "jumbotron" content panel. */
+/**
+ * Page frame shared by every page: background, navigation bar and the "jumbotron" content panel.
+ */
 export function Layout({ title, user, path, card, scripts, children }: LayoutProps) {
   return (
     <html lang="en">

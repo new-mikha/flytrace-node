@@ -37,7 +37,9 @@ export interface PublicGroupsList {
   total: number;
 }
 
-/** By default only groups updated within this many days of the newest update anywhere are listed. */
+/**
+ * By default only groups updated within this many days of the newest update anywhere are listed.
+ */
 export const RECENT_WINDOW_DAYS = 7;
 
 // Same rule as the legacy site: public and with at least two trackers.
@@ -46,14 +48,18 @@ const GROUP_ROWS = `
          (SELECT count(*)::int FROM group_trackers t WHERE t.group_id = g.id) AS trackers
   FROM groups g JOIN users u ON u.id = g.user_id`;
 
-/** `where` refers to its own parameters as {1}, {2}, ... (their numbers differ between the two queries below). */
+/**
+ * `where` refers to its own parameters as {1}, {2}, ... (their numbers differ between the two
+ * queries below).
+ */
 const withParams = (where: string, offset: number) =>
   where.replace(/\{(\d+)\}/g, (_m, n: string) => `$${Number(n) + offset}`);
 
 /**
- * The groups that qualify (`where` and at least two trackers), newest position first, groups without any position last.
- * Unless `all` is set, only groups updated within RECENT_WINDOW_DAYS of the newest update among the qualifying ones are returned
- * (the window is counted back from the newest map, not from now, so a quiet site still shows something).
+ * The groups that qualify (`where` and at least two trackers), newest position first, groups
+ * without any position last. Unless `all` is set, only groups updated within RECENT_WINDOW_DAYS of
+ * the newest update among the qualifying ones are returned (the window is counted back from the
+ * newest map, not from now, so a quiet site still shows something).
  */
 async function listGroups(
   pool: Pool,
@@ -104,7 +110,10 @@ export function listPublicGroups(pool: Pool, { all }: { all: boolean }): Promise
   return listGroups(pool, all, 'g.is_public', []);
 }
 
-/** What a signed-in user gets with "Show others' groups": other people's public groups; an admin also gets the unlisted ones. */
+/**
+ * What a signed-in user gets with "Show others' groups": other people's public groups; an admin
+ * also gets the unlisted ones.
+ */
 export function listOthersGroups(
   pool: Pool,
   userId: string,
@@ -124,13 +133,19 @@ export interface UserGroup {
   /** How many times the map page asked for fresh positions (shown to admins only). */
   updates: number;
   newestCoordTs: Date | null;
-  /** The event (task) the group's map shows, when it is relevant to the user's events mode; `taskPoints` is how many points its task has. */
+  /**
+   * The event (task) the group's map shows, when it is relevant to the user's events mode;
+   * `taskPoints` is how many points its task has.
+   */
   event: { name: string; taskPoints: number } | null;
 }
 
 export interface UserGroupsList {
   groups: UserGroup[];
-  /** Legacy rule: the Task column is shown in the multiple-events mode, or when the default event has waypoints. */
+  /**
+   * Legacy rule: the Task column is shown in the multiple-events mode, or when the default event
+   * has waypoints.
+   */
   showTask: boolean;
   /** Single-event mode: the Task column says Yes / No instead of naming the event. */
   simpleEvents: boolean;
@@ -149,11 +164,15 @@ export async function listUserGroups(pool: Pool, userId: string): Promise<UserGr
       event_name: string | null;
       task_points: number;
     }>(
-      // The event only counts when the user is in the multiple-events mode or it is their default event.
-      `SELECT g.id, g.name, g.views_num AS views, g.page_updates_num::text AS updates, g.newest_coord_ts,
+      // The event only counts when the user is in the multiple-events mode or it is their default
+      // event.
+      `SELECT g.id, g.name, g.views_num AS views, g.page_updates_num::text AS updates,
+        g.newest_coord_ts,
               (SELECT count(*)::int FROM group_trackers t WHERE t.group_id = g.id) AS trackers,
-              CASE WHEN NOT COALESCE(up.is_simple_events_model, true) OR up.default_event_id = g.event_id THEN e.name END AS event_name,
-              (SELECT count(*)::int FROM tasks k JOIN waypoints w ON w.id = k.waypoint_id WHERE w.event_id = g.event_id) AS task_points
+              CASE WHEN NOT COALESCE(up.is_simple_events_model, true)
+                OR up.default_event_id = g.event_id THEN e.name END AS event_name,
+              (SELECT count(*)::int FROM tasks k JOIN waypoints w ON w.id = k.waypoint_id
+                WHERE w.event_id = g.event_id) AS task_points
        FROM groups g
        LEFT JOIN user_profiles up ON up.user_id = g.user_id
        LEFT JOIN events e ON e.id = g.event_id
@@ -162,7 +181,8 @@ export async function listUserGroups(pool: Pool, userId: string): Promise<UserGr
     ),
     pool.query<{ simple: boolean; default_wpts: number }>(
       `SELECT is_simple_events_model AS simple,
-              (SELECT count(*)::int FROM waypoints w WHERE w.event_id = up.default_event_id) AS default_wpts
+              (SELECT count(*)::int FROM waypoints w
+                WHERE w.event_id = up.default_event_id) AS default_wpts
        FROM user_profiles up WHERE up.user_id = $1`,
       [userId],
     ),

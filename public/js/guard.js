@@ -19,20 +19,23 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Submit buttons wait until there is something worth sending. For every POST form that has fields:
-//  - the browser's own checks pass (required, pattern, type="email", maxlength) and, where the page has more rules
-//    (live-hints.js sets `form.ftValid`, no tip is showing, a typed confirmation `data-equals` matches), those pass too;
-//  - a form marked data-guard="changed" (an edit form that starts with the saved values) also needs a value that differs
-//    from what the page was rendered with; it stays open for a retry when it came back with an error (.is-invalid).
-// Forms without fields (Log out, Delete, a one-click confirmation) are left alone, and so is data-guard="off": the two login
-// forms (menu bar and /login) use it, because a password manager may fill them without the page seeing the values.
-// Without this script nothing is disabled, so every form still works; the server checks everything again anyway.
-// Other scripts call window.ftGuard() after they change a field or swap a part of the page.
+//  - the browser's own checks pass (required, pattern, type="email", maxlength) and, where the page
+//    has more rules (live-hints.js sets `form.ftValid`, no tip is showing, a typed confirmation
+//    `data-equals` matches), those pass too;
+//  - a form marked data-guard="changed" (an edit form that starts with the saved values) also needs
+//    a value that differs from what the page was rendered with; it stays open for a retry when it
+//    came back with an error (.is-invalid).
+// Forms without fields (Log out, Delete, a one-click confirmation) are left alone, and so is
+// data-guard="off": the two login forms (menu bar and /login) use it, because a password manager
+// may fill them without the page seeing the values. Without this script nothing is disabled, so
+// every form still works; the server checks everything again anyway. Other scripts call
+// window.ftGuard() after they change a field or swap a part of the page.
 (() => {
   const FIELDS =
     'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]), select, textarea';
 
-  // A password manager may fill a field without the page being told its value yet: that counts as typed. (The login forms
-  // do not rely on this: they opt out of the guard altogether.)
+  // A password manager may fill a field without the page being told its value yet: that counts as
+  // typed. (The login forms do not rely on this: they opt out of the guard altogether.)
   function autofilled(field) {
     for (const selector of [':autofill', ':-webkit-autofill'])
       try {
@@ -62,7 +65,8 @@
     if (form.ftValid && !form.ftValid()) return false;
     if (form.dataset.guard !== 'changed') return true;
     if (form.querySelector('.is-invalid')) return true;
-    // A form whose fields come and go (the task editor) says itself whether it differs from what was saved.
+    // A form whose fields come and go (the task editor) says itself whether it differs from what
+    // was saved.
     const probe = { changed: null };
     form.dispatchEvent(new CustomEvent('ft-changed', { bubbles: true, detail: probe }));
     if (probe.changed !== null) return probe.changed;
@@ -90,5 +94,6 @@
   document.addEventListener('change', guard);
   window.addEventListener('pageshow', guard);
   guard();
-  for (const ms of [150, 600, 1500]) setTimeout(guard, ms); // browsers fill saved logins a moment after the page loads
+  // browsers fill saved logins a moment after the page loads
+  for (const ms of [150, 600, 1500]) setTimeout(guard, ms);
 })();

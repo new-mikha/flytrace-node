@@ -245,7 +245,8 @@ describe('user home page (my pilot groups)', () => {
     const html = render(user);
     expect(html).toContain('My pilot groups');
     expect(html).toContain('ft-table');
-    expect(html).toContain('table-responsive-xl ft-table-wrap ft-sticky-head'); // scrolls sideways below xl, sticky header from xl
+    // scrolls sideways below xl, sticky header from xl
+    expect(html).toContain('table-responsive-xl ft-table-wrap ft-sticky-head');
     expect(html).toContain('href="/map/7"');
     expect(html).toContain('href="/map/8"');
     expect(html).toContain('Thu 5 Mar 11:30 UTC');
@@ -256,7 +257,8 @@ describe('user home page (my pilot groups)', () => {
     const html = render(user);
     for (const id of [7, 8, 9]) {
       expect(html).toContain(`href="/groups/${id}">Edit</a>`);
-      expect(html).toContain(`data-confirm-action="/groups/${id}/delete"`); // opens the dialog; the link's href is the confirmation page
+      // opens the dialog; the link's href is the confirmation page
+      expect(html).toContain(`data-confirm-action="/groups/${id}/delete"`);
     }
     expect(html.indexOf('/groups/7">Edit')).toBeLessThan(html.indexOf('/map/7'));
   });
@@ -269,7 +271,8 @@ describe('user home page (my pilot groups)', () => {
     expect(html).toContain('ft-cards');
     for (const label of ['Pilots', 'Task', 'Views', 'Updates'])
       expect(html).toContain(`data-label="${label}"`);
-    expect(html).toContain('ft-card-hide'); // a group without a task leaves out the Task line on its card
+    // a group without a task leaves out the Task line on its card
+    expect(html).toContain('ft-card-hide');
     expect(html).not.toContain('data-label="Name"');
     expect(html).not.toContain('data-label="Updated"');
   });
@@ -458,7 +461,8 @@ describe('user home page: my events', () => {
     const html = render(events);
     for (const id of [1, 2]) {
       expect(html).toContain(`href="/events/${id}">Edit</a>`);
-      expect(html).toContain(`data-confirm-action="/events/${id}/delete"`); // Delete opens the dialog
+      // Delete opens the dialog
+      expect(html).toContain(`data-confirm-action="/events/${id}/delete"`);
     }
   });
 
@@ -481,7 +485,8 @@ describe('user home page: my events', () => {
     expect(html).toContain('Multiple events mode looks too complicated?');
     expect(html).toContain('action="/events-mode"'); // the switch is a POST, written like a link
     expect(html).toContain('name="to" value="single"');
-    expect(render({ show: true, events: [] })).toContain('Create new event'); // also with no events yet
+    // also with no events yet
+    expect(render({ show: true, events: [] })).toContain('Create new event');
   });
 
   it('is left out in the single-event mode', () => {

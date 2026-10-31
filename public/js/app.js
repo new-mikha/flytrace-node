@@ -20,10 +20,11 @@
 
 // Small progressive enhancements. Every page still works without this script.
 //
-// One "current action" at a time: a link navigation, an in-place swap ("Show all") or a form post. Starting a new
-// action cancels the pending one and restores its button; the exception is a form post, which is never cancelled
-// (the server may already have handled it), so other clicks are ignored while one is in flight.
-// A thin bar at the top of the page (#ft-progress) shows that something is loading.
+// One "current action" at a time: a link navigation, an in-place swap ("Show all") or a form post.
+// Starting a new action cancels the pending one and restores its button; the exception is a form
+// post, which is never cancelled (the server may already have handled it), so other clicks are
+// ignored while one is in flight. A thin bar at the top of the page (#ft-progress) shows that
+// something is loading.
 (() => {
   const bar = document.getElementById('ft-progress');
   let current = null; // { kind: 'nav' | 'swap' | 'post', restore(), cancel() }
@@ -48,8 +49,8 @@
 
   // ---- busy state of the pressed control: disabled, with a spinner ----
   function showBusy(el) {
-    // Only things that look like buttons get a spinner; plain links (brand, menu items, text links) just
-    // show the loading bar at the top.
+    // Only things that look like buttons get a spinner; plain links (brand, menu items, text links)
+    // just show the loading bar at the top.
     if (!el.classList.contains('btn')) return () => {};
     const label = el.querySelector('.ft-label');
     const busy = el.querySelector('.ft-busy');
@@ -119,17 +120,18 @@
   }
 
   function startNavigation(link) {
-    // The browser drops an earlier pending navigation by itself; we only tidy up its button. If the page never
-    // arrives (e.g. the user presses the browser's stop button) there is no event, so give up on the spinner after a while.
+    // The browser drops an earlier pending navigation by itself; we only tidy up its button. If the
+    // page never arrives (e.g. the user presses the browser's stop button) there is no event, so
+    // give up on the spinner after a while.
     const timer = setTimeout(() => {
       if (current === action) abort(action);
     }, 30_000);
     const action = begin('nav', link, () => clearTimeout(timer));
   }
 
-  // Links with data-swap-target="<id>": fetch the same address with fragment=1 and swap the result into that element,
-  // leaving the address bar alone (a refresh shows the page's default state). Without this script, or when the
-  // request fails, the link simply opens normally.
+  // Links with data-swap-target="<id>": fetch the same address with fragment=1 and swap the result
+  // into that element, leaving the address bar alone (a refresh shows the page's default state).
+  // Without this script, or when the request fails, the link simply opens normally.
   function swap(link, target) {
     if (current?.kind === 'nav') window.stop(); // cancel the page load that is still pending
     const controller = new AbortController();
@@ -206,8 +208,9 @@
     if (button) begin('post', button, null);
   });
 
-  // The switch is a link (it works without this script); here it also becomes a proper switch for assistive technology:
-  // role and state (checked = night), updated whenever the theme changes, and Space toggles it like any switch.
+  // The switch is a link (it works without this script); here it also becomes a proper switch for
+  // assistive technology: role and state (checked = night), updated whenever the theme changes, and
+  // Space toggles it like any switch.
   const themeLinks = document.querySelectorAll('[data-theme-toggle]');
   function syncThemeSwitches() {
     const night = document.documentElement.getAttribute('data-bs-theme') === 'dark';
@@ -226,8 +229,8 @@
     }
   });
 
-  // Day / night theme: switch in place and remember it in the cookie that the server reads for the next page. Without
-  // this script the same link goes to /theme, which does it with a redirect.
+  // Day / night theme: switch in place and remember it in the cookie that the server reads for the
+  // next page. Without this script the same link goes to /theme, which does it with a redirect.
   document.addEventListener('click', (event) => {
     const link =
       event.target instanceof Element ? event.target.closest('[data-theme-toggle]') : null;
@@ -239,7 +242,8 @@
     syncThemeSwitches();
   });
 
-  // Show / hide password: the eye buttons next to password fields are rendered hidden and only work with this script.
+  // Show / hide password: the eye buttons next to password fields are rendered hidden and only work
+  // with this script.
   for (const button of document.querySelectorAll('.ft-pw-toggle')) button.hidden = false;
   document.addEventListener('click', (event) => {
     const button = event.target instanceof Element ? event.target.closest('.ft-pw-toggle') : null;
@@ -253,7 +257,8 @@
     input.focus();
   });
 
-  // Coming back with the Back button can restore the page from the browser cache with buttons still busy.
+  // Coming back with the Back button can restore the page from the browser cache with buttons still
+  // busy.
   window.addEventListener('pageshow', (event) => {
     if (!event.persisted) return;
     if (current) abort(current);
@@ -261,8 +266,9 @@
   });
 })();
 
-// An open burger menu closes when the page is scrolled down by 1em in one go (a run of downward scrolling; any upward
-// movement starts the count again). Scrolling while it opens or closes is ignored.
+// An open burger menu closes when the page is scrolled down by 1em in one go (a run of downward
+// scrolling; any upward movement starts the count again). Scrolling while it opens or closes is
+// ignored.
 (() => {
   const menu = document.querySelector('.ft-navbar .navbar-collapse');
   if (!menu) return;

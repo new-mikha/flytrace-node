@@ -18,8 +18,9 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// One event as its page (/events/:id) shows it, and the changes the page makes. Every change that the maps can see (the task, the
-// "hide old points" threshold, deleting the event) bumps `groups.version` of the groups that use the event, in the same transaction.
+// One event as its page (/events/:id) shows it, and the changes the page makes. Every change that
+// the maps can see (the task, the "hide old points" threshold, deleting the event) bumps
+// `groups.version` of the groups that use the event, in the same transaction.
 import type { Client, Pool } from '../db.ts';
 import { withTransaction } from '../db.ts';
 
@@ -75,7 +76,8 @@ export async function getEvent(pool: Pool, id: number): Promise<EditableEvent | 
       [id],
     ),
     pool.query<{ waypoint_id: number; radius: number }>(
-      `SELECT t.waypoint_id, t.radius FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = $1 ORDER BY t.wpt_order, t.id`,
+      `SELECT t.waypoint_id, t.radius FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id
+        WHERE w.event_id = $1 ORDER BY t.wpt_order, t.id`,
       [id],
     ),
   ]);
@@ -105,15 +107,21 @@ export async function renameEvent(pool: Pool, eventId: number, name: string): Pr
   }
 }
 
-/** The groups that showed the event show nothing afterwards; the waypoints and the task go with it. */
+/**
+ * The groups that showed the event show nothing afterwards; the waypoints and the task go with it.
+ */
 export async function deleteEvent(pool: Pool, eventId: number): Promise<void> {
   await withTransaction(pool, async (c) => {
     await bumpGroups(c, eventId);
-    await c.query('DELETE FROM events WHERE id = $1', [eventId]); // groups.event_id and the default event are set to NULL by the schema
+    // groups.event_id and the default event are set to NULL by the schema
+    await c.query('DELETE FROM events WHERE id = $1', [eventId]);
   });
 }
 
-/** Replace the task (legacy: delete all the rows and insert again, in order). False when a waypoint is not the event's. */
+/**
+ * Replace the task (legacy: delete all the rows and insert again, in order). False when a waypoint
+ * is not the event's.
+ */
 export async function saveTask(pool: Pool, eventId: number, points: TaskPoint[]): Promise<boolean> {
   return withTransaction(pool, async (c) => {
     const ids = [...new Set(points.map((p) => p.waypointId))];

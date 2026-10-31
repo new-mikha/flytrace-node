@@ -18,9 +18,10 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// Delete links open a Bootstrap modal instead of the confirmation page (which stays as the way without JavaScript). The link's
-// data-confirm-* attributes say what to ask and where to post (views/confirmDelete.tsx); the dialog is the page's `#ft-confirm`.
-// The form is then posted normally; the group editor sends a tracker's (`data-confirm-swap`) in place, see group-editor.js.
+// Delete links open a Bootstrap modal instead of the confirmation page (which stays as the way
+// without JavaScript). The link's data-confirm-* attributes say what to ask and where to post
+// (views/confirmDelete.tsx); the dialog is the page's `#ft-confirm`. The form is then posted
+// normally; the group editor sends a tracker's (`data-confirm-swap`) in place, see group-editor.js.
 (() => {
   const dialog = document.getElementById('ft-confirm');
   const form = document.getElementById('ft-confirm-form');

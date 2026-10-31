@@ -19,7 +19,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // DEV ONLY: drops and recreates the database named in DATABASE_URL, then applies all migrations.
-// Refuses unless the database name contains "_dev", so it cannot be pointed at production by accident.
+// Refuses unless the database name contains "_dev", so it cannot be pointed at production by
+// accident.
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { loadConfig } from '../server/src/config.ts';

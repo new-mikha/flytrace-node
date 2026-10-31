@@ -18,7 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The group editor (/groups/:id): the owner changes a group; admins and SpotIdReaders members may look at any group, read-only.
+// The group editor (/groups/:id): the owner changes a group; admins and SpotIdReaders members may
+// look at any group, read-only.
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { audit } from '../audit.ts';
 import { requireLogin } from '../auth/guards.ts';
@@ -60,7 +61,10 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
       .type('text/html; charset=utf-8')
       .send(page('Group not found', '<p>There is no such group.</p>', request.user ?? null));
 
-  /** The group, when this person may see it (`write`: change it, i.e. is the owner). Otherwise the reply is already sent. */
+  /**
+   * The group, when this person may see it (`write`: change it, i.e. is the owner). Otherwise the
+   * reply is already sent.
+   */
   async function load(
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,
@@ -107,7 +111,8 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     );
   });
 
-  // `?rename=<tracker id>` and `?onoff=1` open the rename form and the on/off selection without JavaScript.
+  // `?rename=<tracker id>` and `?onoff=1` open the rename form and the on/off selection without
+  // JavaScript.
   app.get<{ Params: { id: string }; Querystring: { rename?: string; onoff?: string } }>(
     '/groups/:id',
     guard,
@@ -157,8 +162,9 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
       422,
     );
 
-  // The task of the group's map. Single-event mode: show the Today Task or not (the checkbox). Multiple-events mode: which event,
-  // none (0), or a new one (-1) that is made and chosen at once. Choosing an event also makes it the owner's default (legacy).
+  // The task of the group's map. Single-event mode: show the Today Task or not (the checkbox).
+  // Multiple-events mode: which event, none (0), or a new one (-1) that is made and chosen at once.
+  // Choosing an event also makes it the owner's default (legacy).
   app.post<{ Params: { id: string } }>('/groups/:id/task', guard, async (request, reply) => {
     const found = await load(request, reply, true);
     if (!found) return reply;

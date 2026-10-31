@@ -18,7 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The group editor against the dev database (needs `npm run db:migrate`): owner changes, read-only viewers, tracker input rules.
+// The group editor against the dev database (needs `npm run db:migrate`): owner changes, read-only
+// viewers, tracker input rules.
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
@@ -81,7 +82,8 @@ beforeAll(async () => {
     [READER, 'SpotIdReaders'],
   ])
     await pool.query(
-      `INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1 AND r.name = $2`,
+      `INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r
+        WHERE u.username = $1 AND r.name = $2`,
       [name, role],
     );
 
@@ -243,7 +245,8 @@ describe('creating and editing', () => {
       foreign_id: 'share.garmin.com/Feed/Share/Phillm#300434031769290',
     });
 
-    // Every row carries its (hidden) rename form for the script to swap in; `?rename=` shows one without JavaScript.
+    // Every row carries its (hidden) rename form for the script to swap in; `?rename=` shows one
+    // without JavaScript.
     const plain = (await owner.get(`/groups/${id}`)).body;
     expect(plain.match(/class="ft-rename-form" hidden/g)).toHaveLength(2);
     expect(plain.match(/data-confirm-action="\/groups\/\d+\/trackers\/\d+\/delete"/g)).toHaveLength(
@@ -254,15 +257,18 @@ describe('creating and editing', () => {
       expect(plain).toContain(`data-swap="${swap}"`); // forms sent in place
     for (const part of ['id="settings"', 'id="task"']) expect(plain).toContain(part);
     expect(plain).toContain('/assets/js/swap.js');
-    expect(plain).toContain('/assets/js/keep-scroll.js'); // a posted form comes back at the same scroll position
+    // a posted form comes back at the same scroll position
+    expect(plain).toContain('/assets/js/keep-scroll.js');
     const home = (await owner.get('/')).body; // the group list's Delete opens the same dialog
     expect(home).toContain(`data-confirm-action="/groups/${id}/delete"`);
     expect(home).toContain('id="ft-confirm"');
     expect(home).toContain('/assets/js/confirm-dialog.js');
     for (const part of ['id="ft-head"', 'id="ft-flash"', 'id="trackers"', 'id="add-tracker"'])
       expect(plain).toContain(part); // what group-editor.js swaps
-    expect(plain.match(/data-guard="changed"/g)).toHaveLength(5); // settings, on/off, the task and the two rename forms: their buttons wait for a change
-    expect(plain).not.toContain('data-guard="filled"'); // the add form needs no marker: guard.js waits for its required fields
+    // settings, on/off, the task and the two rename forms: their buttons wait for a change
+    expect(plain.match(/data-guard="changed"/g)).toHaveLength(5);
+    // the add form needs no marker: guard.js waits for its required fields
+    expect(plain).not.toContain('data-guard="filled"');
     const renaming = (await owner.get(`/groups/${id}?rename=${ann.id}`)).body;
     expect(renaming.match(/class="ft-rename-form" hidden/g)).toHaveLength(1);
     expect(renaming).toContain('Update');
@@ -274,7 +280,8 @@ describe('creating and editing', () => {
     ).toBe(302);
     expect((await trackerRows(id))[0].name).toBe('Anna');
 
-    // "Turn the trackers on & off": the page has the checkboxes (shown by the script, or by ?onoff=1), Save sends the checked ones.
+    // "Turn the trackers on & off": the page has the checkboxes (shown by the script, or by
+    // ?onoff=1), Save sends the checked ones.
     const closed = (await owner.get(`/groups/${id}`)).body;
     expect(closed).toContain('Turn the trackers on &amp; off');
     expect(closed).not.toContain('data-selecting');

@@ -29,7 +29,10 @@ import { PublicGroupsTable } from './PublicGroupsTable.tsx';
 import { UserEventsTable } from './UserEventsTable.tsx';
 import { UserGroupsTable } from './UserGroupsTable.tsx';
 
-/** "Switch to the ... mode then." at the bottom of the two task panels: a POST, so the link is a button that looks like one. */
+/**
+ * "Switch to the ... mode then." at the bottom of the two task panels: a POST, so the link is a
+ * button that looks like one.
+ */
 function SwitchMode({
   to,
   lead,
@@ -53,7 +56,10 @@ function SwitchMode({
   );
 }
 
-/** The single-event mode: one "Today Task" (the default event). Where its waypoints and task are edited is not built yet. */
+/**
+ * The single-event mode: one "Today Task" (the default event). Where its waypoints and task are
+ * edited is not built yet.
+ */
 function TodayTaskPanel({ today, groups }: { today: TodayTask; groups: number }) {
   return (
     <section class="ft-section">
@@ -116,7 +122,10 @@ function TodayTaskPanel({ today, groups }: { today: TodayTask; groups: number })
   );
 }
 
-/** The home page of a signed-in user. Their pilot groups, and their events when they use the multiple-events mode. */
+/**
+ * The home page of a signed-in user. Their pilot groups, and their events when they use the
+ * multiple-events mode.
+ */
 export function UserHomePage({
   user,
   path,
@@ -138,7 +147,8 @@ export function UserHomePage({
   others?: { list: PublicGroupsList; showAll: boolean } | null;
 }) {
   const admin = user.roles.includes('Admins');
-  const what = admin ? "others' groups" : "others' public groups"; // admins also get the unlisted ones
+  // admins also get the unlisted ones
+  const what = admin ? "others' groups" : "others' public groups";
   return (
     <Layout
       title="Home"

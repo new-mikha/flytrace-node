@@ -30,7 +30,10 @@ export function esc(value: unknown): string {
     .replace(/'/g, '&#39;');
 }
 
-/** Page for the template-string routes: `body` is trusted HTML (callers escape user data with `esc`). */
+/**
+ * Page for the template-string routes: `body` is trusted HTML (callers escape user data with
+ * `esc`).
+ */
 export function page(title: string, body: string, user: CurrentUser | null, path = '/'): string {
   return legacyPage(title, body, user, path);
 }

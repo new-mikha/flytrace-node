@@ -21,7 +21,8 @@
 import type { Pool } from '../db.ts';
 import { hashPassword, verifyPassword } from './password.ts';
 
-// Valid argon2id hash (created on first use, same parameters as real hashes) that unknown login names are checked against.
+// Valid argon2id hash (created on first use, same parameters as real hashes) that unknown login
+// names are checked against.
 let dummyHash: Promise<string> | undefined;
 
 export interface CurrentUser {
@@ -65,10 +66,10 @@ export async function loadUser(pool: Pool, id: string): Promise<CurrentUser | nu
 }
 
 /**
- * `login` is a username or an email address (both are unique and case-insensitive); a username match wins.
- * 'invalid' covers every other failure (unknown user, wrong password, not approved, locked out), so callers cannot
- * tell them apart. This only checks the password: for 'two-factor' the caller asks for the code and then calls
- * `completeLogin`.
+ * `login` is a username or an email address (both are unique and case-insensitive); a username
+ * match wins. 'invalid' covers every other failure (unknown user, wrong password, not approved,
+ * locked out), so callers cannot tell them apart. This only checks the password: for 'two-factor'
+ * the caller asks for the code and then calls `completeLogin`.
  */
 export async function checkPassword(
   pool: Pool,
@@ -77,17 +78,18 @@ export async function checkPassword(
   requireConfirmedEmail = false,
 ): Promise<LoginResult> {
   const { rows } = await pool.query<UserRow>(
-    `SELECT id, username, password_hash, is_approved, is_locked_out, email, email_confirmed, two_factor_enabled FROM users
+    `SELECT id, username, password_hash, is_approved, is_locked_out, email, email_confirmed,
+      two_factor_enabled FROM users
      WHERE username = $1 OR email = $1
      ORDER BY (username = $1) DESC LIMIT 1`,
     [login],
   );
   const user = rows[0];
   if (!user) {
-    // Unknown login name: still do a full password verification and discard the result. Without it this path
-    // returns in about a millisecond while a wrong password costs an argon2 check (tens of ms), and that timing
-    // gap would reveal which usernames and emails exist. Legacy SHA1 accounts remain fast until their first
-    // login upgrades them to argon2id.
+    // Unknown login name: still do a full password verification and discard the result. Without it
+    // this path returns in about a millisecond while a wrong password costs an argon2 check (tens
+    // of ms), and that timing gap would reveal which usernames and emails exist. Legacy SHA1
+    // accounts remain fast until their first login upgrades them to argon2id.
     await verifyPassword(await (dummyHash ??= hashPassword('dummy password')), password);
     return { kind: 'invalid' };
   }
@@ -108,14 +110,20 @@ export async function checkPassword(
   return completeLogin(pool, user.id);
 }
 
-/** Final step of a login (password, and the code if needed, are already checked): stamps the login time. */
+/**
+ * Final step of a login (password, and the code if needed, are already checked): stamps the login
+ * time.
+ */
 export async function completeLogin(pool: Pool, userId: string): Promise<LoginResult> {
   await pool.query('UPDATE users SET last_login_at = now() WHERE id = $1', [userId]);
   const user = await loadUser(pool, userId);
   return user ? { kind: 'ok', user } : { kind: 'invalid' };
 }
 
-/** Password-only check for callers that cannot do a second step: accounts with two-factor login never pass. */
+/**
+ * Password-only check for callers that cannot do a second step: accounts with two-factor login
+ * never pass.
+ */
 export async function authenticate(
   pool: Pool,
   login: string,

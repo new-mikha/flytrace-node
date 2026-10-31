@@ -42,7 +42,8 @@ try {
   );
   if (role) {
     const { rowCount } = await pool.query(
-      `INSERT INTO user_roles (user_id, role_id) SELECT $1, id FROM roles WHERE name = $2 ON CONFLICT DO NOTHING`,
+      `INSERT INTO user_roles (user_id, role_id) SELECT $1, id FROM roles WHERE name = $2
+        ON CONFLICT DO NOTHING`,
       [user!.id, role],
     );
     if (rowCount === 0) console.warn(`Role "${role}" not found or already granted.`);

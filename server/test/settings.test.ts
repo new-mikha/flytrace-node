@@ -197,7 +197,8 @@ describe('settings', () => {
     await post('/settings/events-mode', { eventsMode: 'single' });
     const home = await app.inject({ url: '/', cookies });
     expect(home.body).not.toContain('My events');
-    expect(home.body).toContain('Today Task'); // the single-event mode's panel, with the switch to the other mode
+    // the single-event mode's panel, with the switch to the other mode
+    expect(home.body).toContain('Today Task');
     expect(home.body).toContain('name="to" value="multiple"');
   });
 });

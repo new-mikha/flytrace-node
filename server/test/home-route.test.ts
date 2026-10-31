@@ -18,7 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The anonymous home page against the dev database: which groups are listed, in which order (needs `npm run db:migrate`).
+// The anonymous home page against the dev database: which groups are listed, in which order (needs
+// `npm run db:migrate`).
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
@@ -49,7 +50,8 @@ async function addGroup(
   );
   for (let i = 1; i <= trackers; i++)
     await pool.query(
-      `INSERT INTO group_trackers (group_id, name, tracker_type, foreign_id) VALUES ($1, $2, 'S', $3)`,
+      `INSERT INTO group_trackers (group_id, name, tracker_type, foreign_id)
+        VALUES ($1, $2, 'S', $3)`,
       [g!.id, `T${i}`, `${name}-feed-${i}`],
     );
 
@@ -67,23 +69,29 @@ beforeAll(async () => {
     hash,
   ]);
   await pool.query(
-    `INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1 AND r.name = 'Admins'`,
+    `INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r
+      WHERE u.username = $1 AND r.name = 'Admins'`,
     [VIEWADMIN],
   );
-  // The newest map defines "now" for the recent window, so these are dated far in the future of the real data.
+  // The newest map defines "now" for the recent window, so these are dated far in the future of the
+  // real data.
   await addGroup(`Newest ${run}`, true, 3, '2030-01-01T10:00:00Z');
-  await addGroup(`EdgeIn ${run}`, true, 2, '2029-12-25T10:00:00Z'); // exactly 7 days before the newest: still recent
-  await addGroup(`EdgeOut ${run}`, true, 2, '2029-12-25T09:59:59Z'); // one second older: hidden by default
+  // exactly 7 days before the newest: still recent
+  await addGroup(`EdgeIn ${run}`, true, 2, '2029-12-25T10:00:00Z');
+  // one second older: hidden by default
+  await addGroup(`EdgeOut ${run}`, true, 2, '2029-12-25T09:59:59Z');
   await addGroup(`Older ${run}`, true, 2, '2020-01-01T10:00:00Z');
   await addGroup(`NoFix ${run}`, true, 2, null);
   await addGroup(`Private ${run}`, false, 3, '2025-01-01T10:00:00Z');
   await addGroup(`Single ${run}`, true, 1, '2025-01-01T10:00:00Z');
-  await addGroup(`Mine ${run}`, true, 3, '2029-12-31T10:00:00Z', VIEWER); // the viewer's own: never in "others"
+  // the viewer's own: never in "others"
+  await addGroup(`Mine ${run}`, true, 3, '2029-12-31T10:00:00Z', VIEWER);
   app = await buildApp(config, pool);
 });
 
 afterAll(async () => {
-  await pool.query('DELETE FROM users WHERE username = ANY($1)', [[OWNER, VIEWER, VIEWADMIN]]); // groups and trackers cascade
+  // groups and trackers cascade
+  await pool.query('DELETE FROM users WHERE username = ANY($1)', [[OWNER, VIEWER, VIEWADMIN]]);
   await app.close();
 });
 
@@ -179,7 +187,8 @@ describe("GET / (signed in): others' groups", () => {
     for (const hidden of ['EdgeOut', 'Older', 'NoFix', 'Private', 'Single'])
       expect(open).not.toContain(`${hidden} ${run}`);
     // "Mine" is listed once, among their own groups, and not again among the others'
-    expect(open.split(`Mine ${run}<`)).toHaveLength(2); // as shown text (the Delete dialog's question also names it, in an attribute)
+    // as shown text (the Delete dialog's question also names it, in an attribute)
+    expect(open.split(`Mine ${run}<`)).toHaveLength(2);
     expect(open).toMatch(/Show all \d+ groups/);
   });
 

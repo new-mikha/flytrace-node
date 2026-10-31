@@ -18,8 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The events part of the home page: "Create new event" and the switch between the single-event and multiple-events modes.
-// The pages of one event (its waypoints and task) are not built yet.
+// The events part of the home page: "Create new event" and the switch between the single-event and
+// multiple-events modes. The pages of one event (its waypoints and task) are not built yet.
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { audit } from '../audit.ts';
 import { requireLogin } from '../auth/guards.ts';
@@ -65,7 +65,10 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
       .type('text/html; charset=utf-8')
       .send(page('Event not found', '<p>There is no such event.</p>', request.user ?? null));
 
-  /** The event, when it is the signed-in person's own; in the single-event mode only the default event can be opened. Otherwise the reply is sent. */
+  /**
+   * The event, when it is the signed-in person's own; in the single-event mode only the default
+   * event can be opened. Otherwise the reply is sent.
+   */
   async function load(
     request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,
@@ -150,7 +153,8 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return back(request, reply, event, 'Saved.');
   });
 
-  // The task: the rows of waypoint + radius, in order (a row without a waypoint is dropped; no radius means the default).
+  // The task: the rows of waypoint + radius, in order (a row without a waypoint is dropped; no
+  // radius means the default).
   app.post<{ Params: { id: string } }>('/events/:id/task', guard, async (request, reply) => {
     const found = await load(request, reply);
     if (!found) return reply;
@@ -208,12 +212,14 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return back(request, reply, found.event, 'Old points are shown again.', '#old-points');
   });
 
-  // Delete the whole event: the confirmation page (what the Delete link opens without JavaScript, and the dialog's twin) and the delete.
+  // Delete the whole event: the confirmation page (what the Delete link opens without JavaScript,
+  // and the dialog's twin) and the delete.
   app.get<{ Params: { id: string } }>('/events/:id/delete', guard, async (request, reply) => {
     const found = await load(request, reply);
     if (!found) return reply;
     const { event } = found;
-    if (found.single) return reply.redirect(`/events/${event.id}`, 302); // the single-event mode has one Today Task, which stays
+    // the single-event mode has one Today Task, which stays
+    if (found.single) return reply.redirect(`/events/${event.id}`, 302);
     return sendHtml(
       reply,
       <ConfirmDeletePage
@@ -252,7 +258,8 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     return reply.redirect('/', 302);
   });
 
-  // The "Switch to the ... mode" links at the bottom of the home page's task panels: the same preference as in Settings.
+  // The "Switch to the ... mode" links at the bottom of the home page's task panels: the same
+  // preference as in Settings.
   app.post('/events-mode', guard, async (request, reply) => {
     const user = request.user!;
     const to = formFields(request, 'to').to === 'multiple' ? 'multiple' : 'single';

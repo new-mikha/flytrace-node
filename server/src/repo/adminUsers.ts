@@ -30,7 +30,10 @@ export interface UserSort {
 }
 
 export const DEFAULT_SORT: UserSort = { key: 'username', dir: 'asc' };
-/** What a first click on a column does: names A to Z, but the biggest, newest or locked first for figures, dates and the lock. */
+/**
+ * What a first click on a column does: names A to Z, but the biggest, newest or locked first for
+ * figures, dates and the lock.
+ */
 export const FIRST_DIR: Record<SortKey, UserSort['dir']> = {
   username: 'asc',
   email: 'asc',
@@ -40,8 +43,9 @@ export const FIRST_DIR: Record<SortKey, UserSort['dir']> = {
   lastLogin: 'desc',
 };
 
-// Fixed SQL per key (nothing from the request is put into the query). Empty emails, users without roles and never-seen logins go
-// last in both directions (almost everybody has no role, so the few with roles come first). Roles compare as their names in order.
+// Fixed SQL per key (nothing from the request is put into the query). Empty emails, users without
+// roles and never-seen logins go last in both directions (almost everybody has no role, so the few
+// with roles come first). Roles compare as their names in order.
 const ORDER_BY: Record<SortKey, (dir: string) => string> = {
   username: (dir) => `u.username ${dir}`,
   email: (dir) => `u.email ${dir} NULLS LAST`,
@@ -70,7 +74,10 @@ export interface AdminUserRow {
   locked: boolean;
 }
 
-/** Users in the given order (then by name), optionally those whose user name or email contains `q` (case-insensitive). 1-based page. */
+/**
+ * Users in the given order (then by name), optionally those whose user name or email contains `q`
+ * (case-insensitive). 1-based page.
+ */
 export async function listUsers(
   pool: Pool,
   q: string,
@@ -115,7 +122,10 @@ export async function listUsers(
   };
 }
 
-/** Everything the admin's user page shows about one user. Never the password hash or the two-factor secret. */
+/**
+ * Everything the admin's user page shows about one user. Never the password hash or the two-factor
+ * secret.
+ */
 export interface ManagedUser {
   id: string;
   username: string;
@@ -150,11 +160,13 @@ export async function getManagedUser(pool: Pool, id: string): Promise<ManagedUse
     created_at: Date;
     last_login_at: Date | null;
   }>(
-    `SELECT u.id, u.username, u.email, u.email_confirmed, u.two_factor_enabled, u.is_locked_out, u.is_approved,
+    `SELECT u.id, u.username, u.email, u.email_confirmed, u.two_factor_enabled, u.is_locked_out,
+      u.is_approved,
             u.created_at, u.last_login_at,
             COALESCE(array_agg(r.name::text) FILTER (WHERE r.name IS NOT NULL), '{}') AS roles,
             (SELECT count(*) FROM groups g WHERE g.user_id = u.id)::int AS groups,
-            (SELECT count(*) FROM sessions s WHERE s.sess->>'userId' = u.id::text AND s.expire > now())::int AS sessions
+            (SELECT count(*) FROM sessions s WHERE s.sess->>'userId' = u.id::text
+              AND s.expire > now())::int AS sessions
      FROM users u
      LEFT JOIN user_roles ur ON ur.user_id = u.id
      LEFT JOIN roles r ON r.id = ur.role_id
@@ -181,7 +193,9 @@ export async function getManagedUser(pool: Pool, id: string): Promise<ManagedUse
       };
 }
 
-/** Locking also ends the user's logins (the next request of an old session would be refused anyway). */
+/**
+ * Locking also ends the user's logins (the next request of an old session would be refused anyway).
+ */
 export async function setLocked(pool: Pool, userId: string, locked: boolean): Promise<void> {
   await pool.query('UPDATE users SET is_locked_out = $2 WHERE id = $1', [userId, locked]);
   if (locked) await endSessions(pool, userId);

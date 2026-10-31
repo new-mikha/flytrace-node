@@ -20,7 +20,8 @@
 
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
-// The deny helpers return the reply: an async hook that sends must return it, or Fastify tries to send twice.
+// The deny helpers return the reply: an async hook that sends must return it, or Fastify tries to
+// send twice.
 function denyAnonymous(request: FastifyRequest, reply: FastifyReply): FastifyReply {
   return reply.redirect(`/login?returnUrl=${encodeURIComponent(request.url)}`, 302);
 }

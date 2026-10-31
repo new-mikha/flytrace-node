@@ -18,8 +18,9 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// User management for admins (role "Admins"): find a user, then lock / unlock, password, email, sessions, two-factor.
-// Every change asks the admin to type the user's name first, and an admin cannot change their own account here.
+// User management for admins (role "Admins"): find a user, then lock / unlock, password, email,
+// sessions, two-factor. Every change asks the admin to type the user's name first, and an admin
+// cannot change their own account here.
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { audit, maskEmail } from '../audit.ts';
 import {
@@ -111,7 +112,8 @@ export async function adminRoutes(
     async (request, reply) => {
       const target = await getManagedUser(pool, request.params.id);
       if (!target) return reply.redirect('/admin', 302);
-      // an unknown section, or any section of the admin's own account (which has none), goes back to the user
+      // an unknown section, or any section of the admin's own account (which has none), goes back
+      // to the user
       if (!isSection(request.params.section) || target.id === request.user!.id)
         return reply.redirect(`/admin/users/${target.id}`, 302);
       return sendHtml(
@@ -128,8 +130,9 @@ export async function adminRoutes(
   );
 
   /**
-   * One POST route per change. `validate` returns field errors; `execute` makes the change, audits it and returns the
-   * message for the admin. Nothing runs unless the typed name matches (case-insensitively, like user names are unique).
+   * One POST route per change. `validate` returns field errors; `execute` makes the change, audits
+   * it and returns the message for the admin. Nothing runs unless the typed name matches
+   * (case-insensitively, like user names are unique).
    */
   function change(
     slug: string,
@@ -146,7 +149,8 @@ export async function adminRoutes(
       async (request, reply) => {
         const target = await getManagedUser(pool, request.params.id);
         if (!target) return reply.redirect('/admin', 302);
-        const section: SectionSlug = slug === 'unlock' ? 'lock' : (slug as SectionSlug); // the lock page posts to /lock or /unlock
+        // the lock page posts to /lock or /unlock
+        const section: SectionSlug = slug === 'unlock' ? 'lock' : (slug as SectionSlug);
         const back = `/admin/users/${target.id}/${section}`;
         if (target.id === request.user!.id) {
           setFlash(request, 'danger', 'This is your own account. Use Settings to change it.');
@@ -155,7 +159,8 @@ export async function adminRoutes(
         const f: Fields = formFields(request, 'confirmName', ...fieldNames);
         const errors: AdminErrors = { form: slug, ...(await steps.validate?.(f, target)) };
         if ((f.confirmName ?? '').trim().toLowerCase() !== target.username.toLowerCase()) {
-          errors.confirmName = `Type ${target.username} exactly, to show that this is the right user.`;
+          errors.confirmName = `Type ${target.username} exactly, to show that this is the right
+            user.`;
           audit(request, 'admin.confirm_failed', `Wrong user name typed to confirm "${slug}"`, {
             ...about(target),
             action: slug,
@@ -261,7 +266,8 @@ export async function adminRoutes(
         `Asked ${t.username} to confirm a new email address ${maskEmail(email)}`,
         about(t),
       );
-      return `A confirmation link was sent to ${email}. The address of ${t.username} changes when the link is opened.`;
+      return `A confirmation link was sent to ${email}. The address of ${t.username} changes when
+        the link is opened.`;
     },
   });
 
@@ -306,7 +312,8 @@ export async function adminRoutes(
         `Turned off two-factor login of ${t.username}`,
         about(t),
       );
-      return `Two-factor login of ${t.username} is off. They can set it up again in their settings.`;
+      return `Two-factor login of ${t.username} is off. They can set it up again in their
+        settings.`;
     },
   });
 }

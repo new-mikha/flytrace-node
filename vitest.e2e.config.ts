@@ -20,7 +20,8 @@
 
 import { defineConfig } from 'vitest/config';
 
-// Browser tests (`npm run test:e2e`): a real server and a real Chrome. Kept apart from `npm test`, which needs no browser.
+// Browser tests (`npm run test:e2e`): a real server and a real Chrome. Kept apart from `npm test`,
+// which needs no browser.
 export default defineConfig({
   test: {
     include: ['server/e2e/**/*.e2e.ts'],

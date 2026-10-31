@@ -31,7 +31,10 @@ interface Common {
   error?: string;
 }
 
-/** The first screen of the settings on phones (the list); wide screens show the same list at the left of every page. */
+/**
+ * The first screen of the settings on phones (the list); wide screens show the same list at the
+ * left of every page.
+ */
 export function SettingsIndexPage({ user, settings, flash }: Omit<Common, 'error'>) {
   return <SettingsShell user={user} path="/settings" flash={flash} settings={settings} />;
 }

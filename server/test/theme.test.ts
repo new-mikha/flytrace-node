@@ -18,7 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// Day / night theme: day by default whatever the browser prefers, kept in a cookie, switchable from the menu.
+// Day / night theme: day by default whatever the browser prefers, kept in a cookie, switchable from
+// the menu.
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';

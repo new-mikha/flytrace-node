@@ -64,8 +64,10 @@ function Row({ group, now, definition }: { group: PublicGroup; now: Date; defini
 }
 
 /**
- * Public maps, newest position first (`definition`: admins get a second link per group, to its definition, in an extra column), in the same table style as the signed-in user's groups: it scrolls sideways below xl,
- * the column header sticks from xl, and below xl (1200 px) every row becomes a card (`ft-cards`, see UserGroupsTable).
+ * Public maps, newest position first (`definition`: admins get a second link per group, to its
+ * definition, in an extra column), in the same table style as the signed-in user's groups: it
+ * scrolls sideways below xl, the column header sticks from xl, and below xl (1200 px) every row
+ * becomes a card (`ft-cards`, see UserGroupsTable).
  */
 export function PublicGroupsTable({
   groups,

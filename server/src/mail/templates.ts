@@ -87,7 +87,8 @@ export function resetPasswordMessage(ctx: MailContext, username: string, url: st
     `Reset your ${ctx.siteName} password`,
     [
       `Hello ${username},`,
-      `We received a request to reset your ${ctx.siteName} password. The link can be used only once and expires in 1 hour.`,
+      `We received a request to reset your ${ctx.siteName} password. The link can be used only once
+        and expires in 1 hour.`,
       'If you did not ask for this, you can ignore this email: your password stays as it is.',
     ],
     { label: 'Reset your password', url },
@@ -100,7 +101,8 @@ export function changeEmailMessage(ctx: MailContext, username: string, url: stri
     `Confirm your new email for ${ctx.siteName}`,
     [
       `Hello ${username},`,
-      `Please confirm that this is your new email address for ${ctx.siteName}. The link can be used only once and expires in 3 days.`,
+      `Please confirm that this is your new email address for ${ctx.siteName}. The link can be used
+        only once and expires in 3 days.`,
     ],
     { label: 'Confirm new email', url },
   );
@@ -109,13 +111,15 @@ export function changeEmailMessage(ctx: MailContext, username: string, url: stri
 export function testMessage(ctx: MailContext, username: string): Built {
   return build(ctx, `Test email from ${ctx.siteName}`, [
     `Hello ${username},`,
-    `This is a test email that you just sent to yourself from your ${ctx.siteName} account. If you can read it, emails from ${ctx.siteName} reach you.`,
+    `This is a test email that you just sent to yourself from your ${ctx.siteName} account. If you
+      can read it, emails from ${ctx.siteName} reach you.`,
   ]);
 }
 
 export function passwordChangedMessage(ctx: MailContext, username: string): Built {
   return build(ctx, `Your ${ctx.siteName} password was changed`, [
     `Hello ${username},`,
-    `The password of your ${ctx.siteName} account has just been changed. If it was not you, reset your password right away.`,
+    `The password of your ${ctx.siteName} account has just been changed. If it was not you, reset
+      your password right away.`,
   ]);
 }

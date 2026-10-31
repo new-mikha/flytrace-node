@@ -24,7 +24,8 @@ import { hashPassword, verifyPassword } from './password.ts';
 
 // ---- input rules ----
 
-// No '@' in usernames: a username must never look like (or equal) somebody's email, because both are login names.
+// No '@' in usernames: a username must never look like (or equal) somebody's email, because both
+// are login names.
 export const usernameSchema = z
   .string()
   .trim()
@@ -60,7 +61,8 @@ export async function getAccount(pool: Pool, userId: string): Promise<Account | 
     created_at: Date;
     last_login_at: Date | null;
   }>(
-    `SELECT id, username, email, email_confirmed, two_factor_enabled, created_at, last_login_at FROM users WHERE id = $1`,
+    `SELECT id, username, email, email_confirmed, two_factor_enabled, created_at, last_login_at
+      FROM users WHERE id = $1`,
     [userId],
   );
   const r = rows[0];
@@ -133,7 +135,8 @@ export async function registerUser(
   if (await emailTaken(pool, input.email)) return taken;
   try {
     const { rows } = await pool.query<{ id: string }>(
-      `INSERT INTO users (username, email, password_hash, email_confirmed) VALUES ($1, $2, $3, false) RETURNING id`,
+      `INSERT INTO users (username, email, password_hash, email_confirmed)
+        VALUES ($1, $2, $3, false) RETURNING id`,
       [input.username, input.email, await hashPassword(input.password)],
     );
     await pool.query('INSERT INTO user_profiles (user_id) VALUES ($1) ON CONFLICT DO NOTHING', [
@@ -191,7 +194,10 @@ export async function checkCurrentPassword(
   return hash ? (await verifyPassword(hash, password)).ok : false;
 }
 
-/** Ends every login session of the user except `keepSessionId` (the one that just changed the password). */
+/**
+ * Ends every login session of the user except `keepSessionId` (the one that just changed the
+ * password).
+ */
 export async function endSessions(
   pool: Pool,
   userId: string,
@@ -225,14 +231,16 @@ export async function enableTwoFactor(
   usedStep: number,
 ): Promise<void> {
   await pool.query(
-    `UPDATE users SET two_factor_enabled = true, two_factor_secret = $2, two_factor_last_used_step = $3 WHERE id = $1`,
+    `UPDATE users SET two_factor_enabled = true, two_factor_secret = $2, two_factor_last_used_step
+      = $3 WHERE id = $1`,
     [userId, secret, usedStep],
   );
 }
 
 export async function disableTwoFactor(pool: Pool, userId: string): Promise<void> {
   await pool.query(
-    `UPDATE users SET two_factor_enabled = false, two_factor_secret = NULL, two_factor_last_used_step = NULL WHERE id = $1`,
+    `UPDATE users SET two_factor_enabled = false, two_factor_secret = NULL,
+      two_factor_last_used_step = NULL WHERE id = $1`,
     [userId],
   );
   await pool.query('DELETE FROM recovery_codes WHERE user_id = $1', [userId]);
@@ -242,10 +250,14 @@ export async function disableTwoFactor(pool: Pool, userId: string): Promise<void
 
 export async function deleteAccount(pool: Pool, userId: string): Promise<void> {
   await endSessions(pool, userId);
-  await pool.query('DELETE FROM users WHERE id = $1', [userId]); // cascades to groups, trackers, roles, tokens, ...
+  // cascades to groups, trackers, roles, tokens, ...
+  await pool.query('DELETE FROM users WHERE id = $1', [userId]);
 }
 
-/** Everything we hold about the user that is theirs to take away (never the password hash or 2FA secret). */
+/**
+ * Everything we hold about the user that is theirs to take away (never the password hash or 2FA
+ * secret).
+ */
 export async function exportPersonalData(pool: Pool, userId: string): Promise<object | null> {
   const account = await getAccount(pool, userId);
   if (!account) return null;
@@ -257,7 +269,8 @@ export async function exportPersonalData(pool: Pool, userId: string): Promise<ob
     pool.query('SELECT * FROM user_profiles WHERE user_id = $1', [userId]),
     pool.query('SELECT * FROM events WHERE user_id = $1 ORDER BY id', [userId]),
     pool.query(
-      `SELECT g.*, COALESCE((SELECT json_agg(t ORDER BY t.id) FROM group_trackers t WHERE t.group_id = g.id), '[]'::json) AS trackers
+      `SELECT g.*, COALESCE((SELECT json_agg(t ORDER BY t.id) FROM group_trackers t
+        WHERE t.group_id = g.id), '[]'::json) AS trackers
        FROM groups g WHERE g.user_id = $1 ORDER BY g.id`,
       [userId],
     ),

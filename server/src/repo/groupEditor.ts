@@ -18,8 +18,9 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// One pilot group as its editor page shows it, and the changes the editor makes. Every change bumps `groups.version`
-// (the map's cached copy of the group is stale then), in the same transaction as the change.
+// One pilot group as its editor page shows it, and the changes the editor makes. Every change bumps
+// `groups.version` (the map's cached copy of the group is stale then), in the same transaction as
+// the change.
 import type { Client, Pool } from '../db.ts';
 import { withTransaction } from '../db.ts';
 import { ensureDefaultEvent } from './events.ts';
@@ -40,7 +41,10 @@ export interface EditableGroup {
   owner: string;
   isPublic: boolean;
   showMessages: boolean;
-  /** The event whose task the group's map shows (the legacy "Today Task" in the single-event mode), if any. */
+  /**
+   * The event whose task the group's map shows (the legacy "Today Task" in the single-event mode),
+   * if any.
+   */
   eventId: number | null;
   trackers: GroupTracker[];
 }
@@ -68,7 +72,8 @@ export async function getGroup(pool: Pool, id: number): Promise<EditableGroup | 
       foreign_id: string;
       is_on: boolean;
     }>(
-      `SELECT id, name, tracker_type, foreign_id, is_on FROM group_trackers WHERE group_id = $1 ORDER BY id`,
+      `SELECT id, name, tracker_type, foreign_id, is_on FROM group_trackers WHERE group_id = $1
+        ORDER BY id`,
       [id],
     ),
   ]);
@@ -102,13 +107,17 @@ export function duplicateOf(err: unknown): 'name' | 'feed' | null {
 const bump = (c: Client, groupId: number) =>
   c.query('UPDATE groups SET version = version + 1 WHERE id = $1', [groupId]);
 
-/** `Group 01`, `Group 02`, ...: the first free number (the legacy names), with the owner's default for the owner-defined messages. */
+/**
+ * `Group 01`, `Group 02`, ...: the first free number (the legacy names), with the owner's default
+ * for the owner-defined messages.
+ */
 export async function createGroup(
   pool: Pool,
   userId: string,
   showMessages: boolean,
 ): Promise<{ id: number; name: string }> {
-  // A new group shows the user's default event (legacy): in the single-event mode that is the Today Task, made if need be.
+  // A new group shows the user's default event (legacy): in the single-event mode that is the Today
+  // Task, made if need be.
   const {
     rows: [profile],
   } = await pool.query<{ simple: boolean; default_event_id: number | null }>(
@@ -137,7 +146,8 @@ export async function createGroup(
       );
       return { id: g!.id, name };
     } catch (err) {
-      if (duplicateOf(err) === null || attempt >= 3) throw err; // two creations at once picked the same name: look again
+      // two creations at once picked the same name: look again
+      if (duplicateOf(err) === null || attempt >= 3) throw err;
     }
   }
 }
@@ -179,7 +189,8 @@ export async function addTracker(
     await withTransaction(pool, async (c) => {
       await bump(c, groupId);
       await c.query(
-        `INSERT INTO group_trackers (group_id, name, tracker_type, foreign_id, foreign_id_as_entered) VALUES ($1, $2, $3, $4, $5)`,
+        `INSERT INTO group_trackers (group_id, name, tracker_type, foreign_id,
+          foreign_id_as_entered) VALUES ($1, $2, $3, $4, $5)`,
         [groupId, name, parsed.type, parsed.foreignId, asEntered.trim()],
       );
     });
@@ -230,8 +241,9 @@ export async function deleteTracker(
 }
 
 /**
- * Switches the trackers on or off: those in `on` are on, every other tracker of the group is off (a tracker that is off is
- * not drawn on the map unless it sends SOS or HELP). Ids of other groups' trackers are ignored.
+ * Switches the trackers on or off: those in `on` are on, every other tracker of the group is off (a
+ * tracker that is off is not drawn on the map unless it sends SOS or HELP). Ids of other groups'
+ * trackers are ignored.
  */
 export async function setTrackersOn(pool: Pool, groupId: number, on: number[]): Promise<void> {
   await withTransaction(pool, async (c) => {
@@ -243,7 +255,10 @@ export async function setTrackersOn(pool: Pool, groupId: number, on: number[]): 
   });
 }
 
-/** What the group editor's task section shows: the owner's events mode and what the group's map takes its task from. */
+/**
+ * What the group editor's task section shows: the owner's events mode and what the group's map
+ * takes its task from.
+ */
 export interface GroupTaskInfo {
   mode: 'single' | 'multiple';
   eventId: number | null;
@@ -265,7 +280,8 @@ export async function getGroupTask(pool: Pool, group: EditableGroup): Promise<Gr
     group.eventId === null
       ? null
       : pool.query<{ name: string; task: number }>(
-          `SELECT e.name, (SELECT count(*)::int FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = e.id) AS task
+          `SELECT e.name, (SELECT count(*)::int FROM tasks t
+            JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = e.id) AS task
        FROM events e WHERE e.id = $1`,
           [group.eventId],
         ),

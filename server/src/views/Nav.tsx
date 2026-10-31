@@ -36,8 +36,9 @@ function Brand() {
 }
 
 /**
- * The button that opens the menu on small screens. Logged-out visitors get words ("Log in, Register, etc") so it is
- * clear that the log-in form is inside; logged-in users get the classic "burger" icon.
+ * The button that opens the menu on small screens. Logged-out visitors get words ("Log in,
+ * Register, etc") so it is clear that the log-in form is inside; logged-in users get the classic
+ * "burger" icon.
  */
 function Toggler({ withText }: { withText?: boolean }) {
   return (
@@ -78,7 +79,10 @@ interface MoreLink {
   button?: boolean;
 }
 
-/** The "Register, etc" entries; `null` is a divider. Shown as a drop-down on wide screens and inline on phones. */
+/**
+ * The "Register, etc" entries; `null` is a divider. Shown as a drop-down on wide screens and inline
+ * on phones.
+ */
 const MORE_ITEMS: (MoreLink | null)[] = [
   { href: '/register', label: 'Register', icon: 'fa-solid fa-user-plus', button: true },
   { href: '/forgot-password', label: 'Forgot password?', icon: 'fa-solid fa-key' },
@@ -87,10 +91,11 @@ const MORE_ITEMS: (MoreLink | null)[] = [
 ];
 
 /**
- * The day / night switch, no words: moon, an oval track with a round knob, sun. The knob sits next to the active mode
- * (the stylesheet moves it from the theme on <html>, so it is right without knowing the theme here and moves at once
- * when public/js/app.js switches). It is a link, so that it also works without JavaScript: /theme flips the cookie and
- * returns to this page. app.js gives it role="switch" and aria-checked (checked = night) when it runs.
+ * The day / night switch, no words: moon, an oval track with a round knob, sun. The knob sits next
+ * to the active mode (the stylesheet moves it from the theme on <html>, so it is right without
+ * knowing the theme here and moves at once when public/js/app.js switches). It is a link, so that
+ * it also works without JavaScript: /theme flips the cookie and returns to this page. app.js gives
+ * it role="switch" and aria-checked (checked = night) when it runs.
  */
 function ThemeSwitch({ path, className }: { path: string; className?: string }) {
   return (
@@ -219,7 +224,11 @@ function AnonymousNav({ path }: { path: string }) {
         <Brand />
         <Toggler withText />
         <div class="collapse navbar-collapse" id="navMain">
-          {/* The login form below has data-guard="off": Log in is always enabled. A password manager can fill the fields without the page seeing the values, and a disabled button would lock the person out. */}
+          {/*
+             The login form below has data-guard="off": Log in is always enabled. A password manager
+             can fill the fields without the page seeing the values, and a disabled button would
+             lock the person out.
+          */}
           {!onLoginPage && (
             <form
               class="ft-login-form d-lg-flex flex-grow-1 gap-2 mt-3 mt-lg-0 ms-lg-4"
@@ -286,8 +295,9 @@ function LogoutForm() {
 }
 
 /**
- * The signed-in controls at the right end of the bar (and in the phone menu, same order): day / night switch, Settings, then the
- * user name (plain text) with Log out. The user name and Log out share a line, also on phones; a long name wraps inside its own space.
+ * The signed-in controls at the right end of the bar (and in the phone menu, same order): day /
+ * night switch, Settings, then the user name (plain text) with Log out. The user name and Log out
+ * share a line, also on phones; a long name wraps inside its own space.
  */
 function UserMenu({ user, path }: { user: CurrentUser; path: string }) {
   const inSettings =

@@ -18,8 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// Pages for people who are not (or not yet) logged in: log in (with the second step), register, confirm email,
-// forgot / reset password. The logged-in "My account" pages are in account.tsx.
+// Pages for people who are not (or not yet) logged in: log in (with the second step), register,
+// confirm email, forgot / reset password. The logged-in "My account" pages are in account.tsx.
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { audit, maskEmail } from '../audit.ts';
 import {
@@ -172,7 +172,8 @@ export async function identityRoutes(
         });
         return fail('unconfirmed');
       default:
-        audit(request, 'login.failed', 'Failed login attempt', { ip: request.ip }); // no login name: people paste passwords there
+        // no login name: people paste passwords there
+        audit(request, 'login.failed', 'Failed login attempt', { ip: request.ip });
         return fail('1');
     }
   });
@@ -255,8 +256,9 @@ export async function identityRoutes(
     return sendHtml(reply, <RegisterPage {...common(request)} values={{}} errors={{}} />);
   });
 
-  // Answers the "not taken yet" hints on the register and change-email pages while the person types. Reveals whether a username or
-  // email is registered, which registering itself reveals as well; hence the rate limit.
+  // Answers the "not taken yet" hints on the register and change-email pages while the person
+  // types. Reveals whether a username or email is registered, which registering itself reveals as
+  // well; hence the rate limit.
   app.get<{ Querystring: { username?: string; email?: string } }>(
     '/register/check',
     { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } },
@@ -269,7 +271,8 @@ export async function identityRoutes(
         // a logged-in person changing their address is not "taken" by their own current one
         return { taken: await emailTaken(pool, email.trim(), request.user?.id) };
 
-      return { taken: false }; // not a valid value: the format hints say so, there is nothing to look up
+      // not a valid value: the format hints say so, there is nothing to look up
+      return { taken: false };
     },
   );
 
@@ -412,7 +415,8 @@ export async function identityRoutes(
       const recipient = { id: found.id, username: found.username, email: found.email };
       mail.queue(() => mail.sendConfirmEmail(recipient));
     }
-    // Same answer whether or not the account exists, so this page cannot be used to look up who is registered.
+    // Same answer whether or not the account exists, so this page cannot be used to look up who is
+    // registered.
     return sendHtml(
       reply,
       <MessagePage {...common(request)} title="Check your email" icon="fa-regular fa-envelope">
@@ -524,7 +528,8 @@ export async function identityRoutes(
       const recipient = { id: account.id, username: account.username, email: account.email };
       mail.queue(() => mail.sendPasswordChanged(recipient));
     }
-    await request.session.regenerate(); // the visitor who used the link is not logged in as a side effect
+    // the visitor who used the link is not logged in as a side effect
+    await request.session.regenerate();
     setFlash(request, 'success', 'Your password has been changed. You can log in now.');
     return reply.redirect('/login', 302);
   });

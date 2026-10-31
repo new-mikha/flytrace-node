@@ -26,7 +26,8 @@ import { projectRoot } from '../src/paths.ts';
 
 const ROOT = projectRoot();
 const EXTENSIONS = /\.(ts|tsx|js|css|sql|sh)$/;
-// Folders that are not ours: dependencies, build output, the production dump (never read), and the copy of the old MSSQL script.
+// Folders that are not ours: dependencies, build output, the production dump (never read), and the
+// copy of the old MSSQL script.
 const SKIP = new Set(['node_modules', 'dist', '.git', 'dump', 'orig-mssql-db-script.sql']);
 
 function sourceFiles(dir: string): string[] {

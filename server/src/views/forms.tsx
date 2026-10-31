@@ -178,8 +178,9 @@ export interface HintRule {
 }
 
 /**
- * Tips under a field, one per rule. All start hidden; public/js/live-hints.js shows a tip only while its rule is
- * broken and the person has left the field. Without JavaScript there are no tips (the server still checks).
+ * Tips under a field, one per rule. All start hidden; public/js/live-hints.js shows a tip only
+ * while its rule is broken and the person has left the field. Without JavaScript there are no tips
+ * (the server still checks).
  */
 export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
   return (
@@ -194,7 +195,8 @@ export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
   );
 }
 
-// Checklists shared by every page that sets a password or an email address (see public/js/live-hints.js).
+// Checklists shared by every page that sets a password or an email address (see
+// public/js/live-hints.js).
 
 /** `theirs`: an admin sets the password of somebody else ("their" instead of "your"). */
 export function PasswordHints({ theirs }: { theirs?: boolean } = {}) {
@@ -226,7 +228,10 @@ export function ConfirmPasswordHints() {
   );
 }
 
-/** `different`: the form is for changing an address, so it must differ from the current one (`theirs`: an admin changes it for somebody else). */
+/**
+ * `different`: the form is for changing an address, so it must differ from the current one
+ * (`theirs`: an admin changes it for somebody else).
+ */
 export function EmailHints({ different, theirs }: { different?: boolean; theirs?: boolean }) {
   return (
     <Hints

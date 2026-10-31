@@ -18,8 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The home page links to vendor CSS/JS/fonts and our own assets; make sure every one of them is actually served.
-// No database access: static files are registered before the session hook.
+// The home page links to vendor CSS/JS/fonts and our own assets; make sure every one of them is
+// actually served. No database access: static files are registered before the session hook.
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';

@@ -18,9 +18,10 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// Browser test of the two bulk buttons on the event page ("Use all waypoints, sorted by name" / "in the order added"):
-// a real server on a free port, the dev database, and Chrome (Playwright). Run with `npm run test:e2e`.
-// Chrome: the installed Google Chrome by default; PLAYWRIGHT_CHROMIUM_PATH points at another browser binary (e.g. on a build server).
+// Browser test of the two bulk buttons on the event page ("Use all waypoints, sorted by name" / "in
+// the order added"): a real server on a free port, the dev database, and Chrome (Playwright). Run
+// with `npm run test:e2e`. Chrome: the installed Google Chrome by default; PLAYWRIGHT_CHROMIUM_PATH
+// points at another browser binary (e.g. on a build server).
 import type { FastifyInstance } from 'fastify';
 import { type Browser, chromium, type Page } from 'playwright-core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -32,7 +33,8 @@ import { createPool, type Pool } from '../src/db.ts';
 const run = Math.random().toString(36).slice(2, 8);
 const USER = `__test_e2e_${run}`;
 const PASSWORD = 'correct horse';
-// Added in this order (so with these ids), which is neither the alphabetical order nor the reverse of it.
+// Added in this order (so with these ids), which is neither the alphabetical order nor the reverse
+// of it.
 const ADDED = ['C2', 'A10', 'A2', 'B1'];
 
 let app: FastifyInstance;
@@ -75,7 +77,8 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await browser?.close();
-  await pool.query('DELETE FROM users WHERE username = $1', [USER]); // events, waypoints and tasks cascade
+  // events, waypoints and tasks cascade
+  await pool.query('DELETE FROM users WHERE username = $1', [USER]);
   await app?.close();
 });
 
@@ -119,13 +122,15 @@ describe('bulk buttons on the event page', () => {
         ['A2', 'A10', 'B1', 'C2'].map((wpt) => ({ wpt, radius: '750' })),
       ); // numbers by value: A2 before A10
 
-      await page.click('[data-task-bulk="order"]'); // again: it replaces the lines, it does not add to them
+      // again: it replaces the lines, it does not add to them
+      await page.click('[data-task-bulk="order"]');
       expect(await rows(page)).toEqual(ADDED.map((wpt) => ({ wpt, radius: '750' })));
 
       await save.click();
       await page.waitForSelector('#ft-flash .alert-success');
       const saved = await pool.query<{ name: string; radius: number }>(
-        `SELECT w.name, t.radius FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = $1 ORDER BY t.wpt_order`,
+        `SELECT w.name, t.radius FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id
+          WHERE w.event_id = $1 ORDER BY t.wpt_order`,
         [eventId],
       );
       expect(saved.rows).toEqual(ADDED.map((name) => ({ name, radius: 750 })));

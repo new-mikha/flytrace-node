@@ -38,8 +38,9 @@ interface ShellProps {
 }
 
 /**
- * The frame of every settings page (account and website). Wide screens: the list of all settings at the left, the page at
- * the right. Phones: /settings is the list alone, and a page is shown alone with a "Settings" link back to the list.
+ * The frame of every settings page (account and website). Wide screens: the list of all settings at
+ * the left, the page at the right. Phones: /settings is the list alone, and a page is shown alone
+ * with a "Settings" link back to the list.
  */
 export function SettingsShell({
   user,

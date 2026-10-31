@@ -18,8 +18,9 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The event page (/events/:id): the Today Task editor (rows of waypoint + radius), in the multiple-events mode the name and
-// Delete, and "Old points removal". Where the waypoints themselves are edited is not built yet.
+// The event page (/events/:id): the Today Task editor (rows of waypoint + radius), in the
+// multiple-events mode the name and Delete, and "Old points removal". Where the waypoints
+// themselves are edited is not built yet.
 import type { CurrentUser } from '../auth/service.ts';
 import { DEFAULT_RADIUS, type EditableEvent, MAX_RADIUS } from '../repo/eventEditor.ts';
 import { confirmAttrs, confirmDeleteEvent, ConfirmDialog } from './confirmDelete.tsx';

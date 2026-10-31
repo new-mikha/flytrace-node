@@ -39,7 +39,10 @@ import { pageRoutes } from './routes/pages.ts';
 import { settingsRoutes } from './routes/settings.tsx';
 import { themeOf, themeRoutes } from './routes/theme.ts';
 
-/** Production log times: ISO 8601 in the process's time zone with its offset (pino's default is epoch milliseconds). */
+/**
+ * Production log times: ISO 8601 in the process's time zone with its offset (pino's default is
+ * epoch milliseconds).
+ */
 function localIsoTime(): string {
   const d = new Date();
   const p = (n: number, width = 2) => String(n).padStart(width, '0');
@@ -56,8 +59,8 @@ function localIsoTime(): string {
 }
 
 /**
- * `mailer` can be replaced (tests capture the messages); by default it comes from the SMTP_* settings.
- * `logStream` makes the app write its JSON log lines there (tests read them).
+ * `mailer` can be replaced (tests capture the messages); by default it comes from the SMTP_*
+ * settings. `logStream` makes the app write its JSON log lines there (tests read them).
  */
 export async function buildApp(
   config: Config,
@@ -77,8 +80,10 @@ export async function buildApp(
               transport: {
                 target: 'pino-pretty',
                 options: {
-                  translateTime: 'SYS:HH:MM:ss', // SYS: = the process's time zone (LOG_TIMEZONE, else the host's), not UTC
-                  // messages are written to be read on their own; the fields stay in the JSON logs of production
+                  // SYS: = the process's time zone (LOG_TIMEZONE, else the host's), not UTC
+                  translateTime: 'SYS:HH:MM:ss',
+                  // messages are written to be read on their own; the fields stay in the JSON logs
+                  // of production
                   ignore: 'pid,hostname,reqId,event,user,userId,to,subject,action,ip',
                   messageFormat: '{msg}{if user} [{user}]{end}',
                 },
@@ -89,8 +94,8 @@ export async function buildApp(
     trustProxy: config.NODE_ENV === 'production', // behind nginx in production
   });
 
-  // Every HTML page gets the visitor's theme (Bootstrap's `data-bs-theme`) on <html>, so the right colours are there from
-  // the first paint. Done here, once, instead of in every page.
+  // Every HTML page gets the visitor's theme (Bootstrap's `data-bs-theme`) on <html>, so the right
+  // colours are there from the first paint. Done here, once, instead of in every page.
   app.addHook('onSend', async (request, reply, payload) => {
     if (
       typeof payload === 'string' &&
@@ -104,8 +109,9 @@ export async function buildApp(
     return payload;
   });
 
-  // One line per page request: "GET /register 200 14ms". Static files (CSS, JS, fonts, images) are skipped, and the
-  // query string is left out because it can hold one-time tokens (emailed links) and typed usernames or emails.
+  // One line per page request: "GET /register 200 14ms". Static files (CSS, JS, fonts, images) are
+  // skipped, and the query string is left out because it can hold one-time tokens (emailed links)
+  // and typed usernames or emails.
   app.addHook('onResponse', async (request, reply) => {
     const path = request.url.split('?')[0]!;
     if (path.startsWith('/assets/') || path.startsWith('/vendor/')) return;
@@ -115,7 +121,8 @@ export async function buildApp(
     );
   });
 
-  // Static files first: routes registered before the session plugin do not run its per-request user lookup.
+  // Static files first: routes registered before the session plugin do not run its per-request user
+  // lookup.
   await app.register(fastifyStatic, { root: join(projectRoot(), 'public'), prefix: '/assets/' });
   await app.register(fastifyStatic, {
     root: join(packageDir('bootstrap'), 'dist'),
