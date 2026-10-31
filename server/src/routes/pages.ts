@@ -18,19 +18,21 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-import { audit } from '../audit.ts';
 import type { FastifyInstance } from 'fastify';
+import { audit } from '../audit.ts';
 import { page } from './html.ts';
 
 export async function pageRoutes(app: FastifyInstance): Promise<void> {
   app.post('/logout', async (request, reply) => {
-    if (request.user) audit(request, 'logout', 'Logged out');
+    if (request.user)
+      audit(request, 'logout', 'Logged out');
     await request.session.destroy();
     return reply.redirect('/', 302);
   });
 
   app.get('/403', async (request, reply) => {
-    return reply.code(403).type('text/html').send(page('Access denied',
-      '<p>You do not have permission to view that page.</p>', request.user));
+    return reply.code(403).type('text/html').send(
+      page('Access denied', '<p>You do not have permission to view that page.</p>', request.user),
+    );
   });
 }

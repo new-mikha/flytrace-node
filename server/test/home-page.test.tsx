@@ -20,23 +20,58 @@
 
 import { describe, expect, it } from 'vitest';
 import type { CurrentUser } from '../src/auth/service.ts';
+import type { UserEventsList } from '../src/repo/events.ts';
 import type { PublicGroup, UserGroup, UserGroupsList } from '../src/repo/groups.ts';
 import { HomePage } from '../src/views/HomePage.tsx';
-import type { UserEventsList } from '../src/repo/events.ts';
-import { UserHomePage } from '../src/views/UserHomePage.tsx';
 import { renderDocument } from '../src/views/render.tsx';
+import { UserHomePage } from '../src/views/UserHomePage.tsx';
 
 process.env.TZ = 'UTC'; // the times on pages follow the process's zone
 const now = new Date('2026-03-05T12:00:00Z');
 const groups: PublicGroup[] = [
-  { id: 7, name: '<b>Cup</b> & "Co"', owner: 'ann', trackers: 3, views: 42, newestCoordTs: new Date('2026-03-05T11:30:00Z'), unlisted: false },
-  { id: 8, name: 'Old one', owner: 'bob', trackers: 2, views: 1, newestCoordTs: new Date('2026-03-01T10:00:00Z'), unlisted: false },
-  { id: 9, name: 'Never moved', owner: 'cy', trackers: 2, views: 0, newestCoordTs: null, unlisted: false },
+  {
+    id: 7,
+    name: '<b>Cup</b> & "Co"',
+    owner: 'ann',
+    trackers: 3,
+    views: 42,
+    newestCoordTs: new Date('2026-03-05T11:30:00Z'),
+    unlisted: false,
+  },
+  {
+    id: 8,
+    name: 'Old one',
+    owner: 'bob',
+    trackers: 2,
+    views: 1,
+    newestCoordTs: new Date('2026-03-01T10:00:00Z'),
+    unlisted: false,
+  },
+  {
+    id: 9,
+    name: 'Never moved',
+    owner: 'cy',
+    trackers: 2,
+    views: 0,
+    newestCoordTs: null,
+    unlisted: false,
+  },
 ];
 
-const render = (user: CurrentUser | null, list = groups, extra: { total?: number; showAll?: boolean } = {}) =>
+const render = (
+  user: CurrentUser | null,
+  list = groups,
+  extra: { total?: number; showAll?: boolean; } = {},
+) =>
   renderDocument(
-    <HomePage user={user} path="/" groups={list} total={extra.total ?? list.length} showAll={extra.showAll ?? false} now={now} />,
+    <HomePage
+      user={user}
+      path='/'
+      groups={list}
+      total={extra.total ?? list.length}
+      showAll={extra.showAll ?? false}
+      now={now}
+    />,
   );
 
 describe('home page (anonymous)', () => {
@@ -86,7 +121,8 @@ describe('home page (anonymous)', () => {
     expect(html).toContain('table-responsive-xl ft-table-wrap ft-sticky-head');
     expect(html).toContain('ft-cards');
     expect(html).toContain('ft-section-title');
-    for (const label of ['Owner', 'Pilots', 'Views']) expect(html).toContain(`data-label="${label}"`);
+    for (const label of ['Owner', 'Pilots', 'Views'])
+      expect(html).toContain(`data-label="${label}"`);
     expect(html).not.toContain('d-md-table-cell'); // no hidden columns: the table scrolls instead
   });
 
@@ -103,9 +139,9 @@ describe('home page (anonymous)', () => {
   });
 
   it('serves each screenshot in three sizes', () => {
-    for (const n of ['01', '02', '03']) {
-      for (const size of ['A', 'B', 'C']) expect(html).toContain(`${n}-size${size}.jpg`);
-    }
+    for (const n of ['01', '02', '03'])
+      for (const size of ['A', 'B', 'C'])
+        expect(html).toContain(`${n}-size${size}.jpg`);
   });
 
   it('says so when there are no public maps', () => {
@@ -168,14 +204,43 @@ describe('home page (logged in)', () => {
 describe('user home page (my pilot groups)', () => {
   const user: CurrentUser = { id: 'u1', username: 'ann', roles: [] };
   const mine: UserGroup[] = [
-    { id: 7, name: '<b>Cup</b> & "Co"', trackers: 3, views: 42, updates: 1234, newestCoordTs: new Date('2026-03-05T11:30:00Z'),
-      event: { name: 'Dalby 2024', taskPoints: 5 } },
-    { id: 8, name: 'Quiet', trackers: 0, views: 0, updates: 0, newestCoordTs: null, event: { name: 'Empty one', taskPoints: 1 } },
+    {
+      id: 7,
+      name: '<b>Cup</b> & "Co"',
+      trackers: 3,
+      views: 42,
+      updates: 1234,
+      newestCoordTs: new Date('2026-03-05T11:30:00Z'),
+      event: { name: 'Dalby 2024', taskPoints: 5 },
+    },
+    {
+      id: 8,
+      name: 'Quiet',
+      trackers: 0,
+      views: 0,
+      updates: 0,
+      newestCoordTs: null,
+      event: { name: 'Empty one', taskPoints: 1 },
+    },
     { id: 9, name: 'Plain', trackers: 2, views: 3, updates: 4, newestCoordTs: null, event: null },
   ];
   const noEvents: UserEventsList = { events: [], show: false };
-  const render = (u: CurrentUser, groups = mine, extra: Partial<UserGroupsList> = {}, events: UserEventsList = noEvents) =>
-    renderDocument(<UserHomePage user={u} path="/" list={{ groups, showTask: false, simpleEvents: true, ...extra }} events={events} today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }} now={now} />);
+  const render = (
+    u: CurrentUser,
+    groups = mine,
+    extra: Partial<UserGroupsList> = {},
+    events: UserEventsList = noEvents,
+  ) =>
+    renderDocument(
+      <UserHomePage
+        user={u}
+        path='/'
+        list={{ groups, showTask: false, simpleEvents: true, ...extra }}
+        events={events}
+        today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }}
+        now={now}
+      />,
+    );
 
   it('lists the groups in the same table style as the public maps, with a link to each public map', () => {
     const html = render(user);
@@ -198,9 +263,13 @@ describe('user home page (my pilot groups)', () => {
   });
 
   it('labels the cells that need a label on a card (phones), and only those', () => {
-    const html = render({ ...user, roles: ['Admins'] }, mine, { showTask: true, simpleEvents: false });
+    const html = render({ ...user, roles: ['Admins'] }, mine, {
+      showTask: true,
+      simpleEvents: false,
+    });
     expect(html).toContain('ft-cards');
-    for (const label of ['Pilots', 'Task', 'Views', 'Updates']) expect(html).toContain(`data-label="${label}"`);
+    for (const label of ['Pilots', 'Task', 'Views', 'Updates'])
+      expect(html).toContain(`data-label="${label}"`);
     expect(html).toContain('ft-card-hide'); // a group without a task leaves out the Task line on its card
     expect(html).not.toContain('data-label="Name"');
     expect(html).not.toContain('data-label="Updated"');
@@ -250,7 +319,7 @@ describe('user home page (my pilot groups)', () => {
     expect(html).toContain('/assets/js/shadow.js');
   });
 
-  it('has a Create new group button, and a button for others\' public groups, below the table', () => {
+  it("has a Create new group button, and a button for others' public groups, below the table", () => {
     const html = render(user);
     expect(html).toMatch(/<form[^>]*action="\/groups"[^>]*>/);
     expect(html).toContain('Create new group');
@@ -269,13 +338,34 @@ describe('user home page (my pilot groups)', () => {
 describe("user home page: others' groups", () => {
   const user: CurrentUser = { id: 'u1', username: 'ann', roles: [] };
   const admin: CurrentUser = { id: 'u2', username: 'root', roles: ['Admins'] };
-  const list = { groups: [...groups, { id: 10, name: 'Hidden one', owner: 'dee', trackers: 2, views: 0, newestCoordTs: null, unlisted: true }], total: 6 };
+  const list = {
+    groups: [...groups, {
+      id: 10,
+      name: 'Hidden one',
+      owner: 'dee',
+      trackers: 2,
+      views: 0,
+      newestCoordTs: null,
+      unlisted: true,
+    }],
+    total: 6,
+  };
   const mine = { groups: [], showTask: false, simpleEvents: true };
   const noEvents: UserEventsList = { events: [], show: false };
-  const render = (u: CurrentUser, others: { list: typeof list; showAll: boolean } | null) =>
-    renderDocument(<UserHomePage user={u} path="/" list={mine} events={noEvents} today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }} others={others} now={now} />);
+  const render = (u: CurrentUser, others: { list: typeof list; showAll: boolean; } | null) =>
+    renderDocument(
+      <UserHomePage
+        user={u}
+        path='/'
+        list={mine}
+        events={noEvents}
+        today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }}
+        others={others}
+        now={now}
+      />,
+    );
 
-  it("offers \"Show others' public groups\", and \"Show others' groups\" to admins (who also get the unlisted ones)", () => {
+  it('offers "Show others\' public groups", and "Show others\' groups" to admins (who also get the unlisted ones)', () => {
     const plain = render(user, null);
     expect(plain).toContain("Show others' public groups");
     expect(plain).toContain('href="/?others=1#others"');
@@ -320,8 +410,12 @@ describe("user home page: others' groups", () => {
   });
 
   it('says so when nobody else has groups', () => {
-    expect(render(user, { list: { groups: [], total: 0 }, showAll: false })).toContain('Nobody else has public groups yet.');
-    expect(render(admin, { list: { groups: [], total: 0 }, showAll: false })).toContain('Nobody else has groups yet.');
+    expect(render(user, { list: { groups: [], total: 0 }, showAll: false })).toContain(
+      'Nobody else has public groups yet.',
+    );
+    expect(render(admin, { list: { groups: [], total: 0 }, showAll: false })).toContain(
+      'Nobody else has groups yet.',
+    );
   });
 });
 
@@ -335,7 +429,16 @@ describe('user home page: my events', () => {
     ],
   };
   const render = (list: UserEventsList) =>
-    renderDocument(<UserHomePage user={user} path="/" list={{ groups: [], showTask: false, simpleEvents: false }} events={list} today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }} now={now} />);
+    renderDocument(
+      <UserHomePage
+        user={user}
+        path='/'
+        list={{ groups: [], showTask: false, simpleEvents: false }}
+        events={list}
+        today={{ eventId: null, waypoints: 0, taskWaypoints: 0 }}
+        now={now}
+      />,
+    );
 
   it('lists the events in the table style, marking the default one', () => {
     const html = render(events);
@@ -370,7 +473,9 @@ describe('user home page: my events', () => {
     expect(html.indexOf('show tasks on your public maps')).toBeLessThan(html.indexOf('Dalby'));
     expect(html).toContain('action="/events"'); // Create new event is a POST
     expect(html.indexOf('action="/events"')).toBeGreaterThan(html.indexOf('Quiet'));
-    expect(html.indexOf('action="/events"')).toBeLessThan(html.indexOf('* New pilot groups use this event by default.'));
+    expect(html.indexOf('action="/events"')).toBeLessThan(
+      html.indexOf('* New pilot groups use this event by default.'),
+    );
     expect(html).toContain('Multiple events mode looks too complicated?');
     expect(html).toContain('action="/events-mode"'); // the switch is a POST, written like a link
     expect(html).toContain('name="to" value="single"');

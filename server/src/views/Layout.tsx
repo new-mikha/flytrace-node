@@ -36,30 +36,48 @@ interface LayoutProps {
 /** Page frame shared by every page: background, navigation bar and the "jumbotron" content panel. */
 export function Layout({ title, user, path, card, scripts, children }: LayoutProps) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset='utf-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1' />
         <title>{`${title} - Flytrace`}</title>
-        <link rel="icon" href="/assets/img/favicon.ico" sizes="any" />
-        <link rel="stylesheet" href="/vendor/bootstrap/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" />
-        <link rel="stylesheet" href="/assets/css/flytrace.css" />
+        <link rel='icon' href='/assets/img/favicon.ico' sizes='any' />
+        <link rel='stylesheet' href='/vendor/bootstrap/css/bootstrap.min.css' />
+        <link rel='stylesheet' href='/vendor/fontawesome/css/all.min.css' />
+        <link rel='stylesheet' href='/assets/css/flytrace.css' />
       </head>
       <body>
-        <div class="ft-progress" id="ft-progress" aria-hidden="true"><div class="ft-progress-bar"></div></div>
-        <div class="ft-bg">
-          <div class="ft-frame">
+        <div class='ft-progress' id='ft-progress' aria-hidden='true'>
+          <div class='ft-progress-bar'></div>
+        </div>
+        <div class='ft-bg'>
+          <div class='ft-frame'>
             <Nav user={user} path={path} />
-            <div class="ft-shadow ft-shadow-top" aria-hidden="true"><div class="ft-shadow-strip"></div></div>
-            <main class={card ? `ft-jumbotron ft-jumbotron-card${card === 'wide' ? ' ft-jumbotron-wide' : card === 'medium' ? ' ft-jumbotron-medium' : ''}` : 'ft-jumbotron'}>{children}</main>
-            <div class="ft-shadow ft-shadow-bottom" aria-hidden="true"><div class="ft-shadow-strip"></div></div>
+            <div class='ft-shadow ft-shadow-top' aria-hidden='true'>
+              <div class='ft-shadow-strip'></div>
+            </div>
+            <main
+              class={card
+                ? `ft-jumbotron ft-jumbotron-card${
+                  card === 'wide'
+                    ? ' ft-jumbotron-wide'
+                    : card === 'medium'
+                    ? ' ft-jumbotron-medium'
+                    : ''
+                }`
+                : 'ft-jumbotron'}
+            >
+              {children}
+            </main>
+            <div class='ft-shadow ft-shadow-bottom' aria-hidden='true'>
+              <div class='ft-shadow-strip'></div>
+            </div>
           </div>
         </div>
-        <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js" defer></script>
-        <script src="/assets/js/app.js" defer></script>
-        <script src="/assets/js/guard.js" defer></script>
-        <script src="/assets/js/shadow.js" defer></script>
+        <script src='/vendor/bootstrap/js/bootstrap.bundle.min.js' defer></script>
+        <script src='/assets/js/app.js' defer></script>
+        <script src='/assets/js/guard.js' defer></script>
+        <script src='/assets/js/shadow.js' defer></script>
         {scripts?.map((src) => <script src={`/assets/js/${src}`} defer></script>)}
       </body>
     </html>

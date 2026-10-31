@@ -21,15 +21,23 @@
 import type { ComponentChildren } from 'preact';
 import { MIN_PASSWORD_LENGTH } from '../auth/accounts.ts';
 
-export interface Flash { kind: 'success' | 'info' | 'danger'; text: string }
+export interface Flash {
+  kind: 'success' | 'info' | 'danger';
+  text: string;
+}
 
-const FLASH_ICON = { success: 'fa-circle-check', info: 'fa-circle-info', danger: 'fa-triangle-exclamation' } as const;
+const FLASH_ICON = {
+  success: 'fa-circle-check',
+  info: 'fa-circle-info',
+  danger: 'fa-triangle-exclamation',
+} as const;
 
-export function Alert({ flash }: { flash: Flash | null | undefined }) {
-  if (!flash) return null;
+export function Alert({ flash }: { flash: Flash | null | undefined; }) {
+  if (!flash)
+    return null;
   return (
     <div class={`alert alert-${flash.kind}`} role={flash.kind === 'danger' ? 'alert' : 'status'}>
-      <i class={`fa-solid ${FLASH_ICON[flash.kind]} me-1`} aria-hidden="true"></i> {flash.text}
+      <i class={`fa-solid ${FLASH_ICON[flash.kind]} me-1`} aria-hidden='true'></i> {flash.text}
     </div>
   );
 }
@@ -57,48 +65,93 @@ export function Field(p: FieldProps) {
   const type = p.type ?? 'text';
   const maxlength = p.maxlength ?? (type === 'password' ? 128 : undefined);
   const input = (
-    <input id={id} name={p.name} type={type as 'text'} class={`form-control${p.error ? ' is-invalid' : ''}`}
-           value={type === 'password' ? undefined : p.value} autocomplete={p.autocomplete}
-           required={p.required ?? true} autofocus={p.autofocus} inputmode={p.inputmode} pattern={p.pattern}
-           maxlength={maxlength} aria-describedby={p.error ? `${id}-err` : p.help ? `${id}-help` : undefined} />
+    <input
+      id={id}
+      name={p.name}
+      type={type as 'text'}
+      class={`form-control${p.error ? ' is-invalid' : ''}`}
+      value={type === 'password' ? undefined : p.value}
+      autocomplete={p.autocomplete}
+      required={p.required ?? true}
+      autofocus={p.autofocus}
+      inputmode={p.inputmode}
+      pattern={p.pattern}
+      maxlength={maxlength}
+      aria-describedby={p.error ? `${id}-err` : p.help ? `${id}-help` : undefined}
+    />
   );
   return (
-    <div class="mb-3">
-      <label for={id} class="form-label">{p.label}</label>
-      {type === 'password' ? (
-        // The eye button is hidden until public/js/app.js is running (it does nothing without it).
-        <div class="input-group has-validation">
-          {input}
-          <button class="btn btn-outline-secondary ft-pw-toggle" type="button" hidden aria-label="Show password" aria-pressed="false">
-            <i class="fa-regular fa-eye fa-fw" aria-hidden="true"></i>
-          </button>
-          {p.error && <div id={`${id}-err`} class="invalid-feedback">{p.error}</div>}
-        </div>
-      ) : (
-        <>
-          {input}
-          {p.error && <div id={`${id}-err`} class="invalid-feedback">{p.error}</div>}
-        </>
-      )}
+    <div class='mb-3'>
+      <label for={id} class='form-label'>{p.label}</label>
+      {type === 'password'
+        ? (
+          // The eye button is hidden until public/js/app.js is running (it does nothing without it).
+          <div class='input-group has-validation'>
+            {input}
+            <button
+              class='btn btn-outline-secondary ft-pw-toggle'
+              type='button'
+              hidden
+              aria-label='Show password'
+              aria-pressed='false'
+            >
+              <i class='fa-regular fa-eye fa-fw' aria-hidden='true'></i>
+            </button>
+            {p.error && <div id={`${id}-err`} class='invalid-feedback'>{p.error}</div>}
+          </div>
+        )
+        : (
+          <>
+            {input}
+            {p.error && <div id={`${id}-err`} class='invalid-feedback'>{p.error}</div>}
+          </>
+        )}
       {p.hints}
-      {p.help && !p.error && <div id={`${id}-help`} class="form-text">{p.help}</div>}
+      {p.help && !p.error && <div id={`${id}-help`} class='form-text'>{p.help}</div>}
     </div>
   );
 }
 
-export function Submit({ children, kind = 'primary', icon }: { children: ComponentChildren; kind?: string; icon?: string }) {
+export function Submit(
+  { children, kind = 'primary', icon }: {
+    children: ComponentChildren;
+    kind?: string;
+    icon?: string;
+  },
+) {
   return (
-    <button class={`btn btn-${kind}`} type="submit">
-      {icon && <><i class={`${icon} fa-fw`} aria-hidden="true"></i>{' '}</>}{children}
+    <button class={`btn btn-${kind}`} type='submit'>
+      {icon && (
+        <>
+          <i class={`${icon} fa-fw`} aria-hidden='true'></i>
+          {' '}
+        </>
+      )}
+      {children}
     </button>
   );
 }
 
 /** Narrow card for the pages of the sign-in family (register, forgot password, ...). */
-export function Card({ title, icon, children, wide }: { title: string; icon?: string; children: ComponentChildren; wide?: boolean }) {
+export function Card(
+  { title, icon, children, wide }: {
+    title: string;
+    icon?: string;
+    children: ComponentChildren;
+    wide?: boolean;
+  },
+) {
   return (
     <div class={`ft-card mx-auto${wide ? ' ft-card-wide' : ''}`}>
-      <h1 class="h3 mb-3">{icon && <><i class={`${icon} text-primary`} aria-hidden="true"></i>{' '}</>}{title}</h1>
+      <h1 class='h3 mb-3'>
+        {icon && (
+          <>
+            <i class={`${icon} text-primary`} aria-hidden='true'></i>
+            {' '}
+          </>
+        )}
+        {title}
+      </h1>
       {children}
     </div>
   );
@@ -114,12 +167,13 @@ export interface HintRule {
  * Tips under a field, one per rule. All start hidden; public/js/live-hints.js shows a tip only while its rule is
  * broken and the person has left the field. Without JavaScript there are no tips (the server still checks).
  */
-export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
+export function Hints({ field, rules }: { field: string; rules: HintRule[]; }) {
   return (
-    <ul class="ft-hints list-unstyled small mb-0 mt-1" data-hints={field}>
+    <ul class='ft-hints list-unstyled small mb-0 mt-1' data-hints={field}>
       {rules.map((r) => (
         <li data-rule={r.rule} hidden>
-          <i class="fa-solid fa-circle-xmark fa-fw" aria-hidden="true"></i> <span class="ft-hint-text">{r.text}</span>
+          <i class='fa-solid fa-circle-xmark fa-fw' aria-hidden='true'></i>{' '}
+          <span class='ft-hint-text'>{r.text}</span>
         </li>
       ))}
     </ul>
@@ -129,22 +183,50 @@ export function Hints({ field, rules }: { field: string; rules: HintRule[] }) {
 // Checklists shared by every page that sets a password or an email address (see public/js/live-hints.js).
 
 /** `theirs`: an admin sets the password of somebody else ("their" instead of "your"). */
-export function PasswordHints({ theirs }: { theirs?: boolean } = {}) {
-  return <Hints field="password" rules={[
-    { rule: 'len', text: `The password must be at least ${MIN_PASSWORD_LENGTH} characters long` },
-    { rule: 'differs', text: `The password must not be the same as ${theirs ? 'their' : 'your'} username or email` },
-  ]} />;
+export function PasswordHints({ theirs }: { theirs?: boolean; } = {}) {
+  return (
+    <Hints
+      field='password'
+      rules={[
+        {
+          rule: 'len',
+          text: `The password must be at least ${MIN_PASSWORD_LENGTH} characters long`,
+        },
+        {
+          rule: 'differs',
+          text: `The password must not be the same as ${
+            theirs ? 'their' : 'your'
+          } username or email`,
+        },
+      ]}
+    />
+  );
 }
 
 export function ConfirmPasswordHints() {
-  return <Hints field="confirmPassword" rules={[{ rule: 'match', text: 'The passwords do not match' }]} />;
+  return (
+    <Hints
+      field='confirmPassword'
+      rules={[{ rule: 'match', text: 'The passwords do not match' }]}
+    />
+  );
 }
 
 /** `different`: the form is for changing an address, so it must differ from the current one (`theirs`: an admin changes it for somebody else). */
-export function EmailHints({ different, theirs }: { different?: boolean; theirs?: boolean }) {
-  return <Hints field="email" rules={[
-    { rule: 'format', text: 'Enter a valid email address, like name@example.com' },
-    ...(different ? [{ rule: 'different', text: `This is ${theirs ? 'their' : 'your'} current email address: enter a new one` }] : []),
-    { rule: 'free', text: 'This email address is already registered' },
-  ]} />;
+export function EmailHints({ different, theirs }: { different?: boolean; theirs?: boolean; }) {
+  return (
+    <Hints
+      field='email'
+      rules={[
+        { rule: 'format', text: 'Enter a valid email address, like name@example.com' },
+        ...(different
+          ? [{
+            rule: 'different',
+            text: `This is ${theirs ? 'their' : 'your'} current email address: enter a new one`,
+          }]
+          : []),
+        { rule: 'free', text: 'This email address is already registered' },
+      ]}
+    />
+  );
 }

@@ -58,6 +58,16 @@ editing it, tell the owner how to rebuild the dev DB: `npm run db:reset`, then `
 Tests run against the dev database and share one rate limiter per client IP, so tests that log in or post give each
 simulated client its own `remoteAddress`.
 
+## Code style (enforced by tools)
+
+- After changing code, run `npm run format` (`eslint --fix`, then `dprint fmt`); `npm run format:check` only reports. Config: `dprint.json`
+  (layout, 100 columns, line endings kept) and `eslint.config.js` (the `curly` rule only). Do not hand-format against it.
+- The statement after `if` / `else` / `for` / `while` goes on its own line, indented. One statement: no braces. If any block of an if / else if /
+  else chain needs braces (several statements), all of them get braces. The opening brace stays on the line of its `if` / `for`, except when the
+  condition spans lines: then each clause is on its own line, ends with its binary operator, and the brace goes on the next line.
+- Lines are at most 100 columns; comments, long strings, SQL and regexes may run over (the tools do not wrap them).
+- VS Code: `.vscode/` recommends the dprint and ESLint extensions and formats on save.
+
 ## UI conventions
 
 - Our CSS classes and ids use the `ft-` prefix (Flytrace). Never use `ff-` (that was flockfix) and do not mention

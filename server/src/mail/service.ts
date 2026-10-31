@@ -18,16 +18,23 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
+import { maskEmail } from '../audit.ts';
+import { createToken } from '../auth/tokens.ts';
 import { baseUrl, type Config } from '../config.ts';
 import type { Pool } from '../db.ts';
-import { createToken } from '../auth/tokens.ts';
-import { maskEmail } from '../audit.ts';
 import type { Mailer } from './mailer.ts';
 import * as templates from './templates.ts';
 
-interface Log { info(obj: object, msg: string): void; error(obj: object, msg: string): void }
+interface Log {
+  info(obj: object, msg: string): void;
+  error(obj: object, msg: string): void;
+}
 
-export interface Recipient { id: string; username: string; email: string }
+export interface Recipient {
+  id: string;
+  username: string;
+  email: string;
+}
 
 /** The emails the site sends, with their links. Sending never throws: callers get true/false and the failure is logged. */
 export class MailService {
@@ -39,10 +46,16 @@ export class MailService {
     readonly mailer: Mailer,
     private readonly log: Log,
   ) {
-    this.ctx = { siteName: 'Flytrace', siteUrl: baseUrl(config), contactAddress: config.MAIL_CONTACT_ADDRESS };
+    this.ctx = {
+      siteName: 'Flytrace',
+      siteUrl: baseUrl(config),
+      contactAddress: config.MAIL_CONTACT_ADDRESS,
+    };
   }
 
-  get canDeliver(): boolean { return this.mailer.kind === 'smtp'; }
+  get canDeliver(): boolean {
+    return this.mailer.kind === 'smtp';
+  }
 
   private readonly running = new Set<Promise<unknown>>();
 
@@ -51,7 +64,9 @@ export class MailService {
    * "forgot password" from answering slower for real accounts than for unknown names.
    */
   queue(task: () => Promise<unknown>): void {
-    const run = task().catch((err: unknown) => this.log.error({ err }, 'Background email task failed'))
+    const run = task().catch((err: unknown) =>
+      this.log.error({ err }, 'Background email task failed')
+    )
       .finally(() => this.running.delete(run));
     this.running.add(run);
   }
@@ -66,33 +81,60 @@ export class MailService {
   }
 
   /** Sends and reports. `error` carries the transport's message, for the test-email page. */
-  private async deliver(to: string, username: string, message: Omit<Parameters<Mailer['send']>[0], 'to'>): Promise<{ ok: boolean; error?: string }> {
+  private async deliver(
+    to: string,
+    username: string,
+    message: Omit<Parameters<Mailer['send']>[0], 'to'>,
+  ): Promise<{ ok: boolean; error?: string; }> {
     const masked = maskEmail(to);
     try {
       await this.mailer.send({ to, ...message });
-      this.log.info({ event: 'email.sent', user: username, to: masked, subject: message.subject },
-        `Email "${message.subject}" sent to ${masked}`);
+      this.log.info(
+        { event: 'email.sent', user: username, to: masked, subject: message.subject },
+        `Email "${message.subject}" sent to ${masked}`,
+      );
       return { ok: true };
     } catch (err) {
-      this.log.error({ event: 'email.failed', err, user: username, to: masked, subject: message.subject },
-        `Sending email "${message.subject}" to ${masked} failed`);
+      this.log.error({
+        event: 'email.failed',
+        err,
+        user: username,
+        to: masked,
+        subject: message.subject,
+      }, `Sending email "${message.subject}" to ${masked} failed`);
       return { ok: false, error: err instanceof Error ? err.message : String(err) };
     }
   }
 
   async sendConfirmEmail(to: Recipient) {
     const token = await createToken(this.pool, to.id, 'confirm_email');
-    return this.deliver(to.email, to.username, templates.confirmEmailMessage(this.ctx, to.username, this.link('/confirm-email', token)));
+    return this.deliver(
+      to.email,
+      to.username,
+      templates.confirmEmailMessage(this.ctx, to.username, this.link('/confirm-email', token)),
+    );
   }
 
   async sendResetPassword(to: Recipient) {
     const token = await createToken(this.pool, to.id, 'reset_password');
-    return this.deliver(to.email, to.username, templates.resetPasswordMessage(this.ctx, to.username, this.link('/reset-password', token)));
+    return this.deliver(
+      to.email,
+      to.username,
+      templates.resetPasswordMessage(this.ctx, to.username, this.link('/reset-password', token)),
+    );
   }
 
   async sendChangeEmail(to: Recipient, newEmail: string) {
     const token = await createToken(this.pool, to.id, 'change_email', newEmail);
-    return this.deliver(newEmail, to.username, templates.changeEmailMessage(this.ctx, to.username, this.link('/confirm-email-change', token)));
+    return this.deliver(
+      newEmail,
+      to.username,
+      templates.changeEmailMessage(
+        this.ctx,
+        to.username,
+        this.link('/confirm-email-change', token),
+      ),
+    );
   }
 
   sendTest(to: Recipient) {
@@ -100,6 +142,10 @@ export class MailService {
   }
 
   sendPasswordChanged(to: Recipient) {
-    return this.deliver(to.email, to.username, templates.passwordChangedMessage(this.ctx, to.username));
+    return this.deliver(
+      to.email,
+      to.username,
+      templates.passwordChangedMessage(this.ctx, to.username),
+    );
   }
 }

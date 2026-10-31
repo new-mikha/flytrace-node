@@ -40,7 +40,9 @@ export interface UserEventsList {
 /** The events a user owns, by name. */
 export async function listUserEvents(pool: Pool, userId: string): Promise<UserEventsList> {
   const [list, profile] = await Promise.all([
-    pool.query<{ id: number; name: string; waypoints: number; groups: number; is_default: boolean }>(
+    pool.query<
+      { id: number; name: string; waypoints: number; groups: number; is_default: boolean; }
+    >(
       `SELECT e.id, e.name, (up.default_event_id = e.id) AS is_default,
               (SELECT count(*)::int FROM waypoints w WHERE w.event_id = e.id) AS waypoints,
               (SELECT count(*)::int FROM groups g WHERE g.event_id = e.id) AS groups
@@ -48,37 +50,65 @@ export async function listUserEvents(pool: Pool, userId: string): Promise<UserEv
        WHERE e.user_id = $1 ORDER BY lower(e.name), e.id`,
       [userId],
     ),
-    pool.query<{ simple: boolean }>('SELECT is_simple_events_model AS simple FROM user_profiles WHERE user_id = $1', [userId]),
+    pool.query<{ simple: boolean; }>(
+      'SELECT is_simple_events_model AS simple FROM user_profiles WHERE user_id = $1',
+      [userId],
+    ),
   ]);
   return {
-    events: list.rows.map((r) => ({ id: r.id, name: r.name, waypoints: r.waypoints, groups: r.groups, isDefault: r.is_default === true })),
+    events: list.rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      waypoints: r.waypoints,
+      groups: r.groups,
+      isDefault: r.is_default === true,
+    })),
     show: !(profile.rows[0]?.simple ?? true),
   };
 }
 
 /** `Event 01`, `Event 02`, ...: the first free number (the legacy names). Safe inside a transaction (a clash retries instead of failing). */
-export async function createEvent(db: Pool | Client, userId: string): Promise<{ id: number; name: string }> {
+export async function createEvent(
+  db: Pool | Client,
+  userId: string,
+): Promise<{ id: number; name: string; }> {
   for (;;) {
-    const { rows } = await db.query<{ name: string }>('SELECT name FROM events WHERE user_id = $1', [userId]);
+    const { rows } = await db.query<{ name: string; }>(
+      'SELECT name FROM events WHERE user_id = $1',
+      [userId],
+    );
     const used = new Set(rows.map((r) => r.name.toLowerCase()));
     let n = 1;
-    while (used.has(`event ${String(n).padStart(2, '0')}`)) n++;
+    while (used.has(`event ${String(n).padStart(2, '0')}`))
+      n++;
     const name = `Event ${String(n).padStart(2, '0')}`;
-    const { rows: [e] } = await db.query<{ id: number }>(
-      'INSERT INTO events (user_id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id', [userId, name]);
-    if (e) return { id: e.id, name }; // no row: two creations at once picked the same name, look again
+    const { rows: [e] } = await db.query<{ id: number; }>(
+      'INSERT INTO events (user_id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
+      [userId, name],
+    );
+    if (e)
+      return { id: e.id, name }; // no row: two creations at once picked the same name, look again
   }
 }
 
 /** The user's default event ("Today Task" in the single-event mode), made when there is none yet (legacy EnsureDefaultTask). */
 export async function ensureDefaultEvent(pool: Pool, userId: string): Promise<number> {
   return withTransaction(pool, async (c) => {
-    await c.query('INSERT INTO user_profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING', [userId]);
-    const { rows: [p] } = await c.query<{ default_event_id: number | null }>(
-      'SELECT default_event_id FROM user_profiles WHERE user_id = $1 FOR UPDATE', [userId]);
-    if (p?.default_event_id) return p.default_event_id;
+    await c.query(
+      'INSERT INTO user_profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING',
+      [userId],
+    );
+    const { rows: [p] } = await c.query<{ default_event_id: number | null; }>(
+      'SELECT default_event_id FROM user_profiles WHERE user_id = $1 FOR UPDATE',
+      [userId],
+    );
+    if (p?.default_event_id)
+      return p.default_event_id;
     const event = await createEvent(c, userId);
-    await c.query('UPDATE user_profiles SET default_event_id = $2 WHERE user_id = $1', [userId, event.id]);
+    await c.query('UPDATE user_profiles SET default_event_id = $2 WHERE user_id = $1', [
+      userId,
+      event.id,
+    ]);
     return event.id;
   });
 }
@@ -91,11 +121,13 @@ export interface TodayTask {
 }
 
 export async function getTodayTask(pool: Pool, userId: string): Promise<TodayTask> {
-  const { rows: [r] } = await pool.query<{ id: number | null; waypoints: number; task: number }>(
+  const { rows: [r] } = await pool.query<{ id: number | null; waypoints: number; task: number; }>(
     `SELECT up.default_event_id AS id,
             (SELECT count(*)::int FROM waypoints w WHERE w.event_id = up.default_event_id) AS waypoints,
             (SELECT count(*)::int FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = up.default_event_id) AS task
-     FROM user_profiles up WHERE up.user_id = $1`, [userId]);
+     FROM user_profiles up WHERE up.user_id = $1`,
+    [userId],
+  );
   return { eventId: r?.id ?? null, waypoints: r?.waypoints ?? 0, taskWaypoints: r?.task ?? 0 };
 }
 
@@ -103,18 +135,32 @@ export async function getTodayTask(pool: Pool, userId: string): Promise<TodayTas
  * Show an event's task on a group's map, or nothing (`null`). False when the event is not the group owner's. Choosing an event
  * also makes it the owner's default event, which new groups use (legacy AssignEventToGroup). Bumps the group's version.
  */
-export async function assignEvent(pool: Pool, groupId: number, ownerId: string, eventId: number | null): Promise<boolean> {
+export async function assignEvent(
+  pool: Pool,
+  groupId: number,
+  ownerId: string,
+  eventId: number | null,
+): Promise<boolean> {
   return withTransaction(pool, async (c) => {
     if (eventId !== null) {
-      const { rowCount } = await c.query('SELECT 1 FROM events WHERE id = $1 AND user_id = $2', [eventId, ownerId]);
-      if (!rowCount) return false;
+      const { rowCount } = await c.query('SELECT 1 FROM events WHERE id = $1 AND user_id = $2', [
+        eventId,
+        ownerId,
+      ]);
+      if (!rowCount)
+        return false;
     }
-    await c.query('UPDATE groups SET event_id = $2, version = version + 1 WHERE id = $1', [groupId, eventId]);
-    if (eventId !== null) {
+    await c.query('UPDATE groups SET event_id = $2, version = version + 1 WHERE id = $1', [
+      groupId,
+      eventId,
+    ]);
+    if (eventId !== null)
       await c.query(
         `INSERT INTO user_profiles (user_id, default_event_id) VALUES ($1, $2)
-         ON CONFLICT (user_id) DO UPDATE SET default_event_id = EXCLUDED.default_event_id`, [ownerId, eventId]);
-    }
+         ON CONFLICT (user_id) DO UPDATE SET default_event_id = EXCLUDED.default_event_id`,
+        [ownerId, eventId],
+      );
+
     return true;
   });
 }

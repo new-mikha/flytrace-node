@@ -28,7 +28,10 @@ export function createPool(connectionString: string): Pool {
 }
 
 /** Runs `fn` inside BEGIN/COMMIT on one client, rolling back on any throw. */
-export async function withTransaction<T>(pool: Pool, fn: (client: Client) => Promise<T>): Promise<T> {
+export async function withTransaction<T>(
+  pool: Pool,
+  fn: (client: Client) => Promise<T>,
+): Promise<T> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

@@ -27,9 +27,13 @@
 // Everything is delegated from <main>, so it keeps working when swap.js replaces the section. The server checks it all again.
 (() => {
   const main = document.querySelector('main');
-  if (!main) return;
+  if (!main)
+    return;
   document.documentElement.classList.add('ft-js'); // shows what needs this script (Remove, Clear task, bulk controls)
-  const closest = (event, selector) => (event.target instanceof Element ? event.target.closest(selector) : null);
+  const closest = (
+    event,
+    selector,
+  ) => (event.target instanceof Element ? event.target.closest(selector) : null);
   const rowsOf = (form) => [...form.querySelectorAll('tbody tr')];
   const radiusOf = (row) => row.querySelector('input[name="radius"]');
   const wptOf = (row) => row.querySelector('select[name="wpt"]');
@@ -45,7 +49,10 @@
     let rows = rowsOf(form);
     if (rows.length === 0 || wptOf(rows[rows.length - 1]).value !== '') {
       const line = rows.length > 0 ? rows[rows.length - 1].cloneNode(true) : null;
-      if (line) { blank(line, form); body.append(line); }
+      if (line) {
+        blank(line, form);
+        body.append(line);
+      }
       rows = rowsOf(form);
     }
     rows.forEach((row, i) => {
@@ -59,7 +66,8 @@
   function fill(form, points, radius) {
     const rows = rowsOf(form);
     const template = rows[rows.length - 1];
-    for (const row of rows.slice(0, -1)) row.remove();
+    for (const row of rows.slice(0, -1))
+      row.remove();
     blank(template, form);
     for (const p of points) {
       const line = template.cloneNode(true);
@@ -72,17 +80,20 @@
 
   main.addEventListener('change', (event) => {
     const select = closest(event, '#ft-task-form select[name="wpt"]');
-    if (!select) return;
+    if (!select)
+      return;
     const form = select.form;
     const row = select.closest('tr');
-    if (select.value === '' && row !== rowsOf(form).pop()) row.remove(); // an emptied line goes
+    if (select.value === '' && row !== rowsOf(form).pop())
+      row.remove(); // an emptied line goes
     tidy(form);
   });
 
   main.addEventListener('click', (event) => {
     const button = closest(event, '[data-task-remove], [data-task-clear], [data-task-bulk]');
     const form = button?.closest('#ft-task-form');
-    if (!button || !form || event.button !== 0) return;
+    if (!button || !form || event.button !== 0)
+      return;
     event.preventDefault();
     event.stopPropagation(); // the page-wide handler in app.js has nothing to do for these
     if (button.hasAttribute('data-task-remove')) {
@@ -93,11 +104,18 @@
       fill(form, [], form.dataset.defaultRadius);
     } else {
       const typed = form.querySelector('#ft-bulk-radius').value.trim();
-      const radius = /^\d{1,6}$/.test(typed) && Number(typed) > 0 ? typed : form.dataset.defaultRadius;
+      const radius = /^\d{1,6}$/.test(typed) && Number(typed) > 0
+        ? typed
+        : form.dataset.defaultRadius;
       const all = JSON.parse(form.dataset.wpts || '[]');
       // "In the order added" is by id (the order the waypoints were created), whatever order the page listed them in.
-      if (button.dataset.taskBulk === 'name') all.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
-      else all.sort((a, b) => a.id - b.id);
+      if (button.dataset.taskBulk === 'name')
+        all.sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+        );
+      else
+        all.sort((a, b) => a.id - b.id);
+
       fill(form, all, radius);
     }
   });
@@ -105,14 +123,18 @@
   // guard.js asks whether the lines differ from the saved task.
   main.addEventListener('ft-changed', (event) => {
     const form = event.target;
-    if (!(form instanceof HTMLFormElement) || form.id !== 'ft-task-form') return;
+    if (!(form instanceof HTMLFormElement) || form.id !== 'ft-task-form')
+      return;
     const now = rowsOf(form)
       .filter((row) => wptOf(row).value !== '')
-      .map((row) => `${wptOf(row).value}:${radiusOf(row).value.trim() || form.dataset.defaultRadius}`)
+      .map((row) =>
+        `${wptOf(row).value}:${radiusOf(row).value.trim() || form.dataset.defaultRadius}`
+      )
       .join(',');
     event.detail.changed = now !== (form.dataset.initial ?? '');
   });
 
   const form = document.getElementById('ft-task-form');
-  if (form) tidy(form);
+  if (form)
+    tidy(form);
 })();

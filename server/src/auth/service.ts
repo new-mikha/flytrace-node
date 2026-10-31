@@ -24,24 +24,34 @@ import { hashPassword, verifyPassword } from './password.ts';
 // Valid argon2id hash (created on first use, same parameters as real hashes) that unknown login names are checked against.
 let dummyHash: Promise<string> | undefined;
 
-export interface CurrentUser { id: string; username: string; roles: string[] }
+export interface CurrentUser {
+  id: string;
+  username: string;
+  roles: string[];
+}
 
 interface UserRow {
-  id: string; username: string; password_hash: string; is_approved: boolean; is_locked_out: boolean;
-  email: string | null; email_confirmed: boolean; two_factor_enabled: boolean;
+  id: string;
+  username: string;
+  password_hash: string;
+  is_approved: boolean;
+  is_locked_out: boolean;
+  email: string | null;
+  email_confirmed: boolean;
+  two_factor_enabled: boolean;
 }
 
 /** Outcome of checking a login name and password. */
 export type LoginResult =
-  | { kind: 'ok'; user: CurrentUser }
+  | { kind: 'ok'; user: CurrentUser; }
   /** Password is right, but a second step (authenticator code) is still needed. */
-  | { kind: 'two-factor'; userId: string }
+  | { kind: 'two-factor'; userId: string; }
   /** Password is right, but the email address has not been confirmed and the site requires that. */
-  | { kind: 'email-unconfirmed'; userId: string }
-  | { kind: 'invalid' };
+  | { kind: 'email-unconfirmed'; userId: string; }
+  | { kind: 'invalid'; };
 
 export async function loadUser(pool: Pool, id: string): Promise<CurrentUser | null> {
-  const { rows } = await pool.query<{ id: string; username: string; roles: string[] }>(
+  const { rows } = await pool.query<{ id: string; username: string; roles: string[]; }>(
     `SELECT u.id, u.username,
             COALESCE(array_agg(r.name::text) FILTER (WHERE r.name IS NOT NULL), '{}') AS roles
      FROM users u
@@ -60,7 +70,12 @@ export async function loadUser(pool: Pool, id: string): Promise<CurrentUser | nu
  * tell them apart. This only checks the password: for 'two-factor' the caller asks for the code and then calls
  * `completeLogin`.
  */
-export async function checkPassword(pool: Pool, login: string, password: string, requireConfirmedEmail = false): Promise<LoginResult> {
+export async function checkPassword(
+  pool: Pool,
+  login: string,
+  password: string,
+  requireConfirmedEmail = false,
+): Promise<LoginResult> {
   const { rows } = await pool.query<UserRow>(
     `SELECT id, username, password_hash, is_approved, is_locked_out, email, email_confirmed, two_factor_enabled FROM users
      WHERE username = $1 OR email = $1
@@ -78,14 +93,20 @@ export async function checkPassword(pool: Pool, login: string, password: string,
   }
 
   const { ok, needsRehash } = await verifyPassword(user.password_hash, password);
-  if (!ok || !user.is_approved || user.is_locked_out) return { kind: 'invalid' };
+  if (!ok || !user.is_approved || user.is_locked_out)
+    return { kind: 'invalid' };
 
-  if (needsRehash) {
+  if (needsRehash)
     // Upgrade the legacy ASP.NET hash now that we have the plain password in hand.
-    await pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [user.id, await hashPassword(password)]);
-  }
-  if (requireConfirmedEmail && !user.email_confirmed) return { kind: 'email-unconfirmed', userId: user.id };
-  if (user.two_factor_enabled) return { kind: 'two-factor', userId: user.id };
+    await pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [
+      user.id,
+      await hashPassword(password),
+    ]);
+
+  if (requireConfirmedEmail && !user.email_confirmed)
+    return { kind: 'email-unconfirmed', userId: user.id };
+  if (user.two_factor_enabled)
+    return { kind: 'two-factor', userId: user.id };
   return completeLogin(pool, user.id);
 }
 
@@ -97,7 +118,11 @@ export async function completeLogin(pool: Pool, userId: string): Promise<LoginRe
 }
 
 /** Password-only check for callers that cannot do a second step: accounts with two-factor login never pass. */
-export async function authenticate(pool: Pool, login: string, password: string): Promise<CurrentUser | null> {
+export async function authenticate(
+  pool: Pool,
+  login: string,
+  password: string,
+): Promise<CurrentUser | null> {
   const result = await checkPassword(pool, login, password);
   return result.kind === 'ok' ? result.user : null;
 }

@@ -33,7 +33,9 @@ beforeAll(async () => {
   app = await buildApp(config, createPool(config.DATABASE_URL));
 });
 
-afterAll(async () => { await app.close(); });
+afterAll(async () => {
+  await app.close();
+});
 
 describe('static assets', () => {
   it.each([
@@ -54,8 +56,10 @@ describe('static assets', () => {
   });
 
   it('does not serve files outside the asset folders', async () => {
-    expect((await app.inject({ url: '/assets/../package.json' })).statusCode).toBeGreaterThanOrEqual(400);
-    expect((await app.inject({ url: '/assets/%2e%2e/package.json' })).statusCode).toBeGreaterThanOrEqual(400);
+    expect((await app.inject({ url: '/assets/../package.json' })).statusCode)
+      .toBeGreaterThanOrEqual(400);
+    expect((await app.inject({ url: '/assets/%2e%2e/package.json' })).statusCode)
+      .toBeGreaterThanOrEqual(400);
     expect((await app.inject({ url: '/assets/css/missing.css' })).statusCode).toBe(404);
   });
 });

@@ -30,29 +30,38 @@
 
   // ---- progress bar ----
   function barStart() {
-    if (!bar) return;
+    if (!bar)
+      return;
     bar.classList.remove('active', 'done');
     void bar.offsetWidth; // restart the CSS animation
     bar.classList.add('active');
   }
   function barDone() {
-    if (!bar) return;
+    if (!bar)
+      return;
     bar.classList.add('done');
-    setTimeout(() => { if (!current) bar.classList.remove('active', 'done'); }, 350);
+    setTimeout(() => {
+      if (!current)
+        bar.classList.remove('active', 'done');
+    }, 350);
   }
-  function barReset() { bar?.classList.remove('active', 'done'); }
+  function barReset() {
+    bar?.classList.remove('active', 'done');
+  }
 
   // ---- busy state of the pressed control: disabled, with a spinner ----
   function showBusy(el) {
     // Only things that look like buttons get a spinner; plain links (brand, menu items, text links) just
     // show the loading bar at the top.
-    if (!el.classList.contains('btn')) return () => {};
+    if (!el.classList.contains('btn'))
+      return () => {};
     const label = el.querySelector('.ft-label');
     const busy = el.querySelector('.ft-busy');
     const isButton = el instanceof HTMLButtonElement;
     el.classList.add('disabled');
     el.setAttribute('aria-busy', 'true');
-    if (isButton) el.disabled = true;
+    if (isButton)
+      el.disabled = true;
 
     let gap = null;
     let spinner = null;
@@ -69,8 +78,12 @@
     return () => {
       el.classList.remove('disabled');
       el.removeAttribute('aria-busy');
-      if (isButton) el.disabled = false;
-      if (label && busy) { label.classList.remove('d-none'); busy.classList.add('d-none'); }
+      if (isButton)
+        el.disabled = false;
+      if (label && busy) {
+        label.classList.remove('d-none');
+        busy.classList.add('d-none');
+      }
       gap?.remove();
       spinner?.remove();
     };
@@ -78,14 +91,16 @@
 
   // ---- actions ----
   function begin(kind, el, cancel) {
-    if (current) abort(current);
+    if (current)
+      abort(current);
     const action = { kind, restore: showBusy(el), cancel };
     current = action;
     barStart();
     return action;
   }
   function finish(action) {
-    if (current !== action) return;
+    if (current !== action)
+      return;
     action.restore();
     current = null;
     barDone();
@@ -93,21 +108,29 @@
   function abort(action) {
     action.cancel?.();
     action.restore();
-    if (current === action) current = null;
+    if (current === action)
+      current = null;
     barReset();
   }
 
   // Does clicking this link load another page in this tab?
   function navigates(link) {
     const href = link.getAttribute('href') ?? '';
-    return !(link.target === '_blank' || link.hasAttribute('download') || link.hasAttribute('data-bs-toggle')
-      || link.hasAttribute('data-theme-toggle') || href.startsWith('#') || /^(javascript|mailto|tel):/i.test(href));
+    return !(link.target === '_blank' ||
+      link.hasAttribute('download') ||
+      link.hasAttribute('data-bs-toggle') ||
+      link.hasAttribute('data-theme-toggle') ||
+      href.startsWith('#') ||
+      /^(javascript|mailto|tel):/i.test(href));
   }
 
   function startNavigation(link) {
     // The browser drops an earlier pending navigation by itself; we only tidy up its button. If the page never
     // arrives (e.g. the user presses the browser's stop button) there is no event, so give up on the spinner after a while.
-    const timer = setTimeout(() => { if (current === action) abort(action); }, 30_000);
+    const timer = setTimeout(() => {
+      if (current === action)
+        abort(action);
+    }, 30_000);
     const action = begin('nav', link, () => clearTimeout(timer));
   }
 
@@ -115,42 +138,66 @@
   // leaving the address bar alone (a refresh shows the page's default state). Without this script, or when the
   // request fails, the link simply opens normally.
   function swap(link, target) {
-    if (current?.kind === 'nav') window.stop(); // cancel the page load that is still pending
+    if (current?.kind === 'nav')
+      window.stop(); // cancel the page load that is still pending
     const controller = new AbortController();
     const action = begin('swap', link, () => controller.abort());
     const url = new URL(link.href);
     url.searchParams.set('fragment', '1');
-    fetch(url, { headers: { Accept: 'text/html' }, credentials: 'same-origin', signal: controller.signal })
+    fetch(url, {
+      headers: { Accept: 'text/html' },
+      credentials: 'same-origin',
+      signal: controller.signal,
+    })
       .then((response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok)
+          throw new Error(`HTTP ${response.status}`);
         return response.text();
       })
       .then((html) => {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted)
+          return;
         const apply = () => {
           target.innerHTML = html;
-          if (link.hasAttribute('data-swap-scroll')) target.scrollIntoView({ block: 'start' });
+          if (link.hasAttribute('data-swap-scroll'))
+            target.scrollIntoView({ block: 'start' });
         };
         // Same quick cross-fade as between pages, where the browser supports it.
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (document.startViewTransition && !reduceMotion) document.startViewTransition(apply);
-        else apply();
+        if (document.startViewTransition && !reduceMotion)
+          document.startViewTransition(apply);
+        else
+          apply();
         finish(action);
       })
       .catch(() => {
-        if (controller.signal.aborted) return; // cancelled by a newer action
+        if (controller.signal.aborted)
+          return; // cancelled by a newer action
         abort(action);
         window.location.href = link.href;
       });
   }
 
   document.addEventListener('click', (event) => {
-    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
-    if (!link || !navigates(link)) return;
-    if (current?.kind === 'post') { event.preventDefault(); return; } // never cancel a form post
+    if (event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey)
+      return;
 
-    const target = link.dataset.swapTarget ? document.getElementById(link.dataset.swapTarget) : null;
+    const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+    if (!link || !navigates(link))
+      return;
+    if (current?.kind === 'post') {
+      event.preventDefault();
+      return;
+    } // never cancel a form post
+
+    const target = link.dataset.swapTarget
+      ? document.getElementById(link.dataset.swapTarget)
+      : null;
     if (target) {
       event.preventDefault();
       swap(link, target);
@@ -161,10 +208,16 @@
 
   document.addEventListener('submit', (event) => {
     const form = event.target;
-    if (event.defaultPrevented || !(form instanceof HTMLFormElement) || form.method !== 'post') return;
-    if (current?.kind === 'post') { event.preventDefault(); return; } // already being sent
-    const button = event.submitter ?? form.querySelector('button[type="submit"], button:not([type])');
-    if (button) begin('post', button, null);
+    if (event.defaultPrevented || !(form instanceof HTMLFormElement) || form.method !== 'post')
+      return;
+    if (current?.kind === 'post') {
+      event.preventDefault();
+      return;
+    } // already being sent
+    const button = event.submitter ??
+      form.querySelector('button[type="submit"], button:not([type])');
+    if (button)
+      begin('post', button, null);
   });
 
   // The switch is a link (it works without this script); here it also becomes a proper switch for assistive technology:
@@ -172,19 +225,30 @@
   const themeLinks = document.querySelectorAll('[data-theme-toggle]');
   function syncThemeSwitches() {
     const night = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-    for (const link of themeLinks) { link.setAttribute('role', 'switch'); link.setAttribute('aria-checked', String(night)); }
+    for (const link of themeLinks) {
+      link.setAttribute('role', 'switch');
+      link.setAttribute('aria-checked', String(night));
+    }
   }
   syncThemeSwitches();
   document.addEventListener('keydown', (event) => {
-    const link = event.target instanceof Element ? event.target.closest('[data-theme-toggle]') : null;
-    if (link && event.key === ' ') { event.preventDefault(); link.click(); }
+    const link = event.target instanceof Element
+      ? event.target.closest('[data-theme-toggle]')
+      : null;
+    if (link && event.key === ' ') {
+      event.preventDefault();
+      link.click();
+    }
   });
 
   // Day / night theme: switch in place and remember it in the cookie that the server reads for the next page. Without
   // this script the same link goes to /theme, which does it with a redirect.
   document.addEventListener('click', (event) => {
-    const link = event.target instanceof Element ? event.target.closest('[data-theme-toggle]') : null;
-    if (!link) return;
+    const link = event.target instanceof Element
+      ? event.target.closest('[data-theme-toggle]')
+      : null;
+    if (!link)
+      return;
     event.preventDefault();
     const dark = document.documentElement.getAttribute('data-bs-theme') !== 'dark';
     document.cookie = `ft-theme=${dark ? 'dark' : 'light'}; path=/; max-age=31536000; SameSite=Lax`;
@@ -193,11 +257,13 @@
   });
 
   // Show / hide password: the eye buttons next to password fields are rendered hidden and only work with this script.
-  for (const button of document.querySelectorAll('.ft-pw-toggle')) button.hidden = false;
+  for (const button of document.querySelectorAll('.ft-pw-toggle'))
+    button.hidden = false;
   document.addEventListener('click', (event) => {
     const button = event.target instanceof Element ? event.target.closest('.ft-pw-toggle') : null;
     const input = button?.parentElement?.querySelector('input');
-    if (!button || !input) return;
+    if (!button || !input)
+      return;
     const show = input.type === 'password';
     input.type = show ? 'text' : 'password';
     button.setAttribute('aria-pressed', String(show));
@@ -208,8 +274,10 @@
 
   // Coming back with the Back button can restore the page from the browser cache with buttons still busy.
   window.addEventListener('pageshow', (event) => {
-    if (!event.persisted) return;
-    if (current) abort(current);
+    if (!event.persisted)
+      return;
+    if (current)
+      abort(current);
     barReset();
   });
 })();
@@ -218,14 +286,18 @@
 // movement starts the count again). Scrolling while it opens or closes is ignored.
 (() => {
   const menu = document.querySelector('.ft-navbar .navbar-collapse');
-  if (!menu) return;
+  if (!menu)
+    return;
   let last = window.scrollY;
   let run = 0; // pixels scrolled down without turning back
   window.addEventListener('scroll', () => {
     const y = window.scrollY;
     const delta = y - last;
     last = y;
-    if (!menu.classList.contains('show')) { run = 0; return; } // closed, or still opening/closing (class "collapsing")
+    if (!menu.classList.contains('show')) {
+      run = 0;
+      return;
+    } // closed, or still opening/closing (class "collapsing")
     run = delta > 0 ? run + delta : 0;
     if (run >= parseFloat(getComputedStyle(menu).fontSize)) {
       run = 0;

@@ -24,9 +24,9 @@ import type { FastifyInstance } from 'fastify';
 import * as OTPAuth from 'otpauth';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
-import { loadConfig, type Config } from '../src/config.ts';
+import { type Config, loadConfig } from '../src/config.ts';
 import { createPool, type Pool } from '../src/db.ts';
-import type { MailMessage, Mailer } from '../src/mail/mailer.ts';
+import type { Mailer, MailMessage } from '../src/mail/mailer.ts';
 
 const run = Math.random().toString(36).slice(2, 8);
 const PASSWORD = 'correct horse battery';
@@ -37,14 +37,16 @@ let failMail = false;
 const mailer: Mailer = {
   kind: 'smtp',
   async send(message) {
-    if (failMail) throw new Error('connection refused');
+    if (failMail)
+      throw new Error('connection refused');
     sent.push(message);
   },
 };
 
 function tokenIn(message: MailMessage | undefined): string {
   const match = message?.text.match(/token=([^\s&"]+)/);
-  if (!match) throw new Error(`no link in: ${message?.text}`);
+  if (!match)
+    throw new Error(`no link in: ${message?.text}`);
   return decodeURIComponent(match[1]!);
 }
 
@@ -56,13 +58,23 @@ class Browser {
 
   async request(method: 'GET' | 'POST', url: string, form?: Record<string, string>) {
     const res = await this.app.inject({
-      method, url, remoteAddress: this.ip, cookies: this.cookies,
-      ...(form ? { payload: new URLSearchParams(form).toString(), headers: { 'content-type': 'application/x-www-form-urlencoded' } } : {}),
+      method,
+      url,
+      remoteAddress: this.ip,
+      cookies: this.cookies,
+      ...(form
+        ? {
+          payload: new URLSearchParams(form).toString(),
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        }
+        : {}),
     });
-    for (const c of res.cookies) {
-      if (c.value === '' || (c.expires && c.expires.getTime() < Date.now())) delete this.cookies[c.name];
-      else this.cookies[c.name] = c.value;
-    }
+    for (const c of res.cookies)
+      if (c.value === '' || (c.expires && c.expires.getTime() < Date.now()))
+        delete this.cookies[c.name];
+      else
+        this.cookies[c.name] = c.value;
+
     return res;
   }
   get = (url: string) => this.request('GET', url);
@@ -72,8 +84,14 @@ class Browser {
     return this.post('/login', { username, password, returnUrl: '/account' });
   }
   async whoami(): Promise<string | null> {
-    const res = await this.app.inject({ url: '/account', cookies: this.cookies, remoteAddress: this.ip });
-    return res.statusCode === 200 ? (res.body.match(/Username<\/dt><dd[^>]*>([^<]+)</)?.[1] ?? null) : null;
+    const res = await this.app.inject({
+      url: '/account',
+      cookies: this.cookies,
+      remoteAddress: this.ip,
+    });
+    return res.statusCode === 200
+      ? (res.body.match(/Username<\/dt><dd[^>]*>([^<]+)</)?.[1] ?? null)
+      : null;
   }
 }
 
@@ -107,8 +125,11 @@ afterAll(async () => {
 
 const register = (b: Browser, name: string, extra: Record<string, string> = {}) =>
   b.post('/register', {
-    username: `__idt_${name}_${run}`, email: `idt_${name}_${run}@example.test`,
-    password: PASSWORD, confirmPassword: PASSWORD, ...extra,
+    username: `__idt_${name}_${run}`,
+    email: `idt_${name}_${run}@example.test`,
+    password: PASSWORD,
+    confirmPassword: PASSWORD,
+    ...extra,
   });
 const userName = (name: string) => `__idt_${name}_${run}`;
 const userEmail = (name: string) => `idt_${name}_${run}@example.test`;
@@ -120,7 +141,12 @@ describe('registration', () => {
     expect(page.statusCode).toBe(200);
     expect(page.body).toContain('name="username"');
 
-    const bad = await b.post('/register', { username: 'a@b.test', email: 'nope', password: 'short', confirmPassword: 'other' });
+    const bad = await b.post('/register', {
+      username: 'a@b.test',
+      email: 'nope',
+      password: 'short',
+      confirmPassword: 'other',
+    });
     expect(bad.statusCode).toBe(422);
     expect(bad.body).toContain('letters, digits');
     expect(bad.body).toContain('valid email');
@@ -145,7 +171,9 @@ describe('registration', () => {
     expect(mail.subject).toContain('Confirm');
     expect(mail.html).toContain('/confirm-email?token=');
 
-    const row = (await pool.query('SELECT email_confirmed FROM users WHERE username = $1', [userName('reg')])).rows[0];
+    const row =
+      (await pool.query('SELECT email_confirmed FROM users WHERE username = $1', [userName('reg')]))
+        .rows[0];
     expect(row.email_confirmed).toBe(false);
     expect((await b.get('/account')).body).toContain('not confirmed');
   });
@@ -156,11 +184,17 @@ describe('registration', () => {
     const open = await b.get(`/confirm-email?token=${encodeURIComponent(token)}`);
     expect(open.statusCode).toBe(200);
     expect(open.body).toContain('Confirm my email');
-    expect((await pool.query('SELECT email_confirmed FROM users WHERE username = $1', [userName('reg')])).rows[0].email_confirmed).toBe(false);
+    expect(
+      (await pool.query('SELECT email_confirmed FROM users WHERE username = $1', [userName('reg')]))
+        .rows[0].email_confirmed,
+    ).toBe(false);
 
     const done = await b.post('/confirm-email', { token });
     expect(done.statusCode).toBe(302);
-    expect((await pool.query('SELECT email_confirmed FROM users WHERE username = $1', [userName('reg')])).rows[0].email_confirmed).toBe(true);
+    expect(
+      (await pool.query('SELECT email_confirmed FROM users WHERE username = $1', [userName('reg')]))
+        .rows[0].email_confirmed,
+    ).toBe(true);
 
     expect((await b.get(`/confirm-email?token=${encodeURIComponent(token)}`)).statusCode).toBe(400); // used up
     expect((await b.get('/confirm-email?token=garbage')).statusCode).toBe(400);
@@ -168,18 +202,35 @@ describe('registration', () => {
 
   it('refuses a taken username or email, ignoring case', async () => {
     const b = new Browser(app);
-    const sameName = await b.post('/register', { username: userName('reg').toUpperCase(), email: userEmail('other'), password: PASSWORD, confirmPassword: PASSWORD });
+    const sameName = await b.post('/register', {
+      username: userName('reg').toUpperCase(),
+      email: userEmail('other'),
+      password: PASSWORD,
+      confirmPassword: PASSWORD,
+    });
     expect(sameName.statusCode).toBe(409);
     expect(sameName.body).toContain('username is taken');
-    const sameEmail = await b.post('/register', { username: userName('other'), email: userEmail('reg').toUpperCase(), password: PASSWORD, confirmPassword: PASSWORD });
+    const sameEmail = await b.post('/register', {
+      username: userName('other'),
+      email: userEmail('reg').toUpperCase(),
+      password: PASSWORD,
+      confirmPassword: PASSWORD,
+    });
     expect(sameEmail.statusCode).toBe(409);
     expect(sameEmail.body).toContain('already registered');
   });
 
-  it('does not allow an email that is somebody else\'s username', async () => {
-    await pool.query(`INSERT INTO users (username, password_hash) VALUES ($1, 'x')`, [`__idt_legacy_${run}`]);
+  it("does not allow an email that is somebody else's username", async () => {
+    await pool.query(`INSERT INTO users (username, password_hash) VALUES ($1, 'x')`, [
+      `__idt_legacy_${run}`,
+    ]);
     const b = new Browser(app);
-    const res = await b.post('/register', { username: userName('lg'), email: `__idt_legacy_${run}`, password: PASSWORD, confirmPassword: PASSWORD });
+    const res = await b.post('/register', {
+      username: userName('lg'),
+      email: `__idt_legacy_${run}`,
+      password: PASSWORD,
+      confirmPassword: PASSWORD,
+    });
     expect(res.statusCode).toBe(422); // not an email address at all
   });
 });
@@ -243,17 +294,31 @@ describe('forgot and reset password', () => {
     expect(resetPage.body).toContain('data-hints="password"'); // the same live hints as on the register page
     expect(resetPage.body).toContain('ft-pw-toggle'); // show / hide password button
     expect(resetPage.body).toContain(`data-forbidden="${userName('reset')},${userEmail('reset')}"`);
-    const weak = await b.post('/reset-password', { token, password: 'short', confirmPassword: 'short' });
+    const weak = await b.post('/reset-password', {
+      token,
+      password: 'short',
+      confirmPassword: 'short',
+    });
     expect(weak.statusCode).toBe(422);
-    const done = await b.post('/reset-password', { token, password: 'brand new password', confirmPassword: 'brand new password' });
+    const done = await b.post('/reset-password', {
+      token,
+      password: 'brand new password',
+      confirmPassword: 'brand new password',
+    });
     expect(done.statusCode).toBe(302);
     expect(done.headers.location).toBe('/login');
 
     expect(await otherDevice.whoami()).toBeNull(); // old sessions are ended
-    expect((await new Browser(app).loginAs(userName('reset'))).headers.location).toContain('error=');
+    expect((await new Browser(app).loginAs(userName('reset'))).headers.location).toContain(
+      'error=',
+    );
     const fresh = new Browser(app);
-    expect((await fresh.loginAs(userName('reset'), 'brand new password')).headers.location).toBe('/account');
-    expect((await b.get(`/reset-password?token=${encodeURIComponent(token)}`)).statusCode).toBe(400); // single use
+    expect((await fresh.loginAs(userName('reset'), 'brand new password')).headers.location).toBe(
+      '/account',
+    );
+    expect((await b.get(`/reset-password?token=${encodeURIComponent(token)}`)).statusCode).toBe(
+      400,
+    ); // single use
   });
 });
 
@@ -274,30 +339,51 @@ describe('account pages', () => {
     const other = new Browser(app);
     await other.loginAs(userName('pw'));
 
-    const wrong = await b.post('/account/password', { currentPassword: 'nope', password: 'another good one', confirmPassword: 'another good one' });
+    const wrong = await b.post('/account/password', {
+      currentPassword: 'nope',
+      password: 'another good one',
+      confirmPassword: 'another good one',
+    });
     expect(wrong.statusCode).toBe(422);
-    const ok = await b.post('/account/password', { currentPassword: PASSWORD, password: 'another good one', confirmPassword: 'another good one' });
+    const ok = await b.post('/account/password', {
+      currentPassword: PASSWORD,
+      password: 'another good one',
+      confirmPassword: 'another good one',
+    });
     expect(ok.statusCode).toBe(302);
     expect(await b.whoami()).toBe(userName('pw'));
     expect(await other.whoami()).toBeNull();
-    expect((await new Browser(app).loginAs(userName('pw'), 'another good one')).headers.location).toBe('/account');
+    expect((await new Browser(app).loginAs(userName('pw'), 'another good one')).headers.location)
+      .toBe('/account');
   });
 
   it('change the email through a link sent to the new address', async () => {
     const b = new Browser(app);
     await register(b, 'em');
     const newEmail = `idt_em_new_${run}@example.test`;
-    const taken = await b.post('/account/email', { email: userEmail('reg'), currentPassword: PASSWORD });
+    const taken = await b.post('/account/email', {
+      email: userEmail('reg'),
+      currentPassword: PASSWORD,
+    });
     expect(taken.statusCode).toBe(422);
-    expect((await b.post('/account/email', { email: newEmail, currentPassword: 'wrong' })).statusCode).toBe(422);
-    expect((await b.post('/account/email', { email: newEmail, currentPassword: PASSWORD })).statusCode).toBe(302);
+    expect(
+      (await b.post('/account/email', { email: newEmail, currentPassword: 'wrong' })).statusCode,
+    ).toBe(422);
+    expect(
+      (await b.post('/account/email', { email: newEmail, currentPassword: PASSWORD })).statusCode,
+    ).toBe(302);
     await app.mail.flush();
     const mail = sent.at(-1)!;
     expect(mail.to).toBe(newEmail);
-    expect((await pool.query('SELECT email FROM users WHERE username = $1', [userName('em')])).rows[0].email).toBe(userEmail('em'));
+    expect(
+      (await pool.query('SELECT email FROM users WHERE username = $1', [userName('em')])).rows[0]
+        .email,
+    ).toBe(userEmail('em'));
 
     expect((await b.post('/confirm-email-change', { token: tokenIn(mail) })).statusCode).toBe(302);
-    const row = (await pool.query('SELECT email, email_confirmed FROM users WHERE username = $1', [userName('em')])).rows[0];
+    const row = (await pool.query('SELECT email, email_confirmed FROM users WHERE username = $1', [
+      userName('em'),
+    ])).rows[0];
     expect(row).toEqual({ email: newEmail, email_confirmed: true });
   });
 
@@ -315,7 +401,9 @@ describe('account pages', () => {
     try {
       await b.post('/account/test-email', {});
       expect((await b.get('/account')).body).toContain('could not be sent');
-    } finally { failMail = false; }
+    } finally {
+      failMail = false;
+    }
   });
 
   it('download the personal data and delete the account', async () => {
@@ -328,9 +416,15 @@ describe('account pages', () => {
     expect(JSON.stringify(json)).not.toContain('argon2');
 
     expect((await b.post('/account/delete', { currentPassword: PASSWORD })).statusCode).toBe(422); // box not ticked
-    expect((await b.post('/account/delete', { currentPassword: 'wrong', confirm: 'yes' })).statusCode).toBe(422);
-    expect((await b.post('/account/delete', { currentPassword: PASSWORD, confirm: 'yes' })).statusCode).toBe(302);
-    expect((await pool.query('SELECT 1 FROM users WHERE username = $1', [userName('del')])).rowCount).toBe(0);
+    expect(
+      (await b.post('/account/delete', { currentPassword: 'wrong', confirm: 'yes' })).statusCode,
+    ).toBe(422);
+    expect(
+      (await b.post('/account/delete', { currentPassword: PASSWORD, confirm: 'yes' })).statusCode,
+    ).toBe(302);
+    expect(
+      (await pool.query('SELECT 1 FROM users WHERE username = $1', [userName('del')])).rowCount,
+    ).toBe(0);
     expect(await b.whoami()).toBeNull();
   });
 });
@@ -346,7 +440,9 @@ describe('two-factor login', () => {
     expect(wrong.statusCode).toBe(422);
     const enabled = await b.post('/account/2fa/setup', { code: totp(secret) });
     expect(enabled.statusCode).toBe(200);
-    const codes = [...enabled.body.matchAll(/<code>([A-Z2-9]{5}-[A-Z2-9]{5})<\/code>/g)].map((m) => m[1]!);
+    const codes = [...enabled.body.matchAll(/<code>([A-Z2-9]{5}-[A-Z2-9]{5})<\/code>/g)].map((m) =>
+      m[1]!
+    );
     expect(codes).toHaveLength(10);
     return { secret, codes };
   }
@@ -370,7 +466,6 @@ describe('two-factor login', () => {
     const replay = new Browser(app);
     await replay.loginAs(userName('mfa'));
     expect((await replay.post('/login/2fa', { code: next })).statusCode).toBe(401);
-
   });
 
   it('accepts a recovery code once, and locks the attempt after too many wrong codes', async () => {
@@ -388,7 +483,8 @@ describe('two-factor login', () => {
 
     const guesser = new Browser(app);
     await guesser.loginAs(userName('mfa2'));
-    for (let i = 0; i < 5; i++) await guesser.post('/login/2fa', { code: '111111' });
+    for (let i = 0; i < 5; i++)
+      await guesser.post('/login/2fa', { code: '111111' });
     const locked = await guesser.post('/login/2fa', { code: '111111' });
     expect(locked.headers.location).toContain('error=locked');
     expect((await guesser.get('/login/2fa')).statusCode).toBe(302);
@@ -400,17 +496,29 @@ describe('two-factor login', () => {
     await b.loginAs(userName('mfa3'));
     await b.post('/login/recovery', { code: codes[1]! });
 
-    expect((await b.post('/account/2fa/recovery-codes', { currentPassword: 'wrong' })).statusCode).toBe(422);
+    expect((await b.post('/account/2fa/recovery-codes', { currentPassword: 'wrong' })).statusCode)
+      .toBe(422);
     const fresh = await b.post('/account/2fa/recovery-codes', { currentPassword: PASSWORD });
     expect(fresh.body).toContain('<code>');
-    const newCodes = [...fresh.body.matchAll(/<code>([A-Z2-9]{5}-[A-Z2-9]{5})<\/code>/g)].map((m) => m[1]!);
+    const newCodes = [...fresh.body.matchAll(/<code>([A-Z2-9]{5}-[A-Z2-9]{5})<\/code>/g)].map((m) =>
+      m[1]!
+    );
     expect(newCodes).not.toContain(codes[2]);
 
-    expect((await b.post('/account/2fa/disable', { currentPassword: 'wrong' })).statusCode).toBe(422);
-    expect((await b.post('/account/2fa/disable', { currentPassword: PASSWORD })).statusCode).toBe(302);
+    expect((await b.post('/account/2fa/disable', { currentPassword: 'wrong' })).statusCode).toBe(
+      422,
+    );
+    expect((await b.post('/account/2fa/disable', { currentPassword: PASSWORD })).statusCode).toBe(
+      302,
+    );
     const plain = new Browser(app);
     expect((await plain.loginAs(userName('mfa3'))).headers.location).toBe('/account');
-    expect((await pool.query(`SELECT count(*) AS n FROM recovery_codes r JOIN users u ON u.id = r.user_id WHERE u.username = $1`, [userName('mfa3')])).rows[0].n).toBe('0');
+    expect(
+      (await pool.query(
+        `SELECT count(*) AS n FROM recovery_codes r JOIN users u ON u.id = r.user_id WHERE u.username = $1`,
+        [userName('mfa3')],
+      )).rows[0].n,
+    ).toBe('0');
   });
 });
 
@@ -436,11 +544,12 @@ describe('register page helpers', () => {
     expect((await b.get('/register/check?username=x')).headers['cache-control']).toBe('no-store');
   });
 
-  it('does not count the logged-in person\'s own address as taken (change-email page)', async () => {
+  it("does not count the logged-in person's own address as taken (change-email page)", async () => {
     const owner = new Browser(app);
     await register(owner, 'own');
     await register(new Browser(app), 'other');
-    const check = async (email: string) => (await owner.get(`/register/check?email=${encodeURIComponent(email)}`)).json().taken;
+    const check = async (email: string) =>
+      (await owner.get(`/register/check?email=${encodeURIComponent(email)}`)).json().taken;
     expect(await check(userEmail('own'))).toBe(false);
     expect(await check(userEmail('other'))).toBe(true);
   });

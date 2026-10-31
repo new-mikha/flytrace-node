@@ -19,11 +19,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Action logging: who did what ends up in the log, and secrets do not.
-import { Writable } from 'node:stream';
 import type { FastifyInstance } from 'fastify';
+import { Writable } from 'node:stream';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { audit, maskEmail } from '../src/audit.ts';
 import { buildApp } from '../src/app.ts';
+import { audit, maskEmail } from '../src/audit.ts';
 import { loadConfig } from '../src/config.ts';
 import { createPool, type Pool } from '../src/db.ts';
 import type { Mailer } from '../src/mail/mailer.ts';
@@ -38,10 +38,16 @@ describe('maskEmail', () => {
 describe('audit', () => {
   it('logs the event with the logged-in user, and lets details override the user', () => {
     const lines: [object, string][] = [];
-    const request = { log: { info: (o: object, m: string) => lines.push([o, m]) }, user: { id: 'u1', username: 'ann', roles: [] } };
+    const request = {
+      log: { info: (o: object, m: string) => lines.push([o, m]) },
+      user: { id: 'u1', username: 'ann', roles: [] },
+    };
     audit(request as never, 'group.renamed', 'Renamed group 5', { groupId: 5 });
     audit(request as never, 'login.success', 'Logged in', { user: 'bob' });
-    expect(lines[0]).toEqual([{ event: 'group.renamed', user: 'ann', userId: 'u1', groupId: 5 }, 'Renamed group 5']);
+    expect(lines[0]).toEqual([
+      { event: 'group.renamed', user: 'ann', userId: 'u1', groupId: 5 },
+      'Renamed group 5',
+    ]);
     expect(lines[1]![0]).toMatchObject({ user: 'bob' });
   });
 });
@@ -52,20 +58,35 @@ describe('what the app logs', () => {
   const email = `ann.aud_${run}@example.test`;
   const password = `pw-secret-${run}`;
   const written: string[] = [];
-  const sink = new Writable({ write(chunk, _enc, done) { written.push(String(chunk)); done(); } });
-  const mailer: Mailer = { kind: 'smtp', async send() { /* sent */ } };
+  const sink = new Writable({
+    write(chunk, _enc, done) {
+      written.push(String(chunk));
+      done();
+    },
+  });
+  const mailer: Mailer = { kind: 'smtp', async send() {/* sent */} };
   let app: FastifyInstance;
   let pool: Pool;
   let cookies: Record<string, string> = {};
   let ip = 0;
 
-  const events = () => written.join('').split('\n').filter(Boolean).map((l) => JSON.parse(l) as Record<string, unknown>)
-    .filter((l) => l.event);
+  const events = () =>
+    written.join('').split('\n').filter(Boolean).map((l) =>
+      JSON.parse(l) as Record<string, unknown>
+    )
+      .filter((l) => l.event);
 
   async function post(url: string, form: Record<string, string>) {
-    const res = await app.inject({ method: 'POST', url, cookies, remoteAddress: `10.3.0.${++ip}`,
-      payload: new URLSearchParams(form).toString(), headers: { 'content-type': 'application/x-www-form-urlencoded' } });
-    for (const c of res.cookies) cookies[c.name] = c.value;
+    const res = await app.inject({
+      method: 'POST',
+      url,
+      cookies,
+      remoteAddress: `10.3.0.${++ip}`,
+      payload: new URLSearchParams(form).toString(),
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    });
+    for (const c of res.cookies)
+      cookies[c.name] = c.value;
     return res;
   }
 
@@ -83,8 +104,16 @@ describe('what the app logs', () => {
     await post('/register', { username: name, email, password, confirmPassword: password });
     await post('/account/test-email', {});
     await app.mail.flush();
-    await post('/account/password', { currentPassword: 'wrong-' + password, password: 'brand-new-' + run, confirmPassword: 'brand-new-' + run });
-    await post('/account/password', { currentPassword: password, password: 'brand-new-' + run, confirmPassword: 'brand-new-' + run });
+    await post('/account/password', {
+      currentPassword: 'wrong-' + password,
+      password: 'brand-new-' + run,
+      confirmPassword: 'brand-new-' + run,
+    });
+    await post('/account/password', {
+      currentPassword: password,
+      password: 'brand-new-' + run,
+      confirmPassword: 'brand-new-' + run,
+    });
     cookies = {};
     await post('/login', { username: name, password: 'nope', returnUrl: '/' });
 
@@ -109,7 +138,9 @@ describe('what the app logs', () => {
   });
 
   it('shows the user on every page request line', () => {
-    const lines = written.join('').split('\n').filter(Boolean).map((l) => JSON.parse(l) as Record<string, unknown>);
+    const lines = written.join('').split('\n').filter(Boolean).map((l) =>
+      JSON.parse(l) as Record<string, unknown>
+    );
     const account = lines.find((l) => String(l.msg).startsWith('POST /account/test-email'));
     expect(account).toMatchObject({ user: name });
   });

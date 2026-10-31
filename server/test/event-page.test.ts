@@ -38,16 +38,29 @@ let ipCounter = 1;
 
 async function loginAs(username: string) {
   const ip = `10.7.0.${ipCounter++}`;
-  const res = await app.inject({ method: 'POST', url: '/login', remoteAddress: ip, headers: FORM,
-    payload: new URLSearchParams({ username, password: PASSWORD, returnUrl: '/' }).toString() });
+  const res = await app.inject({
+    method: 'POST',
+    url: '/login',
+    remoteAddress: ip,
+    headers: FORM,
+    payload: new URLSearchParams({ username, password: PASSWORD, returnUrl: '/' }).toString(),
+  });
   const cookie = res.cookies.find((c) => c.name === 'flytrace.sid');
   const cookies: Record<string, string> = cookie ? { [cookie.name]: cookie.value } : {};
   return {
     get: (url: string) => app.inject({ url, remoteAddress: ip, cookies }),
     post: (url: string, payload: Array<[string, string]> | Record<string, string> = {}) => {
       const body = new URLSearchParams();
-      for (const [k, v] of Array.isArray(payload) ? payload : Object.entries(payload)) body.append(k, v);
-      return app.inject({ method: 'POST', url, remoteAddress: ip, cookies, headers: FORM, payload: body.toString() });
+      for (const [k, v] of Array.isArray(payload) ? payload : Object.entries(payload))
+        body.append(k, v);
+      return app.inject({
+        method: 'POST',
+        url,
+        remoteAddress: ip,
+        cookies,
+        headers: FORM,
+        payload: body.toString(),
+      });
     },
   };
 }
@@ -56,7 +69,8 @@ beforeAll(async () => {
   const config = { ...loadConfig(), SMTP_HOST: undefined };
   pool = createPool(config.DATABASE_URL);
   const hash = await hashPassword(PASSWORD);
-  for (const name of [OWNER, OTHER]) await pool.query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [name, hash]);
+  for (const name of [OWNER, OTHER])
+    await pool.query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [name, hash]);
   app = await buildApp(config, pool);
 });
 
@@ -65,19 +79,30 @@ afterAll(async () => {
   await app.close();
 });
 
-const userId = async (name: string) => (await pool.query<{ id: string }>('SELECT id FROM users WHERE username = $1', [name])).rows[0]!.id;
+const userId = async (name: string) =>
+  (await pool.query<{ id: string; }>('SELECT id FROM users WHERE username = $1', [name])).rows[0]!
+    .id;
 
 async function eventWithWaypoints(owner: string, name: string, wpts: string[]) {
-  const { rows: [e] } = await pool.query<{ id: number }>('INSERT INTO events (user_id, name) VALUES ($1, $2) RETURNING id', [await userId(owner), name]);
+  const { rows: [e] } = await pool.query<{ id: number; }>(
+    'INSERT INTO events (user_id, name) VALUES ($1, $2) RETURNING id',
+    [await userId(owner), name],
+  );
   const ids: number[] = [];
   for (const w of wpts) {
-    const { rows: [r] } = await pool.query<{ id: number }>('INSERT INTO waypoints (event_id, name, lat, lon, alt) VALUES ($1, $2, -30, 150, 100) RETURNING id', [e!.id, w]);
+    const { rows: [r] } = await pool.query<{ id: number; }>(
+      'INSERT INTO waypoints (event_id, name, lat, lon, alt) VALUES ($1, $2, -30, 150, 100) RETURNING id',
+      [e!.id, w],
+    );
     ids.push(r!.id);
   }
   return { id: e!.id, wpts: ids };
 }
-const task = async (eventId: number) => (await pool.query<{ waypoint_id: number; radius: number; wpt_order: number }>(
-  `SELECT t.waypoint_id, t.radius, t.wpt_order FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = $1 ORDER BY t.wpt_order`, [eventId])).rows;
+const task = async (eventId: number) =>
+  (await pool.query<{ waypoint_id: number; radius: number; wpt_order: number; }>(
+    `SELECT t.waypoint_id, t.radius, t.wpt_order FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id WHERE w.event_id = $1 ORDER BY t.wpt_order`,
+    [eventId],
+  )).rows;
 
 describe('single-event mode: the Today Task', () => {
   it('makes the default event on /events/default and opens it without name or delete', async () => {
@@ -120,16 +145,35 @@ describe('multiple-events mode: an event page', () => {
   it('saves the task in order, replacing the old one, and bumps the groups that show it', async () => {
     const owner = await loginAs(OWNER);
     const ev = await eventWithWaypoints(OWNER, 'Task test', ['A', 'B', 'C']);
-    const { rows: [g] } = await pool.query<{ id: number }>(
-      'INSERT INTO groups (name, user_id, event_id) VALUES ($1, $2, $3) RETURNING id', [`G ${run}`, await userId(OWNER), ev.id]);
-    const version = async () => (await pool.query<{ version: number }>('SELECT version FROM groups WHERE id = $1', [g!.id])).rows[0]!.version;
+    const { rows: [g] } = await pool.query<{ id: number; }>(
+      'INSERT INTO groups (name, user_id, event_id) VALUES ($1, $2, $3) RETURNING id',
+      [`G ${run}`, await userId(OWNER), ev.id],
+    );
+    const version = async () =>
+      (await pool.query<{ version: number; }>('SELECT version FROM groups WHERE id = $1', [g!.id]))
+        .rows[0]!.version;
     const before = await version();
     const [a, b, c] = ev.wpts as [number, number, number];
-    let res = await owner.post(`/events/${ev.id}/task`, [['wpt', String(c)], ['radius', '5000'], ['wpt', ''], ['radius', '77'], ['wpt', String(a)], ['radius', ''], ['wpt', ''], ['radius', '400']]);
+    let res = await owner.post(`/events/${ev.id}/task`, [
+      ['wpt', String(c)],
+      ['radius', '5000'],
+      ['wpt', ''],
+      ['radius', '77'],
+      ['wpt', String(a)],
+      ['radius', ''],
+      ['wpt', ''],
+      ['radius', '400'],
+    ]);
     expect(res.statusCode).toBe(302);
-    expect(await task(ev.id)).toEqual([{ waypoint_id: c, radius: 5000, wpt_order: 0 }, { waypoint_id: a, radius: 400, wpt_order: 1 }]); // the empty line went, no radius = 400
+    expect(await task(ev.id)).toEqual([{ waypoint_id: c, radius: 5000, wpt_order: 0 }, {
+      waypoint_id: a,
+      radius: 400,
+      wpt_order: 1,
+    }]); // the empty line went, no radius = 400
     expect(await version()).toBe(before + 1);
-    expect((await owner.get(`/events/${ev.id}`)).body).toContain(`data-initial="${c}:5000,${a}:400"`);
+    expect((await owner.get(`/events/${ev.id}`)).body).toContain(
+      `data-initial="${c}:5000,${a}:400"`,
+    );
     res = await owner.post(`/events/${ev.id}/task`, [['wpt', String(b)], ['radius', '1']]);
     expect(await task(ev.id)).toEqual([{ waypoint_id: b, radius: 1, wpt_order: 0 }]);
     await owner.post(`/events/${ev.id}/task`, [['wpt', ''], ['radius', '400']]);
@@ -141,8 +185,15 @@ describe('multiple-events mode: an event page', () => {
     const ev = await eventWithWaypoints(OWNER, 'Refuse test', ['A']);
     const theirs = await eventWithWaypoints(OTHER, 'Not mine', ['X']);
     await owner.post(`/events/${ev.id}/task`, [['wpt', String(ev.wpts[0])], ['radius', '300']]);
-    for (const [wpt, radius, text] of [[String(ev.wpts[0]), '0', 'whole number of meters'], [String(ev.wpts[0]), '12ab', 'whole number of meters'],
-      [String(ev.wpts[0]), '100001', 'whole number of meters'], [String(theirs.wpts[0]), '400', 'waypoints of this event'], ['abc', '400', 'from the lists']] as const) {
+    for (
+      const [wpt, radius, text] of [
+        [String(ev.wpts[0]), '0', 'whole number of meters'],
+        [String(ev.wpts[0]), '12ab', 'whole number of meters'],
+        [String(ev.wpts[0]), '100001', 'whole number of meters'],
+        [String(theirs.wpts[0]), '400', 'waypoints of this event'],
+        ['abc', '400', 'from the lists'],
+      ] as const
+    ) {
       const res = await owner.post(`/events/${ev.id}/task`, [['wpt', wpt], ['radius', radius]]);
       expect(res.statusCode).toBe(422);
       expect(res.body).toContain(text);
@@ -155,16 +206,23 @@ describe('multiple-events mode: an event page', () => {
     const owner = await loginAs(OWNER);
     const one = await eventWithWaypoints(OWNER, `Rename one ${run}`, []);
     await eventWithWaypoints(OWNER, `Rename two ${run}`, []);
-    expect((await owner.post(`/events/${one.id}`, { name: `Rename two ${run}` })).statusCode).toBe(422);
+    expect((await owner.post(`/events/${one.id}`, { name: `Rename two ${run}` })).statusCode).toBe(
+      422,
+    );
     expect((await owner.post(`/events/${one.id}`, { name: '  ' })).statusCode).toBe(422);
-    expect((await owner.post(`/events/${one.id}`, { name: `Renamed ${run}` })).statusCode).toBe(302);
+    expect((await owner.post(`/events/${one.id}`, { name: `Renamed ${run}` })).statusCode).toBe(
+      302,
+    );
     expect((await owner.get(`/events/${one.id}`)).body).toContain(`Renamed ${run} details`);
   });
 
   it('hides and restores old points, bumping the groups', async () => {
     const owner = await loginAs(OWNER);
     const ev = await eventWithWaypoints(OWNER, `Old points ${run}`, []);
-    const startTs = async () => (await pool.query<{ s: Date | null }>('SELECT start_ts AS s FROM events WHERE id = $1', [ev.id])).rows[0]!.s;
+    const startTs = async () =>
+      (await pool.query<{ s: Date | null; }>('SELECT start_ts AS s FROM events WHERE id = $1', [
+        ev.id,
+      ])).rows[0]!.s;
     expect(await startTs()).toBeNull();
     expect((await owner.get(`/events/${ev.id}`)).body).toContain('show every point');
     const now = Date.now();
@@ -181,7 +239,10 @@ describe('multiple-events mode: an event page', () => {
   it('deletes the event after a confirmation page, and the groups that showed it show nothing', async () => {
     const owner = await loginAs(OWNER);
     const ev = await eventWithWaypoints(OWNER, `Doomed ${run}`, ['A']);
-    const { rows: [g] } = await pool.query<{ id: number }>('INSERT INTO groups (name, user_id, event_id) VALUES ($1, $2, $3) RETURNING id', [`GD ${run}`, await userId(OWNER), ev.id]);
+    const { rows: [g] } = await pool.query<{ id: number; }>(
+      'INSERT INTO groups (name, user_id, event_id) VALUES ($1, $2, $3) RETURNING id',
+      [`GD ${run}`, await userId(OWNER), ev.id],
+    );
     const confirm = (await owner.get(`/events/${ev.id}/delete`)).body;
     expect(confirm).toContain('Delete the event');
     expect(confirm).toContain('1 waypoint');
@@ -189,7 +250,11 @@ describe('multiple-events mode: an event page', () => {
     expect((await (await loginAs(OTHER)).post(`/events/${ev.id}/delete`)).statusCode).toBe(404);
     expect((await owner.post(`/events/${ev.id}/delete`)).headers.location).toBe('/');
     expect((await pool.query('SELECT 1 FROM events WHERE id = $1', [ev.id])).rowCount).toBe(0);
-    expect((await pool.query<{ e: number | null }>('SELECT event_id AS e FROM groups WHERE id = $1', [g!.id])).rows[0]!.e).toBeNull();
+    expect(
+      (await pool.query<{ e: number | null; }>('SELECT event_id AS e FROM groups WHERE id = $1', [
+        g!.id,
+      ])).rows[0]!.e,
+    ).toBeNull();
   });
 
   it('opens the home page list: Edit goes to the page and Create new event to its page', async () => {

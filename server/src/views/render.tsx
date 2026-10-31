@@ -41,10 +41,15 @@ export function sendHtml(reply: FastifyReply, page: VNode, status = 200): Fastif
  * Wraps a pre-built HTML body (the older template-string pages) in the shared layout.
  * `bodyHtml` must already be escaped by the caller.
  */
-export function legacyPage(title: string, bodyHtml: string, user: CurrentUser | null, path: string): string {
+export function legacyPage(
+  title: string,
+  bodyHtml: string,
+  user: CurrentUser | null,
+  path: string,
+): string {
   return renderDocument(
     <Layout title={title} user={user} path={path}>
-      <h1 class="h3 mb-3">{title}</h1>
+      <h1 class='h3 mb-3'>{title}</h1>
       <div dangerouslySetInnerHTML={{ __html: bodyHtml }} />
     </Layout>,
   );

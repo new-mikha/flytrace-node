@@ -26,7 +26,12 @@ const minutesAgo = (m: number) => new Date(now.getTime() - m * 60_000);
 
 describe('formatTimestamp', () => {
   const savedZone = process.env.TZ;
-  afterEach(() => { if (savedZone === undefined) delete process.env.TZ; else process.env.TZ = savedZone; });
+  afterEach(() => {
+    if (savedZone === undefined)
+      delete process.env.TZ;
+    else
+      process.env.TZ = savedZone;
+  });
 
   it('uses the "ddd d MMM H:mm zone" shape', () => {
     process.env.TZ = 'UTC';
@@ -44,7 +49,9 @@ describe('formatTimestamp', () => {
 
   it('adds the year only when it is not the current year', () => {
     process.env.TZ = 'UTC';
-    expect(formatTimestamp(new Date('2025-06-17T19:49:00Z'), now)).toBe('Tue 17 Jun 2025 19:49 UTC');
+    expect(formatTimestamp(new Date('2025-06-17T19:49:00Z'), now)).toBe(
+      'Tue 17 Jun 2025 19:49 UTC',
+    );
     expect(formatTimestamp(new Date('2027-01-02T10:00:00Z'), now)).toBe('Sat 2 Jan 2027 10:00 UTC');
   });
 

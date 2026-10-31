@@ -33,14 +33,20 @@ export function setFlash(request: FastifyRequest, kind: Flash['kind'], text: str
 /** The one-time message left by the previous request, removed once read. */
 export function takeFlash(request: FastifyRequest): Flash | null {
   const flash = request.session.flash ?? null;
-  if (flash) request.session.flash = undefined;
+  if (flash)
+    request.session.flash = undefined;
   return flash;
 }
 
 /** Form fields as trimmed-free raw strings (missing or non-string fields become ''). */
-export function formFields<K extends string>(request: FastifyRequest, ...names: K[]): Record<K, string> {
+export function formFields<K extends string>(
+  request: FastifyRequest,
+  ...names: K[]
+): Record<K, string> {
   const body = (request.body ?? {}) as Record<string, unknown>;
-  return Object.fromEntries(names.map((n) => [n, typeof body[n] === 'string' ? body[n] : ''])) as Record<K, string>;
+  return Object.fromEntries(
+    names.map((n) => [n, typeof body[n] === 'string' ? body[n] : '']),
+  ) as Record<K, string>;
 }
 
 /** Brute-force and abuse limits per client IP for pages that cost something (hashing, email). */

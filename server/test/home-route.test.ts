@@ -22,8 +22,8 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
-import { loadConfig } from '../src/config.ts';
 import { hashPassword } from '../src/auth/password.ts';
+import { loadConfig } from '../src/config.ts';
 import { createPool, type Pool } from '../src/db.ts';
 
 const run = Math.random().toString(36).slice(2, 8);
@@ -33,15 +33,24 @@ const VIEWADMIN = `__test_viewadmin_${run}`;
 let app: FastifyInstance;
 let pool: Pool;
 
-async function addGroup(name: string, isPublic: boolean, trackers: number, newest: string | null, owner = OWNER): Promise<number> {
-  const { rows: [g] } = await pool.query<{ id: number }>(
+async function addGroup(
+  name: string,
+  isPublic: boolean,
+  trackers: number,
+  newest: string | null,
+  owner = OWNER,
+): Promise<number> {
+  const { rows: [g] } = await pool.query<{ id: number; }>(
     `INSERT INTO groups (name, user_id, is_public, newest_coord_ts)
      SELECT $1, id, $2, $3 FROM users WHERE username = $4 RETURNING id`,
-    [name, isPublic, newest, owner]);
-  for (let i = 1; i <= trackers; i++) {
-    await pool.query(`INSERT INTO group_trackers (group_id, name, tracker_type, foreign_id) VALUES ($1, $2, 'S', $3)`,
-      [g!.id, `T${i}`, `${name}-feed-${i}`]);
-  }
+    [name, isPublic, newest, owner],
+  );
+  for (let i = 1; i <= trackers; i++)
+    await pool.query(
+      `INSERT INTO group_trackers (group_id, name, tracker_type, foreign_id) VALUES ($1, $2, 'S', $3)`,
+      [g!.id, `T${i}`, `${name}-feed-${i}`],
+    );
+
   return g!.id;
 }
 
@@ -50,11 +59,18 @@ beforeAll(async () => {
   pool = createPool(config.DATABASE_URL);
   await pool.query(`INSERT INTO users (username, password_hash) VALUES ($1, 'x')`, [OWNER]);
   const hash = await hashPassword('correct horse');
-  await pool.query(`INSERT INTO users (username, password_hash) VALUES ($1, $3), ($2, $3)`, [VIEWER, VIEWADMIN, hash]);
-  await pool.query(`INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1 AND r.name = 'Admins'`, [VIEWADMIN]);
+  await pool.query(`INSERT INTO users (username, password_hash) VALUES ($1, $3), ($2, $3)`, [
+    VIEWER,
+    VIEWADMIN,
+    hash,
+  ]);
+  await pool.query(
+    `INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1 AND r.name = 'Admins'`,
+    [VIEWADMIN],
+  );
   // The newest map defines "now" for the recent window, so these are dated far in the future of the real data.
   await addGroup(`Newest ${run}`, true, 3, '2030-01-01T10:00:00Z');
-  await addGroup(`EdgeIn ${run}`, true, 2, '2029-12-25T10:00:00Z');  // exactly 7 days before the newest: still recent
+  await addGroup(`EdgeIn ${run}`, true, 2, '2029-12-25T10:00:00Z'); // exactly 7 days before the newest: still recent
   await addGroup(`EdgeOut ${run}`, true, 2, '2029-12-25T09:59:59Z'); // one second older: hidden by default
   await addGroup(`Older ${run}`, true, 2, '2020-01-01T10:00:00Z');
   await addGroup(`NoFix ${run}`, true, 2, null);
@@ -79,7 +95,8 @@ describe('GET / (anonymous)', () => {
     const html = res.body;
     expect(html).toContain(`Newest ${run}`);
     expect(html).toContain(`EdgeIn ${run}`);
-    for (const hidden of ['EdgeOut', 'Older', 'NoFix', 'Private', 'Single']) expect(html).not.toContain(`${hidden} ${run}`);
+    for (const hidden of ['EdgeOut', 'Older', 'NoFix', 'Private', 'Single'])
+      expect(html).not.toContain(`${hidden} ${run}`);
     expect(at(html, 'Newest')).toBeLessThan(at(html, 'EdgeIn'));
     expect(html).toContain(OWNER);
     expect(html).toMatch(/Show all \d+ maps/);
@@ -90,8 +107,10 @@ describe('GET / (anonymous)', () => {
     const res = await app.inject({ url: '/?all=1' });
     expect(res.statusCode).toBe(200);
     const html = res.body;
-    for (const shown of ['Newest', 'EdgeIn', 'EdgeOut', 'Older', 'NoFix']) expect(html).toContain(`${shown} ${run}`);
-    for (const hidden of ['Private', 'Single']) expect(html).not.toContain(`${hidden} ${run}`);
+    for (const shown of ['Newest', 'EdgeIn', 'EdgeOut', 'Older', 'NoFix'])
+      expect(html).toContain(`${shown} ${run}`);
+    for (const hidden of ['Private', 'Single'])
+      expect(html).not.toContain(`${hidden} ${run}`);
     expect(at(html, 'EdgeIn')).toBeLessThan(at(html, 'EdgeOut'));
     expect(at(html, 'EdgeOut')).toBeLessThan(at(html, 'Older'));
     expect(at(html, 'Older')).toBeLessThan(at(html, 'NoFix'));
@@ -127,8 +146,14 @@ describe("GET / (signed in): others' groups", () => {
 
   async function signedIn(username: string) {
     const ip = `10.9.0.${ipCounter++}`;
-    const login = await app.inject({ method: 'POST', url: '/login', remoteAddress: ip, headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      payload: new URLSearchParams({ username, password: 'correct horse', returnUrl: '/' }).toString() });
+    const login = await app.inject({
+      method: 'POST',
+      url: '/login',
+      remoteAddress: ip,
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      payload: new URLSearchParams({ username, password: 'correct horse', returnUrl: '/' })
+        .toString(),
+    });
     const cookie = login.cookies.find((c) => c.name === 'flytrace.sid');
     const cookies: Record<string, string> = cookie ? { [cookie.name]: cookie.value } : {};
     return (url: string) => app.inject({ url, cookies, remoteAddress: ip });
@@ -147,7 +172,8 @@ describe("GET / (signed in): others' groups", () => {
     expect(open).toContain(`Newest ${run}`);
     expect(open).toContain(`EdgeIn ${run}`);
     expect(at(open, 'Newest')).toBeLessThan(at(open, 'EdgeIn'));
-    for (const hidden of ['EdgeOut', 'Older', 'NoFix', 'Private', 'Single']) expect(open).not.toContain(`${hidden} ${run}`);
+    for (const hidden of ['EdgeOut', 'Older', 'NoFix', 'Private', 'Single'])
+      expect(open).not.toContain(`${hidden} ${run}`);
     // "Mine" is listed once, among their own groups, and not again among the others'
     expect(open.split(`Mine ${run}<`)).toHaveLength(2); // as shown text (the Delete dialog's question also names it, in an attribute)
     expect(open).toMatch(/Show all \d+ groups/);
@@ -156,14 +182,16 @@ describe("GET / (signed in): others' groups", () => {
   it('with all=1 lists every qualifying group of others, newest first and without a position last', async () => {
     const get = await signedIn(VIEWER);
     const html = (await get('/?others=1&all=1')).body;
-    for (const shown of ['Newest', 'EdgeIn', 'EdgeOut', 'Older', 'NoFix']) expect(html).toContain(`${shown} ${run}`);
-    for (const hidden of ['Private', 'Single']) expect(html).not.toContain(`${hidden} ${run}`);
+    for (const shown of ['Newest', 'EdgeIn', 'EdgeOut', 'Older', 'NoFix'])
+      expect(html).toContain(`${shown} ${run}`);
+    for (const hidden of ['Private', 'Single'])
+      expect(html).not.toContain(`${hidden} ${run}`);
     expect(at(html, 'EdgeIn')).toBeLessThan(at(html, 'EdgeOut'));
     expect(at(html, 'Older')).toBeLessThan(at(html, 'NoFix'));
     expect(html).toContain('Show only the latest week');
   });
 
-  it("gives admins the unlisted groups too, marked, under \"others' groups\"", async () => {
+  it('gives admins the unlisted groups too, marked, under "others\' groups"', async () => {
     const get = await signedIn(VIEWADMIN);
     expect((await get('/')).body).toContain("Show others' groups");
     const html = (await get('/?others=1&all=1')).body;

@@ -29,11 +29,14 @@
 // that have no username / email field), data-current-email (the address a new one must differ from).
 (() => {
   const form = document.querySelector('form[data-live-validate]');
-  if (!form) return;
+  if (!form)
+    return;
 
   const field = (name) => form.elements[name]; // undefined when this form has no such field
   const value = (name) => (field(name) ? field(name).value : '');
-  const forbidden = (form.dataset.forbidden || '').split(',').filter(Boolean).map((v) => v.toLowerCase());
+  const forbidden = (form.dataset.forbidden || '').split(',').filter(Boolean).map((v) =>
+    v.toLowerCase()
+  );
   const currentEmail = (form.dataset.currentEmail || '').toLowerCase();
   const MIN_PASSWORD = Number(form.dataset.minPassword) || 6; // from the server, which owns the rule
   const MAX_PASSWORD = 128;
@@ -52,8 +55,9 @@
       len: (v) => v.length >= MIN_PASSWORD && v.length <= MAX_PASSWORD,
       differs: (v) => {
         const lower = v.toLowerCase();
-        return lower !== value('username').trim().toLowerCase() && lower !== value('email').trim().toLowerCase()
-          && !forbidden.includes(lower);
+        return lower !== value('username').trim().toLowerCase() &&
+          lower !== value('email').trim().toLowerCase() &&
+          !forbidden.includes(lower);
       },
     },
     confirmPassword: {
@@ -70,15 +74,18 @@
   function violated(name, item) {
     const rule = item.dataset.rule;
     const v = value(name);
-    if (rule === 'free') return taken[name] && Object.values(RULES[name]).every((test) => test(v));
+    if (rule === 'free')
+      return taken[name] && Object.values(RULES[name]).every((test) => test(v));
     // An empty field gets one tip (the first rule), not a pile of them.
-    if (v === '' && item !== item.parentElement.firstElementChild && rule !== 'match') return false;
+    if (v === '' && item !== item.parentElement.firstElementChild && rule !== 'match')
+      return false;
     return !RULES[name][rule]?.(v);
   }
 
   function render(name) {
     const list = form.querySelector(`[data-hints="${name}"]`);
-    if (!list) return;
+    if (!list)
+      return;
     for (const item of list.querySelectorAll('li')) {
       const bad = touched.has(name) && violated(name, item);
       item.hidden = !bad;
@@ -93,39 +100,61 @@
     requests[name]?.abort();
     taken[name] = false;
     const v = value(name).trim();
-    if (!Object.values(RULES[name]).every((test) => test(v))) return;
+    if (!Object.values(RULES[name]).every((test) => test(v)))
+      return;
     timers[name] = setTimeout(() => {
       const controller = new AbortController();
       requests[name] = controller;
-      fetch(`/register/check?${name}=${encodeURIComponent(v)}`, { signal: controller.signal, credentials: 'same-origin' })
+      fetch(`/register/check?${name}=${encodeURIComponent(v)}`, {
+        signal: controller.signal,
+        credentials: 'same-origin',
+      })
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-        .then((data) => { taken[name] = Boolean(data.taken); render(name); })
-        .catch(() => { /* no answer: nothing to show, the server checks on submit */ });
+        .then((data) => {
+          taken[name] = Boolean(data.taken);
+          render(name);
+        })
+        .catch(() => {/* no answer: nothing to show, the server checks on submit */});
     }, 400);
   }
 
   function update(name) {
-    if (name === 'username' || name === 'email') checkFree(name);
+    if (name === 'username' || name === 'email')
+      checkFree(name);
     render(name);
     // fields whose tips depend on this one
-    if (name === 'username' || name === 'email') render('password');
-    if (name === 'password') render('confirmPassword');
+    if (name === 'username' || name === 'email')
+      render('password');
+    if (name === 'password')
+      render('confirmPassword');
   }
 
   for (const name of names) {
     field(name).addEventListener('input', () => update(name));
-    field(name).addEventListener('blur', () => { touched.add(name); update(name); });
+    field(name).addEventListener('blur', () => {
+      touched.add(name);
+      update(name);
+    });
     // The browser or a failed submit may have filled it in: look the free-check up quietly so that it is ready.
-    if ((name === 'username' || name === 'email') && value(name) !== '') checkFree(name);
+    if ((name === 'username' || name === 'email') && value(name) !== '')
+      checkFree(name);
   }
 
   // guard.js asks: do all the local rules pass, and is the value not known to be taken?
-  form.ftValid = () => names.every((name) => Object.values(RULES[name]).every((test) => test(value(name))) && !taken[name]);
+  form.ftValid = () =>
+    names.every((name) =>
+      Object.values(RULES[name]).every((test) => test(value(name))) && !taken[name]
+    );
 
   // Clicking Register on an untouched form is the other way to "leave" every field: show all problems at once.
   form.addEventListener('submit', (event) => {
-    for (const name of names) { touched.add(name); render(name); }
-    const firstBad = names.find((name) => form.querySelector(`[data-hints="${name}"] li:not([hidden])`));
+    for (const name of names) {
+      touched.add(name);
+      render(name);
+    }
+    const firstBad = names.find((name) =>
+      form.querySelector(`[data-hints="${name}"] li:not([hidden])`)
+    );
     if (firstBad) {
       event.preventDefault();
       field(firstBad).focus();

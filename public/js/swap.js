@@ -28,12 +28,14 @@
 //  - when the answer is not the same page (the login, no permission), the browser goes there instead.
 (() => {
   const main = document.querySelector('main');
-  if (!main) return;
+  if (!main)
+    return;
   let busy = false;
 
   function say(text) {
     const box = document.getElementById('ft-flash');
-    if (!box) return;
+    if (!box)
+      return;
     const alert = document.createElement('div');
     alert.className = 'alert alert-danger';
     alert.setAttribute('role', 'alert');
@@ -43,28 +45,39 @@
   }
 
   async function send(form, ids) {
-    if (busy) return false; // one change at a time, in the order the person made them
+    if (busy)
+      return false; // one change at a time, in the order the person made them
     busy = true;
-    const waiting = ids.filter((id) => id !== 'ft-head' && id !== 'ft-flash').map((id) => document.getElementById(id));
-    for (const part of waiting) part?.classList.add('ft-pending');
+    const waiting = ids.filter((id) => id !== 'ft-head' && id !== 'ft-flash').map((id) =>
+      document.getElementById(id)
+    );
+    for (const part of waiting)
+      part?.classList.add('ft-pending');
     try {
       const response = await fetch(form.action, {
-        method: 'POST', body: new URLSearchParams(new FormData(form)), credentials: 'same-origin', headers: { Accept: 'text/html' },
+        method: 'POST',
+        body: new URLSearchParams(new FormData(form)),
+        credentials: 'same-origin',
+        headers: { Accept: 'text/html' },
       });
       const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
       if (!ids.every((id) => doc.getElementById(id))) { // not this page any more (the login, no permission): go there
         window.location.assign(response.url);
         return false;
       }
-      for (const id of ids) document.getElementById(id)?.replaceWith(document.importNode(doc.getElementById(id), true));
+      for (const id of ids)
+        document.getElementById(id)?.replaceWith(document.importNode(doc.getElementById(id), true));
       document.title = doc.title;
       window.ftGuard?.(); // the new forms start with what was just saved: their buttons wait for the next change
-      for (const old of document.querySelectorAll('.ft-toast')) old.remove(); // the last change's message is not this one's
+      for (const old of document.querySelectorAll('.ft-toast'))
+        old.remove(); // the last change's message is not this one's
       const alert = document.querySelector('#ft-flash .alert');
-      if (alert) window.ftToast?.(alert);
+      if (alert)
+        window.ftToast?.(alert);
       return true;
     } catch {
-      for (const part of waiting) part?.classList.remove('ft-pending');
+      for (const part of waiting)
+        part?.classList.remove('ft-pending');
       say('Could not reach the server. Check the connection and try again.');
       return false;
     } finally {
@@ -76,13 +89,17 @@
 
   main.addEventListener('submit', (event) => {
     const form = event.target;
-    const ids = form instanceof HTMLFormElement ? (form.dataset.swap || '').split(/\s+/).filter(Boolean) : [];
-    if (ids.length === 0 || form.id === 'ft-confirm-form') return; // the dialog's own form decides in group-editor.js
+    const ids = form instanceof HTMLFormElement
+      ? (form.dataset.swap || '').split(/\s+/).filter(Boolean)
+      : [];
+    if (ids.length === 0 || form.id === 'ft-confirm-form')
+      return; // the dialog's own form decides in group-editor.js
     event.preventDefault();
     event.stopPropagation(); // app.js would show its own spinner and wait for a page that never loads; keep-scroll.js has nothing to keep
     const action = form.getAttribute('action');
     send(form, ids).then((swapped) => {
-      if (!swapped) return;
+      if (!swapped)
+        return;
       // A refused change: put the cursor in the field that has the message.
       document.querySelector(`form[action="${action}"] .is-invalid`)?.focus();
     });

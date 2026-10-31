@@ -23,7 +23,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from '../server/src/config.ts';
-import { createPool, withTransaction, type Pool } from '../server/src/db.ts';
+import { createPool, type Pool, withTransaction } from '../server/src/db.ts';
 
 export const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), 'migrations');
 
@@ -33,12 +33,15 @@ export async function runMigrations(pool: Pool, dir: string = MIGRATIONS_DIR): P
     applied_at timestamptz NOT NULL DEFAULT now()
   )`);
   const applied = new Set(
-    (await pool.query<{ name: string }>('SELECT name FROM schema_migrations')).rows.map((r) => r.name),
+    (await pool.query<{ name: string; }>('SELECT name FROM schema_migrations')).rows.map((r) =>
+      r.name
+    ),
   );
   const files = (await readdir(dir)).filter((f) => f.endsWith('.sql')).sort();
   const ran: string[] = [];
   for (const file of files) {
-    if (applied.has(file)) continue;
+    if (applied.has(file))
+      continue;
     const sql = await readFile(join(dir, file), 'utf8');
     await withTransaction(pool, async (client) => {
       await client.query(sql);

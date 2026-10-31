@@ -25,15 +25,26 @@ import { z } from 'zod';
 const optional = <T extends z.ZodType>(type: T) =>
   z.preprocess((v) => (v === '' ? undefined : v), type.optional());
 const flag = (fallback: boolean) =>
-  z.preprocess((v) => (v === '' || v === undefined ? undefined : v), z.enum(['true', 'false', '1', '0']).optional())
+  z.preprocess(
+    (v) => (v === '' || v === undefined ? undefined : v),
+    z.enum(['true', 'false', '1', '0']).optional(),
+  )
     .transform((v) => (v === undefined ? fallback : v === 'true' || v === '1'));
 
 function isTimeZone(name: string): boolean {
-  try { new Intl.DateTimeFormat('en', { timeZone: name }); return true; } catch { return false; }
+  try {
+    new Intl.DateTimeFormat('en', { timeZone: name });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** A true/false setting that may be left unset (unlike `flag`, there is no fallback to apply here). */
-const optionalFlag = z.preprocess((v) => (v === '' ? undefined : v), z.enum(['true', 'false', '1', '0']).optional())
+const optionalFlag = z.preprocess(
+  (v) => (v === '' ? undefined : v),
+  z.enum(['true', 'false', '1', '0']).optional(),
+)
   .transform((v) => (v === undefined ? undefined : v === 'true' || v === '1'));
 
 const schema = z.object({
@@ -42,7 +53,9 @@ const schema = z.object({
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   // Time zone for log times and for the times shown on pages, e.g. Europe/Berlin. Unset: the host's time zone.
-  LOG_TIMEZONE: optional(z.string().refine(isTimeZone, 'must be a time zone name such as Europe/Berlin or UTC')),
+  LOG_TIMEZONE: optional(
+    z.string().refine(isTimeZone, 'must be a time zone name such as Europe/Berlin or UTC'),
+  ),
   // Comma-separated usernames to skip when importing the legacy dump.
   LEGACY_EXCLUDE_USERS: z.string().default(''),
 
@@ -72,16 +85,16 @@ export type Config = z.infer<typeof schema>;
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const parsed = schema.safeParse(env);
-  if (!parsed.success) {
+  if (!parsed.success)
     throw new Error(`Invalid environment:\n${z.prettifyError(parsed.error)}`);
-  }
   const config = parsed.data;
-  if (config.SMTP_HOST && !config.MAIL_FROM_ADDRESS) {
+  if (config.SMTP_HOST && !config.MAIL_FROM_ADDRESS)
     throw new Error('Invalid environment:\nMAIL_FROM_ADDRESS is required when SMTP_HOST is set');
-  }
-  if (config.REQUIRE_CONFIRMED_EMAIL && config.NODE_ENV === 'production' && !config.SMTP_HOST) {
-    throw new Error('Invalid environment:\nREQUIRE_CONFIRMED_EMAIL=true needs SMTP_HOST, otherwise no one can confirm');
-  }
+  if (config.REQUIRE_CONFIRMED_EMAIL && config.NODE_ENV === 'production' && !config.SMTP_HOST)
+    throw new Error(
+      'Invalid environment:\nREQUIRE_CONFIRMED_EMAIL=true needs SMTP_HOST, otherwise no one can confirm',
+    );
+
   return config;
 }
 

@@ -24,12 +24,22 @@
 (() => {
   const dialog = document.getElementById('ft-confirm');
   const form = document.getElementById('ft-confirm-form');
-  if (!dialog || !form || !window.bootstrap) return;
+  if (!dialog || !form || !window.bootstrap)
+    return;
 
   // Capture phase: the page-wide click handler in app.js must not start a navigation for the link.
   document.addEventListener('click', (event) => {
-    const link = event.target instanceof Element ? event.target.closest('a[data-confirm-action]') : null;
-    if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target instanceof Element
+      ? event.target.closest('a[data-confirm-action]')
+      : null;
+    if (!link ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey)
+      return;
+
     event.preventDefault();
     event.stopPropagation();
     form.action = link.dataset.confirmAction;
@@ -40,5 +50,8 @@
     window.bootstrap.Modal.getOrCreateInstance(dialog).show();
   }, true);
 
-  dialog.addEventListener('shown.bs.modal', () => dialog.querySelector('.modal-footer .btn-outline-secondary').focus()); // the safe choice
+  dialog.addEventListener(
+    'shown.bs.modal',
+    () => dialog.querySelector('.modal-footer .btn-outline-secondary').focus(),
+  ); // the safe choice
 })();

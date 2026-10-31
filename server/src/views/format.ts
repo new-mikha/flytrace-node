@@ -29,17 +29,28 @@ function formatterFor(timeZone: string | undefined): Intl.DateTimeFormat {
   let f = formatters.get(key);
   if (!f) {
     f = new Intl.DateTimeFormat('en-US', {
-      timeZone, weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-      hour: 'numeric', minute: '2-digit', hourCycle: 'h23', timeZoneName: 'short',
+      timeZone,
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZoneName: 'short',
     });
     formatters.set(key, f);
   }
   return f;
 }
 
-function partsOf(d: Date, timeZone: string | undefined = process.env.TZ || undefined): Record<string, string> {
+function partsOf(
+  d: Date,
+  timeZone: string | undefined = process.env.TZ || undefined,
+): Record<string, string> {
   const parts: Record<string, string> = {};
-  for (const p of formatterFor(timeZone).formatToParts(d)) parts[p.type] = p.value;
+  for (const p of formatterFor(timeZone).formatToParts(d))
+    parts[p.type] = p.value;
   return parts;
 }
 
@@ -69,8 +80,10 @@ export function formatAge(time: Date, now: Date): Age {
   const hours = Math.floor((total % 1440) / 60);
   const minutes = total % 60;
   let text = '';
-  if (days > 0) text += `${days} d `;
-  if (days > 0 || hours > 0) text += `${hours} hr `;
+  if (days > 0)
+    text += `${days} d `;
+  if (days > 0 || hours > 0)
+    text += `${hours} hr `;
   text += `${minutes} min ${ahead ? 'ahead' : 'ago'}`;
   return { text, recent: !ahead && diffMs < 86_400_000 };
 }

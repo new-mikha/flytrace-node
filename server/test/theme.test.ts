@@ -27,14 +27,18 @@ import { createPool } from '../src/db.ts';
 
 let app: FastifyInstance;
 let ip = 0;
-const get = (url: string, extra: { cookies?: Record<string, string>; headers?: Record<string, string> } = {}) =>
-  app.inject({ url, remoteAddress: `10.4.0.${++ip}`, ...extra });
+const get = (
+  url: string,
+  extra: { cookies?: Record<string, string>; headers?: Record<string, string>; } = {},
+) => app.inject({ url, remoteAddress: `10.4.0.${++ip}`, ...extra });
 
 beforeAll(async () => {
   const config = loadConfig();
   app = await buildApp({ ...config, SMTP_HOST: undefined }, createPool(config.DATABASE_URL));
 });
-afterAll(async () => { await app.close(); });
+afterAll(async () => {
+  await app.close();
+});
 
 describe('theme', () => {
   it('is the day theme by default, even when the browser asks for dark', async () => {
@@ -45,8 +49,12 @@ describe('theme', () => {
   });
 
   it('follows the cookie, and treats anything but "dark" as day', async () => {
-    expect((await get('/login', { cookies: { 'ft-theme': 'dark' } })).body).toContain('data-bs-theme="dark"');
-    expect((await get('/login', { cookies: { 'ft-theme': 'nonsense' } })).body).toContain('data-bs-theme="light"');
+    expect((await get('/login', { cookies: { 'ft-theme': 'dark' } })).body).toContain(
+      'data-bs-theme="dark"',
+    );
+    expect((await get('/login', { cookies: { 'ft-theme': 'nonsense' } })).body).toContain(
+      'data-bs-theme="light"',
+    );
   });
 
   it('leaves page fragments alone', async () => {
@@ -64,7 +72,8 @@ describe('theme', () => {
 
     const back = await get('/theme', { cookies: { 'ft-theme': 'dark' } });
     expect(back.cookies.find((c) => c.name === 'ft-theme')?.value).toBe('light');
-    expect((await get('/theme?set=dark', { cookies: { 'ft-theme': 'dark' } })).cookies[0]?.value).toBe('dark');
+    expect((await get('/theme?set=dark', { cookies: { 'ft-theme': 'dark' } })).cookies[0]?.value)
+      .toBe('dark');
   });
 
   it('does not redirect anywhere but this site', async () => {

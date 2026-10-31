@@ -35,7 +35,10 @@ export function audit(
   message: string,
   details: Record<string, unknown> = {},
 ): void {
-  request.log.info({ event, user: request.user?.username, userId: request.user?.id, ...details }, message);
+  request.log.info(
+    { event, user: request.user?.username, userId: request.user?.id, ...details },
+    message,
+  );
 }
 
 /** `ann.smith@gmail.com` -> `a***@gmail.com`: enough to recognise an address, not to copy it from the logs. */

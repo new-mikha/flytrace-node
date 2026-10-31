@@ -40,14 +40,26 @@ let ipCounter = 1;
 
 async function loginAs(username: string) {
   const ip = `10.9.0.${ipCounter++}`;
-  const res = await app.inject({ method: 'POST', url: '/login', remoteAddress: ip, headers: FORM,
-    payload: new URLSearchParams({ username, password: PASSWORD, returnUrl: '/' }).toString() });
+  const res = await app.inject({
+    method: 'POST',
+    url: '/login',
+    remoteAddress: ip,
+    headers: FORM,
+    payload: new URLSearchParams({ username, password: PASSWORD, returnUrl: '/' }).toString(),
+  });
   const cookie = res.cookies.find((c) => c.name === 'flytrace.sid');
   const cookies: Record<string, string> = cookie ? { [cookie.name]: cookie.value } : {};
   return {
     get: (url: string) => app.inject({ url, remoteAddress: ip, cookies }),
     post: (url: string, payload: Record<string, string> = {}) =>
-      app.inject({ method: 'POST', url, remoteAddress: ip, cookies, headers: FORM, payload: new URLSearchParams(payload).toString() }),
+      app.inject({
+        method: 'POST',
+        url,
+        remoteAddress: ip,
+        cookies,
+        headers: FORM,
+        payload: new URLSearchParams(payload).toString(),
+      }),
   };
 }
 
@@ -55,8 +67,12 @@ beforeAll(async () => {
   const config = { ...loadConfig(), SMTP_HOST: undefined };
   pool = createPool(config.DATABASE_URL);
   const hash = await hashPassword(PASSWORD);
-  for (const name of [OWNER, OTHER, READER]) await pool.query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [name, hash]);
-  await pool.query(`INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1 AND r.name = 'SpotIdReaders'`, [READER]);
+  for (const name of [OWNER, OTHER, READER])
+    await pool.query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [name, hash]);
+  await pool.query(
+    `INSERT INTO user_roles (user_id, role_id) SELECT u.id, r.id FROM users u, roles r WHERE u.username = $1 AND r.name = 'SpotIdReaders'`,
+    [READER],
+  );
   app = await buildApp(config, pool);
 });
 
@@ -65,12 +81,24 @@ afterAll(async () => {
   await app.close();
 });
 
-const userId = async (name: string) => (await pool.query<{ id: string }>('SELECT id FROM users WHERE username = $1', [name])).rows[0]!.id;
-const groupEvent = async (id: number) => (await pool.query<{ event_id: number | null; version: number }>('SELECT event_id, version FROM groups WHERE id = $1', [id])).rows[0]!;
-const events = async (name: string) => (await pool.query<{ id: number; name: string }>(
-  'SELECT id, name FROM events WHERE user_id = (SELECT id FROM users WHERE username = $1) ORDER BY id', [name])).rows;
-const defaultEvent = async (name: string) => (await pool.query<{ d: number | null }>(
-  'SELECT default_event_id AS d FROM user_profiles WHERE user_id = (SELECT id FROM users WHERE username = $1)', [name])).rows[0]?.d ?? null;
+const userId = async (name: string) =>
+  (await pool.query<{ id: string; }>('SELECT id FROM users WHERE username = $1', [name])).rows[0]!
+    .id;
+const groupEvent = async (id: number) =>
+  (await pool.query<{ event_id: number | null; version: number; }>(
+    'SELECT event_id, version FROM groups WHERE id = $1',
+    [id],
+  )).rows[0]!;
+const events = async (name: string) =>
+  (await pool.query<{ id: number; name: string; }>(
+    'SELECT id, name FROM events WHERE user_id = (SELECT id FROM users WHERE username = $1) ORDER BY id',
+    [name],
+  )).rows;
+const defaultEvent = async (name: string) =>
+  (await pool.query<{ d: number | null; }>(
+    'SELECT default_event_id AS d FROM user_profiles WHERE user_id = (SELECT id FROM users WHERE username = $1)',
+    [name],
+  )).rows[0]?.d ?? null;
 
 describe('single-event mode: the Today Task', () => {
   it('makes the default event with the first group and shows it on the group', async () => {
@@ -89,7 +117,9 @@ describe('single-event mode: the Today Task', () => {
 
   it('turns the Today Task off and on from the checkbox, bumping the version', async () => {
     const owner = await loginAs(OWNER);
-    const id = Number(/\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1]);
+    const id = Number(
+      /\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1],
+    );
     const before = (await groupEvent(id)).version;
     expect((await owner.post(`/groups/${id}/task`, {})).statusCode).toBe(302); // box unchecked: nothing is sent for it
     expect(await groupEvent(id)).toMatchObject({ event_id: null, version: before + 1 });
@@ -101,7 +131,9 @@ describe('single-event mode: the Today Task', () => {
 
   it('refuses the changes of anybody but the owner', async () => {
     const owner = await loginAs(OWNER);
-    const id = Number(/\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1]);
+    const id = Number(
+      /\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1],
+    );
     const reader = await loginAs(READER);
     expect((await reader.post(`/groups/${id}/task`, { show: '1' })).headers.location).toBe('/403');
     const page = (await reader.get(`/groups/${id}`)).body;
@@ -110,12 +142,17 @@ describe('single-event mode: the Today Task', () => {
   });
 });
 
-describe('multiple-events mode: the group\'s event', () => {
+describe("multiple-events mode: the group's event", () => {
   it('switches the mode from the home page', async () => {
     const owner = await loginAs(OWNER);
     const res = await owner.post('/events-mode', { to: 'multiple' });
     expect(res.headers.location).toBe('/');
-    expect((await pool.query('SELECT is_simple_events_model AS s FROM user_profiles WHERE user_id = $1', [await userId(OWNER)])).rows[0]!.s).toBe(false);
+    expect(
+      (await pool.query(
+        'SELECT is_simple_events_model AS s FROM user_profiles WHERE user_id = $1',
+        [await userId(OWNER)],
+      )).rows[0]!.s,
+    ).toBe(false);
     expect((await owner.get('/')).body).toContain('My events');
   });
 
@@ -127,7 +164,9 @@ describe('multiple-events mode: the group\'s event', () => {
 
   it('chooses an event, none, or a new one, and makes the chosen one the default', async () => {
     const owner = await loginAs(OWNER);
-    const id = Number(/\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1]);
+    const id = Number(
+      /\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1],
+    );
     const [first, second] = await events(OWNER);
     const page = (await owner.get(`/groups/${id}`)).body;
     expect(page).toContain('Create a new event and use it');
@@ -150,7 +189,9 @@ describe('multiple-events mode: the group\'s event', () => {
     await other.post('/events');
     const [theirs] = await events(OTHER);
     const owner = await loginAs(OWNER);
-    const id = Number(/\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1]);
+    const id = Number(
+      /\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1],
+    );
     const before = await groupEvent(id);
     const res = await owner.post(`/groups/${id}/event`, { event: String(theirs!.id) });
     expect(res.statusCode).toBe(302);

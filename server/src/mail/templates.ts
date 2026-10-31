@@ -30,19 +30,42 @@ export interface MailContext {
 type Built = Omit<MailMessage, 'to'>;
 
 /** HTML and plain-text bodies of one message. `action` is the call-to-action link, if any. */
-function build(ctx: MailContext, subject: string, paragraphs: string[], action?: { label: string; url: string }): Built {
-  const contact = ctx.contactAddress ? `If you have any questions, write to ${ctx.contactAddress}.` : '';
+function build(
+  ctx: MailContext,
+  subject: string,
+  paragraphs: string[],
+  action?: { label: string; url: string; },
+): Built {
+  const contact = ctx.contactAddress
+    ? `If you have any questions, write to ${ctx.contactAddress}.`
+    : '';
   const html = `<div style="margin:0;padding:0;font-family:Arial,sans-serif;color:#1f2937">
 ${paragraphs.map((p) => `<p>${esc(p)}</p>`).join('\n')}
-${action ? `<p style="margin:24px 0"><a href="${esc(action.url)}" style="background:#0d6efd;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block">${esc(action.label)}</a></p>
-<p style="font-size:12px;color:#6b7280">If the button does not work, copy this address into your browser:<br>${esc(action.url)}</p>` : ''}
+${
+    action
+      ? `<p style="margin:24px 0"><a href="${
+        esc(action.url)
+      }" style="background:#0d6efd;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block">${
+        esc(action.label)
+      }</a></p>
+<p style="font-size:12px;color:#6b7280">If the button does not work, copy this address into your browser:<br>${
+        esc(action.url)
+      }</p>`
+      : ''
+  }
 ${contact ? `<p>${esc(contact)}</p>` : ''}
 <p>Thank you!</p>
 <div>--</div>
 <div><a href="${esc(ctx.siteUrl)}">${esc(ctx.siteUrl)}</a></div>
 </div>`;
-  const text = [...paragraphs, ...(action ? [`${action.label}: ${action.url}`] : []), ...(contact ? [contact] : []),
-    'Thank you!', '--', ctx.siteUrl].join('\n\n');
+  const text = [
+    ...paragraphs,
+    ...(action ? [`${action.label}: ${action.url}`] : []),
+    ...(contact ? [contact] : []),
+    'Thank you!',
+    '--',
+    ctx.siteUrl,
+  ].join('\n\n');
   return { subject, html, text };
 }
 
