@@ -36,7 +36,7 @@ TypeScript (ESM, strict), Fastify 5, plain `pg` SQL (no ORM), vitest, Postgres 1
 - `docker compose up -d`: start Postgres. `.env` is copied from `.env.example`.
 - `npm run db:reset`: dev only, drops and recreates the DB (refuses unless the name contains `_dev`), then migrates.
 - `npm run db:import-legacy -- db/legacy/dump/<timestamp>`: staging, transform and verify in one transaction.
-- `npm run user:create -- <name> <password> [role]`: dev user. `npm run dev`, `npm test`, `npm run typecheck`.
+- `npm run user:create -- <name> <password> [role]`: dev user. `npm run dev`, `npm test`, `npm run typecheck`. `npm run test:e2e` runs the browser tests in `server/e2e/` (`*.e2e.ts`, `vitest.e2e.config.ts`): a real server on a free port and a real Chrome through `playwright-core` (installed Google Chrome; `PLAYWRIGHT_CHROMIUM_PATH` for another binary). They are not part of `npm test`, and need no server of yours running.
 - `npm run build` compiles into `dist/` and copies the migrations and the import SQL next to it. `scripts/deploy.sh user@host` builds and
   copies `dist/`, `public/`, `package.json` and `package-lock.json` to the server (home Raspberry Pi); the server keeps its `.env`,
   `node_modules` and database. There, `node dist/db/migrate.js` applies migrations and `node dist/server/src/index.js` starts the app.

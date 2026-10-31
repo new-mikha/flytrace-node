@@ -95,7 +95,9 @@
       const typed = form.querySelector('#ft-bulk-radius').value.trim();
       const radius = /^\d{1,6}$/.test(typed) && Number(typed) > 0 ? typed : form.dataset.defaultRadius;
       const all = JSON.parse(form.dataset.wpts || '[]');
+      // "In the order added" is by id (the order the waypoints were created), whatever order the page listed them in.
       if (button.dataset.taskBulk === 'name') all.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+      else all.sort((a, b) => a.id - b.id);
       fill(form, all, radius);
     }
   });
