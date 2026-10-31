@@ -272,7 +272,7 @@ describe('adding', () => {
 });
 
 describe('the highlight', () => {
-  it('marks the row just added until the next one, and the waypoints the task uses', async () => {
+  it('marks the row just added once, and the waypoints the task uses', async () => {
     const id = await makeEvent(OWNER, 'Hl');
     const owner = await loginAs(OWNER);
     await owner.post(`/events/${id}/waypoints`, { name: 'A', lat: '1', lon: '2', alt: '0' });
@@ -286,9 +286,8 @@ describe('the highlight', () => {
       .then((r) => r.rows);
     expect(html).toContain(`<tr id="wpt-${b!.id}" class="ft-wpt-new">`);
     expect(html.match(/ft-wpt-new/g)).toHaveLength(1);
-    // still marked on the next visit
-    expect((await owner.get(`/events/${id}/waypoints`)).body).toContain(`id="wpt-${b!.id}"`);
-    expect((await owner.get(`/events/${id}/waypoints`)).body.match(/ft-wpt-new/g)).toHaveLength(1);
+    // not on the next visit (a reload forgets it)
+    expect((await owner.get(`/events/${id}/waypoints`)).body).not.toContain('ft-wpt-new');
     // a waypoint in the task is shaded
     const [a] = await pool
       .query<{ id: number }>('SELECT id FROM waypoints WHERE event_id = $1 AND name = $2', [

@@ -80,18 +80,29 @@
     },
     true,
   );
+  // The server marks the row once (class ft-wpt-new, in the page that follows an add or update). The
+  // mark stays while the page is open: later swaps (a refused delete, a format change) bring a table
+  // without it, so the row is marked again, without the flash (ft-wpt-keep), until the next add or
+  // update. A page reload forgets it.
   const holder = document.querySelector('.ft-waypoints-page');
+  let marked = holder?.querySelector('.ft-wpt-new')?.id ?? null;
   if (holder)
     new MutationObserver(() => {
-      if (!saved) return;
+      const wasSaved = saved;
       saved = false;
-      // a refused change has no success message, and the old mark is not worth a trip
-      if (!document.querySelector('#ft-flash .alert-success')) return;
-      const row = holder.querySelector('.ft-wpt-new');
-      if (!row) return;
-      const box = row.getBoundingClientRect();
-      if (box.top < 0 || box.bottom > window.innerHeight)
-        row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      const fresh = holder.querySelector('.ft-wpt-new');
+      if (fresh) {
+        marked = fresh.id;
+        // a refused change has no success message, and the old mark is not worth a trip
+        if (!wasSaved || !document.querySelector('#ft-flash .alert-success')) return;
+        const box = fresh.getBoundingClientRect();
+        if (box.top < 0 || box.bottom > window.innerHeight)
+          fresh.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } else if (marked) {
+        const row = document.getElementById(marked);
+        if (row && row.tagName === 'TR' && !row.classList.contains('ft-wpt-edit'))
+          row.classList.add('ft-wpt-keep');
+      }
     }).observe(holder, { childList: true });
 
   // ---- Delete: the dialog's form is sent in place

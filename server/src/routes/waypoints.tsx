@@ -95,8 +95,10 @@ export async function waypointRoutes(app: FastifyInstance, pool: Pool): Promise<
     const query = (request.query ?? {}) as Record<string, unknown>;
     const edit = /^\d+$/.test(text(query.edit)) ? Number(query.edit) : undefined;
     const sort = parseWaypointSort(query.sort, query.dir);
-    // stays marked until the next waypoint is added or updated
+    // shown once, by the page that follows the add or update; waypoint-editor.js keeps the mark
+    // while the page stays open (it is never stored for a later visit)
     const highlightId = request.session.highlightWaypoint;
+    request.session.highlightWaypoint = undefined;
     const [waypoints, prefs] = await Promise.all([
       listWaypoints(pool, found.event.id, sort),
       getCoordPrefs(pool, request.user!.id),

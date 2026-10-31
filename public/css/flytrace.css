@@ -764,11 +764,11 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 /* the striped table paints its cells (an inset shadow), so the marks go on the cells, and on the row for the cards.
    The row just added or updated stays green (it fades in) until the next one; a waypoint the task uses (cannot be deleted) is amber. */
 .ft-wpt-used, .ft-wpt-used > * { --ft-wpt-mark: rgba(var(--bs-warning-rgb), 0.22); }
-.ft-wpt-new, .ft-wpt-new > *, tr:target, tr:target > * { --ft-wpt-mark: rgba(var(--bs-success-rgb), 0.25); }
+.ft-wpt-new, .ft-wpt-new > *, .ft-wpt-keep, .ft-wpt-keep > *, tr:target, tr:target > * { --ft-wpt-mark: rgba(var(--bs-success-rgb), 0.25); }
 @media (min-width: 1200px) {
-  .ft-table tbody tr.ft-wpt-used > *, .ft-table tbody tr.ft-wpt-new > *, .ft-table tbody tr:target > * { box-shadow: inset 0 0 0 9999px var(--ft-wpt-mark); }
+  .ft-table tbody tr.ft-wpt-used > *, .ft-table tbody tr.ft-wpt-new > *, .ft-table tbody tr.ft-wpt-keep > *, .ft-table tbody tr:target > * { box-shadow: inset 0 0 0 9999px var(--ft-wpt-mark); }
 }
-.ft-cards tr.ft-wpt-used, .ft-cards tr.ft-wpt-new { background: var(--ft-wpt-mark); }
+.ft-cards tr.ft-wpt-used, .ft-cards tr.ft-wpt-new, .ft-cards tr.ft-wpt-keep { background: var(--ft-wpt-mark); }
 @media (min-width: 1200px) { .ft-table tbody tr.ft-wpt-new > * { animation: ft-wpt-flash-cell 0.8s ease-out; } }
 @keyframes ft-wpt-flash-cell { from { box-shadow: inset 0 0 0 9999px rgba(var(--bs-success-rgb), 0.6); } }
 #ft-flash .alert { white-space: pre-line; }

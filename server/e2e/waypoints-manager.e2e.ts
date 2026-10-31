@@ -183,6 +183,25 @@ describe('waypoints manager', () => {
       // still on the screen: it did not jump to the marked row
       const after = await rowTop();
       expect(after > 0 && after < 900).toBe(true);
+
+      // the mark of the last add or edit survives the refused delete (no flash), not a reload
+      expect(await page.locator('#waypoints tr.ft-wpt-keep').count()).toBe(0); // nothing was added on this page
+      await page.fill('#add-name', 'ZED');
+      await page.fill('#add-latD', '1');
+      await page.fill('#add-latM', '0');
+      await page.fill('#add-lonD', '2');
+      await page.fill('#add-lonM', '0');
+      await page.click('#add-waypoint button[type="submit"]');
+      await page.waitForSelector('#waypoints tr.ft-wpt-new');
+      await page.click('#waypoints tr:has-text("Z60") a[data-confirm-action]');
+      await page.waitForSelector('#ft-confirm.show');
+      await page.click('#ft-confirm-button');
+      await page.waitForSelector('#ft-flash .alert-danger');
+      await page.waitForSelector('#waypoints tr.ft-wpt-keep:has-text("ZED")');
+      await page.reload();
+      expect(
+        await page.locator('#waypoints tr.ft-wpt-new, #waypoints tr.ft-wpt-keep').count(),
+      ).toBe(0);
     } finally {
       await page.close();
     }
