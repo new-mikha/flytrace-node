@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // The KML, CUP and GPX waypoint parsers (rules of the legacy WaypointsLoader).
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   MAX_NAME_LENGTH,
@@ -203,5 +204,42 @@ describe('CUP', () => {
 describe('any file', () => {
   it('names the unsupported extension', () => {
     expect(fails('x.txt', '')).toContain("'.txt' files are not supported");
+  });
+});
+
+// Real files: the Dalby 2024 waypoints exported from GpsDump (GPX) and SeeYou (CUP), and the
+// Forbes 2024 ones (GPX). The two Dalby files describe the same 173 points.
+const sample = (name: string) =>
+  readFileSync(new URL(`./fixtures/waypoints/${name}`, import.meta.url), 'utf8');
+
+describe('real files', () => {
+  const cup = parseWaypointFile('Dalby2024.cup', sample('Dalby2024.cup'));
+  const gpx = parseWaypointFile('Dalby2024.gpx', sample('Dalby2024.gpx'));
+
+  it('reads the CUP file (its first line is a header) and the GPX file', () => {
+    expect(cup).toHaveLength(173);
+    expect(gpx).toHaveLength(173);
+    expect(cup[0]).toMatchObject({ name: '0DALBY', description: '0DALBY' });
+    expect(cup.at(-1)!.name).toBe('YOULEB');
+    expect(gpx[0]).toMatchObject({ name: '0DALBY', lat: -27.158867, lon: 151.263783, alt: 351 });
+  });
+
+  it('finds the same waypoints in both, in the same order, at the same places', () => {
+    expect(cup.map((w) => w.name)).toEqual(gpx.map((w) => w.name));
+    cup.forEach((w, i) => {
+      // GPX has 6 decimals, CUP thousandths of a minute (about 2 m); GPX altitudes are whole meters
+      expect(Math.abs(w.lat - gpx[i]!.lat), w.name).toBeLessThan(0.0001);
+      expect(Math.abs(w.lon - gpx[i]!.lon), w.name).toBeLessThan(0.0001);
+      expect(Math.abs(w.alt - gpx[i]!.alt), w.name).toBeLessThan(1);
+    });
+    expect(cup[0]!.lat).toBeCloseTo(-(27 + 9.532 / 60), 9);
+    expect(cup[0]!.lon).toBeCloseTo(151 + 15.827 / 60, 9);
+  });
+
+  it('reads the Forbes GPX file', () => {
+    const forbes = parseWaypointFile('Forbes 24.gpx', sample('Forbes24.gpx'));
+    expect(forbes).toHaveLength(164);
+    expect(forbes[0]).toMatchObject({ name: '4WAYS', lat: -32.4916, lon: 147.919733, alt: 222 });
+    expect(new Set(forbes.map((w) => w.name.toLowerCase())).size).toBe(164);
   });
 });

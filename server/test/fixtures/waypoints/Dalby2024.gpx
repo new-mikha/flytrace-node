@@ -1,0 +1,1398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1"
+     creator="GpsDump 5.44"
+     version="1.1"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <link href="http://www.gethome.no/stein.sorensen/">
+      <text>GPS dump for www.flightlog.org</text>
+    </link>
+    <time>2025-04-05T07:05:30Z</time>
+    <bounds minlat="-29.496283" minlon="146.258750" maxlat="-24.469667" maxlon="153.202000"/>
+  </metadata>
+  <wpt lat="-27.158867" lon="151.263783">
+    <ele>351.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>0DALBY</name>
+    <cmt>0DALBY</cmt>
+    <desc>0DALBY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.925683" lon="151.850400">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1BANGE</name>
+    <cmt>1BANGE</cmt>
+    <desc>1BANGE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.843883" lon="150.791700">
+    <ele>322.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1BRIGA</name>
+    <cmt>1BRIGA</cmt>
+    <desc>1BRIGA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.618467" lon="150.425867">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1CAMEB</name>
+    <cmt>1CAMEB</cmt>
+    <desc>1CAMEB</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.533900" lon="151.228867">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1CECIL</name>
+    <cmt>1CECIL</cmt>
+    <desc>1CECIL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.779067" lon="150.670650">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1CHINC</name>
+    <cmt>1CHINC</cmt>
+    <desc>1CHINC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.922933" lon="150.126733">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1CONDA</name>
+    <cmt>1CONDA</cmt>
+    <desc>1CONDA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.645783" lon="149.971533">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1DRILL</name>
+    <cmt>1DRILL</cmt>
+    <desc>1DRILL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.647117" lon="149.760917">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1DULAC</name>
+    <cmt>1DULAC</cmt>
+    <desc>1DULAC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.786567" lon="151.115433">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1JANDO</name>
+    <cmt>1JANDO</cmt>
+    <desc>1JANDO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.345283" lon="149.880833">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1MEAND</name>
+    <cmt>1MEAND</cmt>
+    <desc>1MEAND</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.679550" lon="150.191500">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1MILES</name>
+    <cmt>1MILES</cmt>
+    <desc>1MILES</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.710433" lon="150.365650">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1MOONI</name>
+    <cmt>1MOONI</cmt>
+    <desc>1MOONI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.787650" lon="151.414550">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1PAMPA</name>
+    <cmt>1PAMPA</cmt>
+    <desc>1PAMPA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.288250" lon="150.441750">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1TARA</name>
+    <cmt>1TARA</cmt>
+    <desc>1TARA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.586183" lon="149.358867">
+    <ele>274.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1WAGGA</name>
+    <cmt>1WAGGA</cmt>
+    <desc>1WAGGA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.933150" lon="150.908350">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>1WARRA</name>
+    <cmt>1WARRA</cmt>
+    <desc>1WARRA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.122083" lon="150.342300">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ALKIRA</name>
+    <cmt>ALKIRA</cmt>
+    <desc>ALKIRA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.549400" lon="148.183600">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>AMBY</name>
+    <cmt>AMBY</cmt>
+    <desc>AMBY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.975100" lon="152.554567">
+    <ele>122.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ARATUL</name>
+    <cmt>ARATUL</cmt>
+    <desc>ARATUL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-29.318050" lon="151.088867">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ASHFRD</name>
+    <cmt>ASHFRD</cmt>
+    <desc>ASHFRD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-24.469667" lon="150.131483">
+    <ele>183.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BANANA</name>
+    <cmt>BANANA</cmt>
+    <desc>BANANA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.117550" lon="153.202000">
+    <ele>549.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BEECHM</name>
+    <cmt>BEECHM</cmt>
+    <desc>BEECHM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.926967" lon="151.448167">
+    <ele>488.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BELL</name>
+    <cmt>BELL</cmt>
+    <desc>BELL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.130133" lon="150.411367">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BENNET</name>
+    <cmt>BENNET</cmt>
+    <desc>BENNET</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.197817" lon="152.141733">
+    <ele>518.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BLUFF</name>
+    <cmt>BLUFF</cmt>
+    <desc>BLUFF</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.584017" lon="148.998267">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BLYTHD</name>
+    <cmt>BLYTHD</cmt>
+    <desc>BLYTHD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.018317" lon="152.674983">
+    <ele>122.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BOONAH</name>
+    <cmt>BOONAH</cmt>
+    <desc>BOONAH</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.203383" lon="151.296283">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BOONDO</name>
+    <cmt>BOONDO</cmt>
+    <desc>BOONDO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.308300" lon="151.490733">
+    <ele>381.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BOWENV</name>
+    <cmt>BOWENV</cmt>
+    <desc>BOWENV</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.738817" lon="151.508333">
+    <ele>610.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BOYNES</name>
+    <cmt>BOYNES</cmt>
+    <desc>BOYNES</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.997300" lon="151.026417">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BROADM</name>
+    <cmt>BROADM</cmt>
+    <desc>BROADM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.343867" lon="151.094083">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BROADW</name>
+    <cmt>BROADW</cmt>
+    <desc>BROADW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.401583" lon="150.435517">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BULLOC</name>
+    <cmt>BULLOC</cmt>
+    <desc>BULLOC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.429867" lon="149.661333">
+    <ele>198.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BUNGUN</name>
+    <cmt>BUNGUN</cmt>
+    <desc>BUNGUN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.769333" lon="149.834483">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BUTLER</name>
+    <cmt>BUTLER</cmt>
+    <desc>BUTLER</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.065783" lon="148.601033">
+    <ele>427.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>BYMONT</name>
+    <cmt>BYMONT</cmt>
+    <desc>BYMONT</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.895267" lon="148.994317">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>CARNAR</name>
+    <cmt>CARNAR</cmt>
+    <desc>CARNAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.401700" lon="146.258750">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>CHARLV</name>
+    <cmt>CHARLV</cmt>
+    <desc>CHARLV</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.747450" lon="150.626050">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>CHINAP</name>
+    <cmt>CHINAP</cmt>
+    <desc>CHINAP</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.924083" lon="151.915483">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>CLIFTO</name>
+    <cmt>CLIFTO</cmt>
+    <desc>CLIFTO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.974467" lon="151.243633">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>CLONTA</name>
+    <cmt>CLONTA</cmt>
+    <desc>CLONTA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.108350" lon="151.864717">
+    <ele>488.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>COALBA</name>
+    <cmt>COALBA</cmt>
+    <desc>COALBA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.709550" lon="149.809667">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>COLSON</name>
+    <cmt>COLSON</cmt>
+    <desc>COLSON</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.667867" lon="150.326183">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>COLUMB</name>
+    <cmt>COLUMB</cmt>
+    <desc>COLUMB</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.806817" lon="151.439517">
+    <ele>533.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>COORA</name>
+    <cmt>COORA</cmt>
+    <desc>COORA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.703467" lon="151.383800">
+    <ele>456.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>COORAN</name>
+    <cmt>COORAN</cmt>
+    <desc>COORAN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.978117" lon="151.840533">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>COOYAR</name>
+    <cmt>COOYAR</cmt>
+    <desc>COOYAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.159550" lon="151.347533">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>COOYRD</name>
+    <cmt>COOYRD</cmt>
+    <desc>COOYRD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.871033" lon="150.486867">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>CROSSR</name>
+    <cmt>CROSSR</cmt>
+    <desc>CROSSR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.260850" lon="152.036400">
+    <ele>579.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>CROWS</name>
+    <cmt>CROWS</cmt>
+    <desc>CROWS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.361800" lon="151.737833">
+    <ele>427.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>CUSHNI</name>
+    <cmt>CUSHNI</cmt>
+    <desc>CUSHNI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.207300" lon="151.280150">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>DALBC</name>
+    <cmt>DALBC</cmt>
+    <desc>DALBC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.348783" lon="151.513883">
+    <ele>381.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>DDSC</name>
+    <cmt>DDSC</cmt>
+    <desc>DDSC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.263817" lon="150.971417">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>DUCKLO</name>
+    <cmt>DUCKLO</cmt>
+    <desc>DUCKLO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.086783" lon="149.073767">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>DURHAM</name>
+    <cmt>DURHAM</cmt>
+    <desc>DURHAM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.394200" lon="151.242333">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>DURONG</name>
+    <cmt>DURONG</cmt>
+    <desc>DURONG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.665100" lon="152.042583">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ENANGO</name>
+    <cmt>ENANGO</cmt>
+    <desc>ENANGO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.215650" lon="152.409850">
+    <ele>122.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ESK</name>
+    <cmt>ESK</cmt>
+    <desc>ESK</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.156900" lon="152.243133">
+    <ele>213.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ESKDAL</name>
+    <cmt>ESKDAL</cmt>
+    <desc>ESKDAL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.160633" lon="151.723000">
+    <ele>488.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>EVERGR</name>
+    <cmt>EVERGR</cmt>
+    <desc>EVERGR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.393983" lon="151.409633">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>FORMAR</name>
+    <cmt>FORMAR</cmt>
+    <desc>FORMAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.252350" lon="149.680250">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>GLENMO</name>
+    <cmt>GLENMO</cmt>
+    <desc>GLENMO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.179533" lon="152.056850">
+    <ele>244.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>GOOMER</name>
+    <cmt>GOOMER</cmt>
+    <desc>GOOMER</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.518500" lon="150.324150">
+    <ele>244.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>GOONDI</name>
+    <cmt>GOONDI</cmt>
+    <desc>GOONDI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.430967" lon="151.668467">
+    <ele>427.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>GORDON</name>
+    <cmt>GORDON</cmt>
+    <desc>GORDON</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.405800" lon="151.190633">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>GRASSD</name>
+    <cmt>GRASSD</cmt>
+    <desc>GRASSD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.779417" lon="151.904983">
+    <ele>488.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>GREENM</name>
+    <cmt>GREENM</cmt>
+    <desc>GREENM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.344133" lon="150.187567">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>GUMS</name>
+    <cmt>GUMS</cmt>
+    <desc>GUMS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.227133" lon="151.883083">
+    <ele>640.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>HADEN</name>
+    <cmt>HADEN</cmt>
+    <desc>HADEN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.026533" lon="152.543917">
+    <ele>122.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>HAZELD</name>
+    <cmt>HAZELD</cmt>
+    <desc>HAZELD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.610367" lon="149.753117">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>INGLES</name>
+    <cmt>INGLES</cmt>
+    <desc>INGLES</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.417467" lon="151.097050">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>INGLEW</name>
+    <cmt>INGLEW</cmt>
+    <desc>INGLEW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-25.853500" lon="148.553367">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>INJUNE</name>
+    <cmt>INJUNE</cmt>
+    <desc>INJUNE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.604083" lon="151.432567">
+    <ele>427.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>IRON</name>
+    <cmt>IRON</cmt>
+    <desc>IRON</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.661483" lon="151.609700">
+    <ele>549.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>IRONRD</name>
+    <cmt>IRONRD</cmt>
+    <desc>IRONRD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.645083" lon="149.614917">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>JACKSO</name>
+    <cmt>JACKSO</cmt>
+    <desc>JACKSO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.961417" lon="151.213333">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>JIMBOU</name>
+    <cmt>JIMBOU</cmt>
+    <desc>JIMBOU</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.960550" lon="151.232067">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>JIMHOS</name>
+    <cmt>JIMHOS</cmt>
+    <desc>JIMHOS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.650767" lon="151.068100">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>JINGHI</name>
+    <cmt>JINGHI</cmt>
+    <desc>JINGHI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.062117" lon="151.435450">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KAMBUN</name>
+    <cmt>KAMBUN</cmt>
+    <desc>KAMBUN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.785867" lon="151.312333">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KARAWE</name>
+    <cmt>KARAWE</cmt>
+    <desc>KARAWE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.330117" lon="152.287233">
+    <ele>518.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KILANY</name>
+    <cmt>KILANY</cmt>
+    <desc>KILANY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.970633" lon="152.568767">
+    <ele>122.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KILCOY</name>
+    <cmt>KILCOY</cmt>
+    <desc>KILCOY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.082333" lon="152.242533">
+    <ele>152.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KILKIV</name>
+    <cmt>KILKIV</cmt>
+    <desc>KILKIV</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.576550" lon="151.839133">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KINGAR</name>
+    <cmt>KINGAR</cmt>
+    <desc>KINGAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.526517" lon="151.619083">
+    <ele>518.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KINGBY</name>
+    <cmt>KINGBY</cmt>
+    <desc>KINGBY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.043333" lon="150.765967">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KOGAN</name>
+    <cmt>KOGAN</cmt>
+    <desc>KOGAN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.122833" lon="151.105900">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KOGINT</name>
+    <cmt>KOGINT</cmt>
+    <desc>KOGINT</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.334367" lon="150.843200">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KUMBAR</name>
+    <cmt>KUMBAR</cmt>
+    <desc>KUMBAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.658617" lon="151.663267">
+    <ele>518.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KUMBI2</name>
+    <cmt>KUMBI2</cmt>
+    <desc>KUMBI2</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.696633" lon="151.649800">
+    <ele>549.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KUMBIA</name>
+    <cmt>KUMBIA</cmt>
+    <desc>KUMBIA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.242200" lon="150.884800">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>KUMRD</name>
+    <cmt>KUMRD</cmt>
+    <desc>KUMRD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.490150" lon="150.223083">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>LEICHB</name>
+    <cmt>LEICHB</cmt>
+    <desc>LEICHB</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.045633" lon="150.152150">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>LEICHH</name>
+    <cmt>LEICHH</cmt>
+    <desc>LEICHH</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.179317" lon="150.282033">
+    <ele>244.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>LEICHK</name>
+    <cmt>LEICHK</cmt>
+    <desc>LEICHK</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.020333" lon="151.576150">
+    <ele>427.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>LEYBUR</name>
+    <cmt>LEYBUR</cmt>
+    <desc>LEYBUR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.041450" lon="151.073867">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MACALI</name>
+    <cmt>MACALI</cmt>
+    <desc>MACALI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.083050" lon="151.637717">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MACLAG</name>
+    <cmt>MACLAG</cmt>
+    <desc>MACLAG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.846233" lon="151.796950">
+    <ele>549.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MAIDEN</name>
+    <cmt>MAIDEN</cmt>
+    <desc>MAIDEN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.346917" lon="151.561117">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MALU</name>
+    <cmt>MALU</cmt>
+    <desc>MALU</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.069000" lon="152.228033">
+    <ele>518.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MARYVA</name>
+    <cmt>MARYVA</cmt>
+    <desc>MARYVA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.078450" lon="150.180517">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MCCASK</name>
+    <cmt>MCCASK</cmt>
+    <desc>MCCASK</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.242917" lon="150.740100">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MCKEE</name>
+    <cmt>MCKEE</cmt>
+    <desc>MCKEE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.505983" lon="149.770000">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MEANBU</name>
+    <cmt>MEANBU</cmt>
+    <desc>MEANBU</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.862300" lon="151.274600">
+    <ele>427.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MILLAP</name>
+    <cmt>MILLAP</cmt>
+    <desc>MILLAP</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.486867" lon="147.943017">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MITCHE</name>
+    <cmt>MITCHE</cmt>
+    <desc>MITCHE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.987817" lon="150.662133">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MONTRO</name>
+    <cmt>MONTRO</cmt>
+    <desc>MONTRO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.046533" lon="152.553350">
+    <ele>183.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MOOGER</name>
+    <cmt>MOOGER</cmt>
+    <desc>MOOGER</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.819367" lon="150.189833">
+    <ele>274.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MOONHW</name>
+    <cmt>MOONHW</cmt>
+    <desc>MOONHW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.583717" lon="150.550950">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MOONWW</name>
+    <cmt>MOONWW</cmt>
+    <desc>MOONWW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-29.496283" lon="149.850517">
+    <ele>213.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MOREE</name>
+    <cmt>MOREE</cmt>
+    <desc>MOREE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.412667" lon="147.116683">
+    <ele>427.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MORVEN</name>
+    <cmt>MORVEN</cmt>
+    <desc>MORVEN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.895883" lon="151.616350">
+    <ele>1067.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MOWBUL</name>
+    <cmt>MOWBUL</cmt>
+    <desc>MOWBUL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.574267" lon="151.572733">
+    <ele>427.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MTYSON</name>
+    <cmt>MTYSON</cmt>
+    <desc>MTYSON</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.585667" lon="148.389633">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MUCKAD</name>
+    <cmt>MUCKAD</cmt>
+    <desc>MUCKAD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.446533" lon="147.549033">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>MUNGLA</name>
+    <cmt>MUNGLA</cmt>
+    <desc>MUNGLA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.690200" lon="151.985783">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>NANANG</name>
+    <cmt>NANANG</cmt>
+    <desc>NANANG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.957867" lon="150.501133">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>NINE</name>
+    <cmt>NINE</cmt>
+    <desc>NINE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.409700" lon="151.738567">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>OAKEY</name>
+    <cmt>OAKEY</cmt>
+    <desc>OAKEY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.721267" lon="148.827083">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>OLDSUR</name>
+    <cmt>OLDSUR</cmt>
+    <desc>OLDSUR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.161517" lon="151.211300">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>OLDWAR</name>
+    <cmt>OLDWAR</cmt>
+    <desc>OLDWAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.452367" lon="149.103300">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>PICKAN</name>
+    <cmt>PICKAN</cmt>
+    <desc>PICKAN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.909717" lon="149.927300">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>PINE</name>
+    <cmt>PINE</cmt>
+    <desc>PINE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.709583" lon="151.650883">
+    <ele>518.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>PITTSW</name>
+    <cmt>PITTSW</cmt>
+    <desc>PITTSW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.128950" lon="152.523833">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>POINT</name>
+    <cmt>POINT</cmt>
+    <desc>POINT</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.917317" lon="150.751083">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>POWER</name>
+    <cmt>POWER</cmt>
+    <desc>POWER</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.102633" lon="151.621233">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>QUINAL</name>
+    <cmt>QUINAL</cmt>
+    <desc>QUINAL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.070017" lon="152.382983">
+    <ele>91.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>RAMBLE</name>
+    <cmt>RAMBLE</cmt>
+    <desc>RAMBLE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.274483" lon="152.329867">
+    <ele>213.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>REDBAN</name>
+    <cmt>REDBAN</cmt>
+    <desc>REDBAN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.965933" lon="150.001967">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>REDMAR</name>
+    <cmt>REDMAR</cmt>
+    <desc>REDMAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.545950" lon="148.774083">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ROMA</name>
+    <cmt>ROMA</cmt>
+    <desc>ROMA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.895867" lon="148.998850">
+    <ele>274.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ROMA1</name>
+    <cmt>ROMA1</cmt>
+    <desc>ROMA1</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.729950" lon="148.720033">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ROMA2</name>
+    <cmt>ROMA2</cmt>
+    <desc>ROMA2</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.629067" lon="148.769517">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ROMAS</name>
+    <cmt>ROMAS</cmt>
+    <desc>ROMAS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.218917" lon="151.690817">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>ROSALI</name>
+    <cmt>ROSALI</cmt>
+    <desc>ROSALI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.549650" lon="152.045050">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SANDY</name>
+    <cmt>SANDY</cmt>
+    <desc>SANDY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.126217" lon="152.551083">
+    <ele>91.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SOMMER</name>
+    <cmt>SOMMER</cmt>
+    <desc>SOMMER</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.769983" lon="151.969683">
+    <ele>488.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SOUTH</name>
+    <cmt>SOUTH</cmt>
+    <desc>SOUTH</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.730900" lon="152.031700">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SOUTHE</name>
+    <cmt>SOUTHE</cmt>
+    <desc>SOUTHE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.110000" lon="152.370400">
+    <ele>1097.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SPICER</name>
+    <cmt>SPICER</cmt>
+    <desc>SPICER</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.353633" lon="151.207583">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SPRING</name>
+    <cmt>SPRING</cmt>
+    <desc>SPRING</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.049417" lon="148.592600">
+    <ele>213.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>STGEOG</name>
+    <cmt>STGEOG</cmt>
+    <desc>STGEOG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.385533" lon="151.268317">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>STRUTH</name>
+    <cmt>STRUTH</cmt>
+    <desc>STRUTH</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.078100" lon="149.981983">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SUNNYS</name>
+    <cmt>SUNNYS</cmt>
+    <desc>SUNNYS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.864083" lon="151.497533">
+    <ele>579.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SUNNYV</name>
+    <cmt>SUNNYV</cmt>
+    <desc>SUNNYV</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.160133" lon="149.076083">
+    <ele>274.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SURAT</name>
+    <cmt>SURAT</cmt>
+    <desc>SURAT</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.388050" lon="149.970783">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>SURDEV</name>
+    <cmt>SURDEV</cmt>
+    <desc>SURDEV</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.040983" lon="152.047967">
+    <ele>213.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>TANSEY</name>
+    <cmt>TANSEY</cmt>
+    <desc>TANSEY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.161917" lon="150.473717">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>TARAAP</name>
+    <cmt>TARAAP</cmt>
+    <desc>TARAAP</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.177867" lon="150.559250">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>TARAKO</name>
+    <cmt>TARAKO</cmt>
+    <desc>TARAKO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-25.795033" lon="149.900633">
+    <ele>244.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>TAROOM</name>
+    <cmt>TAROOM</cmt>
+    <desc>TAROOM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.834883" lon="151.154767">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>TEXAS</name>
+    <cmt>TEXAS</cmt>
+    <desc>TEXAS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-24.989300" lon="150.089667">
+    <ele>183.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>THEODR</name>
+    <cmt>THEODR</cmt>
+    <desc>THEODR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.744817" lon="148.915817">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>TINGUN</name>
+    <cmt>TINGUN</cmt>
+    <desc>TINGUN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.544700" lon="151.918167">
+    <ele>640.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>TOOWOO</name>
+    <cmt>TOOWOO</cmt>
+    <desc>TOOWOO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.772483" lon="150.945833">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>TUCKER</name>
+    <cmt>TUCKER</cmt>
+    <desc>TUCKER</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.583933" lon="149.192633">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WALLUM</name>
+    <cmt>WALLUM</cmt>
+    <desc>WALLUM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.123917" lon="149.957767">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WANDOA</name>
+    <cmt>WANDOA</cmt>
+    <desc>WANDOA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.447683" lon="151.242683">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WANKA</name>
+    <cmt>WANKA</cmt>
+    <desc>WANKA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.920633" lon="149.251083">
+    <ele>274.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WARKON</name>
+    <cmt>WARKON</cmt>
+    <desc>WARKON</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.298717" lon="151.422167">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WARREG</name>
+    <cmt>WARREG</cmt>
+    <desc>WARREG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.148983" lon="151.947317">
+    <ele>488.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WARWIC</name>
+    <cmt>WARWIC</cmt>
+    <desc>WARWIC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.559967" lon="151.798167">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WELLCP</name>
+    <cmt>WELLCP</cmt>
+    <desc>WELLCP</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.209617" lon="150.660500">
+    <ele>366.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WERANG</name>
+    <cmt>WERANG</cmt>
+    <desc>WERANG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.914250" lon="149.719517">
+    <ele>244.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WESTMA</name>
+    <cmt>WESTMA</cmt>
+    <desc>WESTMA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.285483" lon="151.863850">
+    <ele>335.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WONDAI</name>
+    <cmt>WONDAI</cmt>
+    <desc>WONDAI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.386650" lon="152.604333">
+    <ele>396.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WOODEN</name>
+    <cmt>WOODEN</cmt>
+    <desc>WOODEN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.050200" lon="152.392567">
+    <ele>91.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WOOLGA</name>
+    <cmt>WOOLGA</cmt>
+    <desc>WOOLGA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-27.026100" lon="151.801617">
+    <ele>488.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>WUTUL</name>
+    <cmt>WUTUL</cmt>
+    <desc>WUTUL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.849733" lon="151.981917">
+    <ele>457.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>YARRAM</name>
+    <cmt>YARRAM</cmt>
+    <desc>YARRAM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-28.565567" lon="150.762583">
+    <ele>274.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>YELARB</name>
+    <cmt>YELARB</cmt>
+    <desc>YELARB</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-26.609900" lon="149.394717">
+    <ele>305.0</ele>
+    <time>1989-12-31T00:00:00</time>
+    <name>YOULEB</name>
+    <cmt>YOULEB</cmt>
+    <desc>YOULEB</desc>
+    <sym>Dot</sym>
+  </wpt>
+</gpx>

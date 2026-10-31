@@ -20,6 +20,7 @@
 
 // Browser test of "Load waypoints first": choosing a file sends it at once (no button click), and the
 // page then shows the task editor with the waypoints. Run with `npm run test:e2e`.
+import { fileURLToPath } from 'node:url';
 import { chromium, type Browser } from 'playwright-core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
@@ -113,6 +114,49 @@ describe('load waypoints first', () => {
         .locator('option')
         .allInnerTexts();
       expect(options.filter(Boolean)).toEqual(['ASHLEG', 'JONNY']);
+    } finally {
+      await page.close();
+    }
+  });
+});
+
+describe('real files', () => {
+  // The Dalby 2024 waypoints as SeeYou and as GpsDump wrote them, and the Forbes 2024 ones.
+  it.each([
+    ['Dalby2024.cup', 173],
+    ['Dalby2024.gpx', 173],
+    ['Forbes24.gpx', 164],
+  ])('%s loads with all its waypoints', async (file, count) => {
+    const {
+      rows: [u],
+    } = await pool.query<{ id: number }>('SELECT id FROM users WHERE username = $1', [USER]);
+    const {
+      rows: [e],
+    } = await pool.query<{ id: number }>(
+      'INSERT INTO events (user_id, name) VALUES ($1, $2) RETURNING id',
+      [u!.id, `E2E ${file} ${run}`],
+    );
+    const page = await browser.newPage();
+    try {
+      await page.goto(`${base}/login`);
+      await page.fill('main input[name="username"]', USER);
+      await page.fill('main input[name="password"]', PASSWORD);
+      await page.click('main button[type="submit"]');
+      await page.waitForURL(`${base}/`);
+      await page.goto(`${base}/events/${e!.id}`);
+      await page.setInputFiles(
+        '#ft-wpt-file',
+        fileURLToPath(new URL(`../test/fixtures/waypoints/${file}`, import.meta.url)),
+      );
+      await page.waitForSelector('#ft-task-form');
+      expect(await page.locator('#ft-flash').innerText()).toContain(
+        `Waypoints loaded: ${count} added.`,
+      );
+      expect(
+        await page.locator('#ft-task-form select[name="wpt"]').last().locator('option').count(),
+      ).toBe(
+        count + 1, // and the empty entry
+      );
     } finally {
       await page.close();
     }

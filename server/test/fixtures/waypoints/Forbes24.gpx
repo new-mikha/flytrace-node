@@ -1,0 +1,1326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1"
+    creator="GpsDumpAndroid 2.8.72"
+    version="1.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <link href="http://www.gpsdump.no">
+      <text>GPS dump for www.flightlog.org</text>
+    </link>
+    <time>2024-01-14T07:50:07Z</time>
+    <bounds minlat="-0.633027" minlon="2.511291" maxlat="-0.519715" maxlon="2.630625"/>
+  </metadata>
+  <wpt lat="-32.491600" lon="147.919733">
+    <ele>222.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>4WAYS</name>
+    <cmt>4WAYS</cmt>
+    <desc>4WAYS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.190300" lon="147.985700">
+    <ele>250.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>AFARM</name>
+    <cmt>AFARM</cmt>
+    <desc>AFARM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.897000" lon="148.263800">
+    <ele>340.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>ALEC</name>
+    <cmt>ALEC</cmt>
+    <desc>ALEC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.412500" lon="146.854300">
+    <ele>198.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>ARDLE</name>
+    <cmt>ARDLE</cmt>
+    <desc>ARDLE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.334850" lon="147.198350">
+    <ele>230.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>ARIA</name>
+    <cmt>ARIA</cmt>
+    <desc>ARIA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.463583" lon="148.703150">
+    <ele>518.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>ATTILA</name>
+    <cmt>ATTILA</cmt>
+    <desc>ATTILA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-30.954567" lon="149.086467">
+    <ele>303.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BARADI</name>
+    <cmt>BARADI</cmt>
+    <desc>BARADI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.152700" lon="147.397400">
+    <ele>232.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BARME</name>
+    <cmt>BARME</cmt>
+    <desc>BARME</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.405556" lon="147.951944">
+    <ele>235.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BIGT01</name>
+    <cmt>BIGT01</cmt>
+    <desc>BIGT01</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.699000" lon="147.754700">
+    <ele>260.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BILLA</name>
+    <cmt>BILLA</cmt>
+    <desc>BILLA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.577967" lon="149.215633">
+    <ele>880.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BLANEY</name>
+    <cmt>BLANEY</cmt>
+    <desc>BLANEY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.356950" lon="147.933333">
+    <ele>230.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BMIA</name>
+    <cmt>BMIA</cmt>
+    <desc>BMIA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.361167" lon="146.745317">
+    <ele>293.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BOBADA</name>
+    <cmt>BOBADA</cmt>
+    <desc>BOBADA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.125917" lon="147.910433">
+    <ele>286.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BOGAN</name>
+    <cmt>BOGAN</cmt>
+    <desc>BOGAN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.868550" lon="144.892267">
+    <ele>92.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BOOLIG</name>
+    <cmt>BOOLIG</cmt>
+    <desc>BOOLIG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.463100" lon="148.703200">
+    <ele>520.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BOOROW</name>
+    <cmt>BOOROW</cmt>
+    <desc>BOOROW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.112183" lon="147.880883">
+    <ele>258.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BRIBAR</name>
+    <cmt>BRIBAR</cmt>
+    <desc>BRIBAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.943167" lon="147.206817">
+    <ele>188.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BUDDAB</name>
+    <cmt>BUDDAB</cmt>
+    <desc>BUDDAB</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.194983" lon="147.762183">
+    <ele>211.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BUMF</name>
+    <cmt>BUMF</cmt>
+    <desc>BUMF</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.447217" lon="147.898283">
+    <ele>230.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BUNDAB</name>
+    <cmt>BUNDAB</cmt>
+    <desc>BUNDAB</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.515450" lon="147.266400">
+    <ele>227.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BURCHE</name>
+    <cmt>BURCHE</cmt>
+    <desc>BURCHE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-30.660600" lon="146.398100">
+    <ele>160.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>BWS016</name>
+    <cmt>BWS016</cmt>
+    <desc>BWS016</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.333050" lon="147.968883">
+    <ele>240.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CALARI</name>
+    <cmt>CALARI</cmt>
+    <desc>CALARI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.781067" lon="147.108217">
+    <ele>274.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CALEEN</name>
+    <cmt>CALEEN</cmt>
+    <desc>CALEEN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.553783" lon="148.671467">
+    <ele>326.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CANOWI</name>
+    <cmt>CANOWI</cmt>
+    <desc>CANOWI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.836133" lon="147.739367">
+    <ele>226.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CARAGA</name>
+    <cmt>CARAGA</cmt>
+    <desc>CARAGA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.463250" lon="145.037233">
+    <ele>96.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CARRAT</name>
+    <cmt>CARRAT</cmt>
+    <desc>CARRAT</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.357600" lon="144.802100">
+    <ele>90.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>COBB</name>
+    <cmt>COBB</cmt>
+    <desc>COBB</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.807200" lon="145.845500">
+    <ele>118.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>COLEA</name>
+    <cmt>COLEA</cmt>
+    <desc>COLEA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.679283" lon="148.310850">
+    <ele>235.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>COLLIE</name>
+    <cmt>COLLIE</cmt>
+    <desc>COLLIE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.309717" lon="145.202033">
+    <ele>95.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CONARG</name>
+    <cmt>CONARG</cmt>
+    <desc>CONARG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.067000" lon="147.212000">
+    <ele>195.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CONDO</name>
+    <cmt>CONDO</cmt>
+    <desc>CONDO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.843333" lon="149.701350">
+    <ele>483.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>COOLAH</name>
+    <cmt>COOLAH</cmt>
+    <desc>COOLAH</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.203567" lon="147.779067">
+    <ele>218.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>COOMBE</name>
+    <cmt>COOMBE</cmt>
+    <desc>COOMBE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.802367" lon="146.350150">
+    <ele>136.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>COREEN</name>
+    <cmt>COREEN</cmt>
+    <desc>COREEN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.841500" lon="148.648600">
+    <ele>294.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>COWRA</name>
+    <cmt>COWRA</cmt>
+    <desc>COWRA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.117950" lon="148.501300">
+    <ele>368.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CROW</name>
+    <cmt>CROW</cmt>
+    <desc>CROW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.281017" lon="148.767067">
+    <ele>478.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CUDAL</name>
+    <cmt>CUDAL</cmt>
+    <desc>CUDAL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.934917" lon="148.750567">
+    <ele>540.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>CUMNOC</name>
+    <cmt>CUMNOC</cmt>
+    <desc>CUMNOC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.571667" lon="146.193300">
+    <ele>132.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>DALLAS</name>
+    <cmt>DALLAS</cmt>
+    <desc>DALLAS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.597883" lon="145.990717">
+    <ele>123.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>DARGLI</name>
+    <cmt>DARGLI</cmt>
+    <desc>DARGLI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.688117" lon="148.287900">
+    <ele>293.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>DAVIS</name>
+    <cmt>DAVIS</cmt>
+    <desc>DAVIS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.016400" lon="149.433633">
+    <ele>404.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>DUNEDO</name>
+    <cmt>DUNEDO</cmt>
+    <desc>DUNEDO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.092633" lon="148.008733">
+    <ele>174.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>EMBY</name>
+    <cmt>EMBY</cmt>
+    <desc>EMBY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.136000" lon="146.427800">
+    <ele>161.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>EUABAL</name>
+    <cmt>EUABAL</cmt>
+    <desc>EUABAL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.439700" lon="148.345333">
+    <ele>265.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>EUGOWR</name>
+    <cmt>EUGOWR</cmt>
+    <desc>EUGOWR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.011800" lon="147.374400">
+    <ele>216.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>FEDERA</name>
+    <cmt>FEDERA</cmt>
+    <desc>FEDERA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.520400" lon="148.304367">
+    <ele>254.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>FIELDS</name>
+    <cmt>FIELDS</cmt>
+    <desc>FIELDS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.804550" lon="147.449400">
+    <ele>294.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>FIFIEL</name>
+    <cmt>FIFIEL</cmt>
+    <desc>FIFIEL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.432667" lon="148.033500">
+    <ele>238.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>FORBSG</name>
+    <cmt>FORBSG</cmt>
+    <desc>FORBSG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.358333" lon="147.988333">
+    <ele>250.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>FORNWG</name>
+    <cmt>FORNWG</cmt>
+    <desc>FORNWG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.330383" lon="148.148150">
+    <ele>317.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>FORRES</name>
+    <cmt>FORRES</cmt>
+    <desc>FORRES</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.536633" lon="147.706017">
+    <ele>235.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GAP</name>
+    <cmt>GAP</cmt>
+    <desc>GAP</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.550167" lon="147.947367">
+    <ele>231.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GAREMA</name>
+    <cmt>GAREMA</cmt>
+    <desc>GAREMA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.698400" lon="148.636500">
+    <ele>288.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GILGA</name>
+    <cmt>GILGA</cmt>
+    <desc>GILGA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.266450" lon="146.914783">
+    <ele>180.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GIRILA</name>
+    <cmt>GIRILA</cmt>
+    <desc>GIRILA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.623417" lon="148.201750">
+    <ele>226.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GLENCO</name>
+    <cmt>GLENCO</cmt>
+    <desc>GLENCO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.995200" lon="145.718867">
+    <ele>119.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GOOLGO</name>
+    <cmt>GOOLGO</cmt>
+    <desc>GOOLGO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.373333" lon="149.276100">
+    <ele>415.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GOOLMA</name>
+    <cmt>GOOLMA</cmt>
+    <desc>GOOLMA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.619567" lon="148.410233">
+    <ele>273.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GOOLOO</name>
+    <cmt>GOOLOO</cmt>
+    <desc>GOOLOO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.908200" lon="148.134250">
+    <ele>369.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GRENFE</name>
+    <cmt>GRENFE</cmt>
+    <desc>GRENFE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.717800" lon="146.781300">
+    <ele>174.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GRON</name>
+    <cmt>GRON</cmt>
+    <desc>GRON</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.322183" lon="148.483267">
+    <ele>226.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GULARG</name>
+    <cmt>GULARG</cmt>
+    <desc>GULARG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.298500" lon="149.557300">
+    <ele>445.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GULGO</name>
+    <cmt>GULGO</cmt>
+    <desc>GULGO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.041400" lon="145.410367">
+    <ele>100.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GUNBAR</name>
+    <cmt>GUNBAR</cmt>
+    <desc>GUNBAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.035700" lon="148.123550">
+    <ele>241.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GUNDAG</name>
+    <cmt>GUNDAG</cmt>
+    <desc>GUNDAG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.292250" lon="147.710850">
+    <ele>217.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>GUNNIN</name>
+    <cmt>GUNNIN</cmt>
+    <desc>GUNNIN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.749100" lon="143.886400">
+    <ele>70.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>HAY007</name>
+    <cmt>HAY007</cmt>
+    <desc>HAY007</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.664767" lon="148.087233">
+    <ele>257.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>HENRY</name>
+    <cmt>HENRY</cmt>
+    <desc>HENRY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.541450" lon="146.759783">
+    <ele>223.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>HERMID</name>
+    <cmt>HERMID</cmt>
+    <desc>HERMID</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.491700" lon="145.524783">
+    <ele>119.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>HILLS</name>
+    <cmt>HILLS</cmt>
+    <desc>HILLS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.680100" lon="147.322300">
+    <ele>262.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>HOLBR</name>
+    <cmt>HOLBR</cmt>
+    <desc>HOLBR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.371300" lon="145.724100">
+    <ele>109.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>JERIL</name>
+    <cmt>JERIL</cmt>
+    <desc>JERIL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.313833" lon="147.834800">
+    <ele>227.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>JONNY</name>
+    <cmt>JONNY</cmt>
+    <desc>JONNY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.585800" lon="147.782300">
+    <ele>527.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>KTWO</name>
+    <cmt>KTWO</cmt>
+    <desc>KTWO</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.284900" lon="146.371500">
+    <ele>177.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>LAKECA</name>
+    <cmt>LAKECA</cmt>
+    <desc>LAKECA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.341917" lon="146.144117">
+    <ele>155.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>LAKECC</name>
+    <cmt>LAKECC</cmt>
+    <desc>LAKECC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.806800" lon="147.626400">
+    <ele>210.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>LAKEVI</name>
+    <cmt>LAKEVI</cmt>
+    <desc>LAKEVI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.116333" lon="147.750250">
+    <ele>225.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>LEAFY</name>
+    <cmt>LEAFY</cmt>
+    <desc>LEAFY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.487100" lon="148.069600">
+    <ele>250.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>LEN025</name>
+    <cmt>LEN025</cmt>
+    <desc>LEN025</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.202400" lon="146.733233">
+    <ele>156.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>LOCKHA</name>
+    <cmt>LOCKHA</cmt>
+    <desc>LOCKHA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.642033" lon="144.288567">
+    <ele>78.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>LONGSH</name>
+    <cmt>LONGSH</cmt>
+    <desc>LONGSH</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.407450" lon="147.229000">
+    <ele>211.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>LOWLOW</name>
+    <cmt>LOWLOW</cmt>
+    <desc>LOWLOW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-30.763500" lon="150.723700">
+    <ele>370.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MAN037</name>
+    <cmt>MAN037</cmt>
+    <desc>MAN037</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.185383" lon="148.679783">
+    <ele>440.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MANILD</name>
+    <cmt>MANILD</cmt>
+    <desc>MANILD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.753433" lon="147.528650">
+    <ele>209.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MARSDE</name>
+    <cmt>MARSDE</cmt>
+    <desc>MARSDE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.251983" lon="147.104633">
+    <ele>187.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MILBY</name>
+    <cmt>MILBY</cmt>
+    <desc>MILBY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.902233" lon="147.984917">
+    <ele>281.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MINES</name>
+    <cmt>MINES</cmt>
+    <desc>MINES</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.111550" lon="148.881600">
+    <ele>554.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MOLONG</name>
+    <cmt>MOLONG</cmt>
+    <desc>MOLONG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.611033" lon="146.006033">
+    <ele>147.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MONIA</name>
+    <cmt>MONIA</cmt>
+    <desc>MONIA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.932433" lon="146.318300">
+    <ele>134.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MORUND</name>
+    <cmt>MORUND</cmt>
+    <desc>MORUND</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.827200" lon="145.874700">
+    <ele>209.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MOUNTH</name>
+    <cmt>MOUNTH</cmt>
+    <desc>MOUNTH</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.109000" lon="149.937400">
+    <ele>310.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MUL031</name>
+    <cmt>MUL031</cmt>
+    <desc>MUL031</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.864967" lon="147.893050">
+    <ele>569.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>MUN058</name>
+    <cmt>MUN058</cmt>
+    <desc>MUN058</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.052850" lon="146.311450">
+    <ele>308.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>NYMAGE</name>
+    <cmt>NYMAGE</cmt>
+    <desc>NYMAGE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.826400" lon="147.538383">
+    <ele>254.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>OLDJUN</name>
+    <cmt>OLDJUN</cmt>
+    <desc>OLDJUN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.121067" lon="147.447417">
+    <ele>230.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>OOTHA</name>
+    <cmt>OOTHA</cmt>
+    <desc>OOTHA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.328933" lon="148.255750">
+    <ele>320.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>PARKES</name>
+    <cmt>PARKES</cmt>
+    <desc>PARKES</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.729000" lon="148.211100">
+    <ele>285.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>PEAKHI</name>
+    <cmt>PEAKHI</cmt>
+    <desc>PEAKHI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.853733" lon="147.941950">
+    <ele>279.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>PINEY</name>
+    <cmt>PINEY</cmt>
+    <desc>PINEY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.733200" lon="147.940800">
+    <ele>526.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>PINNAC</name>
+    <cmt>PINNAC</cmt>
+    <desc>PINNAC</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.386111" lon="147.778889">
+    <ele>230.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>PT01</name>
+    <cmt>PT01</cmt>
+    <desc>PT01</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.383333" lon="147.900278">
+    <ele>234.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>PT02</name>
+    <cmt>PT02</cmt>
+    <desc>PT02</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.495000" lon="147.723611">
+    <ele>241.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>PT03</name>
+    <cmt>PT03</cmt>
+    <desc>PT03</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.224167" lon="147.843333">
+    <ele>270.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>PT04</name>
+    <cmt>PT04</cmt>
+    <desc>PT04</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.008383" lon="147.801417">
+    <ele>248.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>QUANDI</name>
+    <cmt>QUANDI</cmt>
+    <desc>QUANDI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.841933" lon="146.270550">
+    <ele>217.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>RANKIN</name>
+    <cmt>RANKIN</cmt>
+    <desc>RANKIN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.927900" lon="146.630000">
+    <ele>150.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>SAN015</name>
+    <cmt>SAN015</cmt>
+    <desc>SAN015</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.885500" lon="148.070900">
+    <ele>220.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>SASHA</name>
+    <cmt>SASHA</cmt>
+    <desc>SASHA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.953600" lon="147.554567">
+    <ele>232.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>SKULLS</name>
+    <cmt>SKULLS</cmt>
+    <desc>SKULLS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-36.269800" lon="145.440200">
+    <ele>110.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>SOS011</name>
+    <cmt>SOS011</cmt>
+    <desc>SOS011</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.499783" lon="147.897850">
+    <ele>303.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>STOCKI</name>
+    <cmt>STOCKI</cmt>
+    <desc>STOCKI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.431900" lon="147.519067">
+    <ele>210.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>SUCK</name>
+    <cmt>SUCK</cmt>
+    <desc>SUCK</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.001583" lon="146.889283">
+    <ele>240.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TALLIM</name>
+    <cmt>TALLIM</cmt>
+    <desc>TALLIM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.694800" lon="144.549100">
+    <ele>90.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TAN090</name>
+    <cmt>TAN090</cmt>
+    <desc>TAN090</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.791983" lon="145.536267">
+    <ele>109.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TOCUMW</name>
+    <cmt>TOCUMW</cmt>
+    <desc>TOCUMW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.566083" lon="148.226567">
+    <ele>278.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TOMING</name>
+    <cmt>TOMING</cmt>
+    <desc>TOMING</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.351667" lon="148.630117">
+    <ele>402.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TOOGON</name>
+    <cmt>TOOGON</cmt>
+    <desc>TOOGON</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.442667" lon="148.898417">
+    <ele>411.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TOORAW</name>
+    <cmt>TOORAW</cmt>
+    <desc>TOORAW</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.255300" lon="147.367700">
+    <ele>238.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TOTTE</name>
+    <cmt>TOTTE</cmt>
+    <desc>TOTTE</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.979800" lon="148.003500">
+    <ele>213.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRANG</name>
+    <cmt>TRANG</cmt>
+    <desc>TRANG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.047217" lon="147.516383">
+    <ele>213.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRI25A</name>
+    <cmt>TRI25A</cmt>
+    <desc>TRI25A</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.833333" lon="147.528333">
+    <ele>222.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRI25B</name>
+    <cmt>TRI25B</cmt>
+    <desc>TRI25B</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.762683" lon="149.472367">
+    <ele>970.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRIANG</name>
+    <cmt>TRIANG</cmt>
+    <desc>TRIANG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.937800" lon="147.709700">
+    <ele>257.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRUND</name>
+    <cmt>TRUND</cmt>
+    <desc>TRUND</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.634600" lon="147.561000">
+    <ele>240.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TULLA</name>
+    <cmt>TULLA</cmt>
+    <desc>TULLA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.449233" lon="146.721017">
+    <ele>261.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TULLIB</name>
+    <cmt>TULLIB</cmt>
+    <desc>TULLIB</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.016183" lon="148.219150">
+    <ele>329.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TYA030</name>
+    <cmt>TYA030</cmt>
+    <desc>TYA030</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.628950" lon="146.983067">
+    <ele>225.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>UNGARI</name>
+    <cmt>UNGARI</cmt>
+    <desc>UNGARI</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.341700" lon="146.287400">
+    <ele>121.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>URAN</name>
+    <cmt>URAN</cmt>
+    <desc>URAN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-29.777500" lon="148.114900">
+    <ele>140.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>WAL014</name>
+    <cmt>WAL014</cmt>
+    <desc>WAL014</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-30.050183" lon="148.110200">
+    <ele>133.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>WALGET</name>
+    <cmt>WALGET</cmt>
+    <desc>WALGET</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.465217" lon="148.989300">
+    <ele>395.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>WELLIN</name>
+    <cmt>WELLIN</cmt>
+    <desc>WELLIN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.094267" lon="148.006100">
+    <ele>274.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>WESTPA</name>
+    <cmt>WESTPA</cmt>
+    <desc>WESTPA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.550800" lon="149.427000">
+    <ele>840.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>WIM084</name>
+    <cmt>WIM084</cmt>
+    <desc>WIM084</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-30.576467" lon="148.229900">
+    <ele>141.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>WINGAD</name>
+    <cmt>WINGAD</cmt>
+    <desc>WINGAD</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.676050" lon="147.799417">
+    <ele>267.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>WIRRIN</name>
+    <cmt>WIRRIN</cmt>
+    <desc>WIRRIN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.739317" lon="148.840617">
+    <ele>458.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>WOODST</name>
+    <cmt>WOODST</cmt>
+    <desc>WOODST</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.409400" lon="147.669100">
+    <ele>220.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>WTF022</name>
+    <cmt>WTF022</cmt>
+    <desc>WTF022</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.129083" lon="147.573233">
+    <ele>210.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YARRAB</name>
+    <cmt>YARRAB</cmt>
+    <desc>YARRAB</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.410000" lon="149.651667">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YBTH</name>
+    <cmt>YBTH</cmt>
+    <desc>YBTH</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-30.983333" lon="148.375550">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YCNM</name>
+    <cmt>YCNM</cmt>
+    <desc>YCNM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.625000" lon="148.035000">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YCTM</name>
+    <cmt>YCTM</cmt>
+    <desc>YCTM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.760517" lon="148.649583">
+    <ele>400.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YEOVAL</name>
+    <cmt>YEOVAL</cmt>
+    <desc>YEOVAL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.268333" lon="146.066667">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YGTH</name>
+    <cmt>YGTH</cmt>
+    <desc>YGTH</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.531667" lon="144.830000">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YHAY</name>
+    <cmt>YHAY</cmt>
+    <desc>YHAY</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.561667" lon="149.611667">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YMDG</name>
+    <cmt>YMDG</cmt>
+    <desc>YMDG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.702767" lon="146.512767">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YNAR</name>
+    <cmt>YNAR</cmt>
+    <desc>YNAR</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.214433" lon="148.224717">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YNRM</name>
+    <cmt>YNRM</cmt>
+    <desc>YNRM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.552933" lon="147.198517">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YNYN</name>
+    <cmt>YNYN</cmt>
+    <desc>YNYN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.381667" lon="149.133333">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YORG</name>
+    <cmt>YORG</cmt>
+    <desc>YORG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.250200" lon="148.248400">
+    <ele>385.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YOUNG</name>
+    <cmt>YOUNG</cmt>
+    <desc>YOUNG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.131383" lon="148.239167">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YPKS</name>
+    <cmt>YPKS</cmt>
+    <desc>YPKS</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-32.216667" lon="148.574717">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YSDU</name>
+    <cmt>YSDU</cmt>
+    <desc>YSDU</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-35.165267" lon="147.466383">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YSWG</name>
+    <cmt>YSWG</cmt>
+    <desc>YSWG</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-34.421667" lon="147.511667">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YTEM</name>
+    <cmt>YTEM</cmt>
+    <desc>YTEM</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-31.733333" lon="147.803333">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YWRN</name>
+    <cmt>YWRN</cmt>
+    <desc>YWRN</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.937217" lon="147.191383">
+    <ele>0.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>YWWL</name>
+    <cmt>YWWL</cmt>
+    <desc>YWWL</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.305300" lon="146.872900">
+    <ele>220.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>ZICKZA</name>
+    <cmt>ZICKZA</cmt>
+    <desc>ZICKZA</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.195278" lon="147.561667">
+    <ele>209.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRI50A</name>
+    <cmt>TRI50A</cmt>
+    <desc>TRI50A</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.188889" lon="147.656667">
+    <ele>211.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRI25C</name>
+    <cmt>TRI25C</cmt>
+    <desc>TRI25C</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.906389" lon="148.271389">
+    <ele>380.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRI25D</name>
+    <cmt>TRI25D</cmt>
+    <desc>TRI25D</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.186944" lon="148.792500">
+    <ele>552.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRI25E</name>
+    <cmt>TRI25E</cmt>
+    <desc>TRI25E</desc>
+    <sym>Dot</sym>
+  </wpt>
+  <wpt lat="-33.450833" lon="146.916389">
+    <ele>234.0</ele>
+    <time>2024-01-14T07:50:07</time>
+    <name>TRI50B</name>
+    <cmt>TRI50B</cmt>
+    <desc>TRI50B</desc>
+    <sym>Dot</sym>
+  </wpt>
+</gpx>
