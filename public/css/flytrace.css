@@ -709,8 +709,10 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-task-rows input[name="radius"] { max-width: 5.5rem; }
 }
 
-/* The events table has three columns: where it is a table (xl and up) the name takes the spare width and the count and the actions are narrow, next to each other at the right. */
+/* The events table has three columns: where it is a table (xl and up) it spans the width, but the name and the count take only what they need, all left-aligned,
+   and the last column (Edit, Delete) takes the rest, so each row has empty space at its right. */
 @media (min-width: 1200px) {
-  .ft-table-events th:nth-child(2), .ft-table-events td:nth-child(2) { width: 8rem; }
-  .ft-table-events th:nth-child(3), .ft-table-events td:nth-child(3) { width: 10rem; }
+  .ft-table-events th, .ft-table-events td { text-align: left !important; }
+  .ft-table-events th:not(:last-child), .ft-table-events td:not(:last-child) { width: 1%; white-space: nowrap; padding-right: 3rem; }
+  .ft-table-events .ft-actions > * + * { margin-left: 1.25rem; }
 }
