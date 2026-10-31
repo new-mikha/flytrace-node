@@ -41,7 +41,7 @@
     .filter(Boolean)
     .map((v) => v.toLowerCase());
   const currentEmail = (form.dataset.currentEmail || '').toLowerCase();
-  // from the server, which owns the rule
+  // from the server, which owns the rule:
   const MIN_PASSWORD = Number(form.dataset.minPassword) || 6;
   const MAX_PASSWORD = 128;
 

@@ -91,11 +91,11 @@
     const form = event.target;
     const ids =
       form instanceof HTMLFormElement ? (form.dataset.swap || '').split(/\s+/).filter(Boolean) : [];
-    // the dialog's own form decides in group-editor.js
+    // the dialog's own form decides in group-editor.js:
     if (ids.length === 0 || form.id === 'ft-confirm-form') return;
     event.preventDefault();
     // app.js would show its own spinner and wait for a page that never loads; keep-scroll.js has
-    // nothing to keep
+    // nothing to keep:
     event.stopPropagation();
     const action = form.getAttribute('action');
     send(form, ids).then((swapped) => {

@@ -122,7 +122,7 @@ describe('single-event mode: the Today Task', () => {
     expect(page).toContain('After you save the task below it will be displayed on your maps.');
     expect(page).not.toContain('Delete the whole event');
     expect(page).toContain('There are no waypoints yet');
-    // the same event again
+    // the same event again:
     expect((await owner.get('/events/default')).headers.location).toBe(res.headers.location);
   });
 

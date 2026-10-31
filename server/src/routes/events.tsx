@@ -218,7 +218,7 @@ export async function eventRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     const found = await load(request, reply);
     if (!found) return reply;
     const { event } = found;
-    // the single-event mode has one Today Task, which stays
+    // the single-event mode has one Today Task, which stays:
     if (found.single) return reply.redirect(`/events/${event.id}`, 302);
     return sendHtml(
       reply,

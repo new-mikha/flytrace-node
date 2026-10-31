@@ -35,7 +35,7 @@ describe('legacy ASP.NET membership hashes', () => {
     expect(verifyLegacyPassword(LEGACY, 'Correct horse')).toBe(false);
     expect(verifyLegacyPassword(LEGACY, '')).toBe(false);
     expect(verifyLegacyPassword('flytrace1|x|1', 'a')).toBe(false);
-    // encrypted format unsupported
+    // encrypted format unsupported:
     expect(verifyLegacyPassword(`flytrace1|${HASH}|2|${SALT}`, 'correct horse')).toBe(false);
   });
   it('handles clear-text format 0', () => {

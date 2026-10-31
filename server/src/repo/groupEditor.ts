@@ -146,7 +146,7 @@ export async function createGroup(
       );
       return { id: g!.id, name };
     } catch (err) {
-      // two creations at once picked the same name: look again
+      // two creations at once picked the same name: look again:
       if (duplicateOf(err) === null || attempt >= 3) throw err;
     }
   }

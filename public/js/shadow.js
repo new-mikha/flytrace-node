@@ -47,11 +47,11 @@
     queued = false;
     const ramp = Math.max(1, px(getComputedStyle(top).getPropertyValue('--ft-shadow-ramp')) || 32);
     const y = window.scrollY;
-    // not innerHeight: that one moves with a phone's address bar
+    // not innerHeight: that one moves with a phone's address bar:
     const max = document.documentElement.scrollHeight - document.documentElement.clientHeight;
 
     const box = frame.getBoundingClientRect();
-    // never above the menu bar, even before it sticks (on wide screens there is a gap above it)
+    // never above the menu bar, even before it sticks (on wide screens there is a gap above it):
     let edge = Math.max(0, box.bottom);
     for (const el of document.querySelectorAll(STICKY)) {
       if (el.getClientRects().length === 0) continue; // not shown at this width
@@ -60,10 +60,10 @@
         edge = rect.bottom; // stuck, or being pushed out
     }
 
-    // from the anchor, which sticks to the top of the screen like the bars
+    // from the anchor, which sticks to the top of the screen like the bars:
     top.style.top = `${edge - anchor.getBoundingClientRect().top}px`;
     top.style.opacity = String(clamp(y / ramp));
-    // exactly at the end: gone
+    // exactly at the end: gone:
     bottom.style.opacity = String(max - y < 1 ? 0 : clamp((max - y) / ramp));
   }
 

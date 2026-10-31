@@ -48,7 +48,7 @@ export async function themeRoutes(app: FastifyInstance): Promise<void> {
           : themeOf(request.cookies) === 'dark'
             ? 'light'
             : 'dark';
-      // readable by app.js on purpose
+      // readable by app.js on purpose:
       reply.setCookie(THEME_COOKIE, next, { path: '/', maxAge: ONE_YEAR_S, sameSite: 'lax' });
       return reply.redirect(safeReturnUrl(request.query.returnUrl), 302);
     },

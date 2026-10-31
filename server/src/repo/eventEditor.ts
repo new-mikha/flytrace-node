@@ -113,7 +113,7 @@ export async function renameEvent(pool: Pool, eventId: number, name: string): Pr
 export async function deleteEvent(pool: Pool, eventId: number): Promise<void> {
   await withTransaction(pool, async (c) => {
     await bumpGroups(c, eventId);
-    // groups.event_id and the default event are set to NULL by the schema
+    // groups.event_id and the default event are set to NULL by the schema:
     await c.query('DELETE FROM events WHERE id = $1', [eventId]);
   });
 }

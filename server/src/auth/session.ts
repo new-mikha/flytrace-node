@@ -79,7 +79,7 @@ export async function registerSession(
   app.addHook('preHandler', async (request) => {
     const userId = request.session.userId;
     request.user = userId ? await loadUser(pool, userId) : null;
-    // deleted / locked out since login
+    // deleted / locked out since login:
     if (userId && !request.user) await request.session.destroy();
   });
 }

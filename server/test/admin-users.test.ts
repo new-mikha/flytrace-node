@@ -240,7 +240,7 @@ describe('sorting the list', () => {
     const res = await admin.get(`/admin?q=${all}&sort=email&dir=asc`);
     expect(res.body).toContain('aria-sort="ascending"');
     expect(res.body).toContain(`href="/admin?q=${all}&amp;sort=email&amp;dir=desc"`);
-    // first click on another column
+    // first click on another column:
     expect(res.body).toContain('href="/admin?q=' + all + '&amp;sort=groups&amp;dir=desc"');
     const bad = await admin.get(`/admin?q=${all}&sort=password_hash;drop&dir=sideways`);
     expect(bad.statusCode).toBe(200);
@@ -280,7 +280,7 @@ describe('the paginator', () => {
     expect(rowsIn(res.body)).toBe(5);
     expect(res.body).toContain('value="2"');
     expect(res.body.match(/class="page-item disabled"/g)).toHaveLength(2); // Next and Last
-    // First = page 1 without a page parameter
+    // First = page 1 without a page parameter:
     expect(res.body).toContain(`href="/admin?q=${q}" aria-label="First"`);
     const desc = await admin.get(`/admin?q=${q}&sort=username&dir=desc&page=2`);
     expect(desc.body).toContain('name="sort" value="username"');
@@ -528,7 +528,7 @@ describe('changes', () => {
     expect(ok.statusCode).toBe(302);
     await app.mail.flush();
     expect(sent.find((m) => m.to === next)?.text).toContain('token=');
-    // unchanged until the link is opened
+    // unchanged until the link is opened:
     expect((await userRow(TARGET)).email).toBe(`${TARGET}@example.com`);
   });
 

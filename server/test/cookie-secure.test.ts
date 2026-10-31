@@ -26,7 +26,7 @@ import { buildApp } from '../src/app.ts';
 import { loadConfig } from '../src/config.ts';
 import { createPool, type Pool } from '../src/db.ts';
 
-// password: "correct horse"
+// password: "correct horse":
 const LEGACY_HASH = 'flytrace1|sk6CmI9IAI5kYPkGhFQKHTBHBqQ=|1|LwKBbxGOnPud0PqiheeXkA==';
 const USER = `__test_cookie_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -62,7 +62,7 @@ beforeAll(async () => {
       NODE_ENV: 'production',
       ...env,
     });
-    // closing an app also ends its pool, so each has its own
+    // closing an app also ends its pool, so each has its own:
     apps.push(await buildApp(appConfig, createPool(appConfig.DATABASE_URL)));
   }
 });

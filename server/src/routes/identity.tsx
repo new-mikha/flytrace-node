@@ -172,7 +172,7 @@ export async function identityRoutes(
         });
         return fail('unconfirmed');
       default:
-        // no login name: people paste passwords there
+        // no login name: people paste passwords there:
         audit(request, 'login.failed', 'Failed login attempt', { ip: request.ip });
         return fail('1');
     }
@@ -271,7 +271,7 @@ export async function identityRoutes(
         // a logged-in person changing their address is not "taken" by their own current one
         return { taken: await emailTaken(pool, email.trim(), request.user?.id) };
 
-      // not a valid value: the format hints say so, there is nothing to look up
+      // not a valid value: the format hints say so, there is nothing to look up:
       return { taken: false };
     },
   );
@@ -528,7 +528,7 @@ export async function identityRoutes(
       const recipient = { id: account.id, username: account.username, email: account.email };
       mail.queue(() => mail.sendPasswordChanged(recipient));
     }
-    // the visitor who used the link is not logged in as a side effect
+    // the visitor who used the link is not logged in as a side effect:
     await request.session.regenerate();
     setFlash(request, 'success', 'Your password has been changed. You can log in now.');
     return reply.redirect('/login', 302);

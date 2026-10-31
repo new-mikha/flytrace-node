@@ -32,7 +32,7 @@
 (() => {
   const main = document.querySelector('main');
   if (!main) return;
-  // shows what needs this script (Remove, Clear task, bulk controls)
+  // shows what needs this script (Remove, Clear task, bulk controls):
   document.documentElement.classList.add('ft-js');
   const closest = (event, selector) =>
     event.target instanceof Element ? event.target.closest(selector) : null;
@@ -60,7 +60,7 @@
     rows.forEach((row, i) => {
       const last = i === rows.length - 1;
       row.querySelector('th').textContent = last ? 'Add new ->' : i === 0 ? 'Start' : String(i);
-      // nothing to remove in the empty line
+      // nothing to remove in the empty line:
       row.querySelector('.ft-task-remove').style.display = last ? 'none' : '';
     });
     window.ftGuard?.();

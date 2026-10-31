@@ -97,7 +97,7 @@ export async function createEvent(
       'INSERT INTO events (user_id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
       [userId, name],
     );
-    // no row: two creations at once picked the same name, look again
+    // no row: two creations at once picked the same name, look again:
     if (e) return { id: e.id, name };
   }
 }

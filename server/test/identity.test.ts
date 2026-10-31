@@ -199,7 +199,7 @@ describe('registration', () => {
         .rows[0].email_confirmed,
     ).toBe(true);
 
-    // used up
+    // used up:
     expect((await b.get(`/confirm-email?token=${encodeURIComponent(token)}`)).statusCode).toBe(400);
     expect((await b.get('/confirm-email?token=garbage')).statusCode).toBe(400);
   });
@@ -295,7 +295,7 @@ describe('forgot and reset password', () => {
 
     const resetPage = await b.get(`/reset-password?token=${encodeURIComponent(token)}`);
     expect(resetPage.statusCode).toBe(200);
-    // the same live hints as on the register page
+    // the same live hints as on the register page:
     expect(resetPage.body).toContain('data-hints="password"');
     expect(resetPage.body).toContain('ft-pw-toggle'); // show / hide password button
     expect(resetPage.body).toContain(`data-forbidden="${userName('reset')},${userEmail('reset')}"`);
@@ -423,7 +423,7 @@ describe('account pages', () => {
     expect(json.account.username).toBe(userName('del'));
     expect(JSON.stringify(json)).not.toContain('argon2');
 
-    // box not ticked
+    // box not ticked:
     expect((await b.post('/account/delete', { currentPassword: PASSWORD })).statusCode).toBe(422);
     expect(
       (await b.post('/account/delete', { currentPassword: 'wrong', confirm: 'yes' })).statusCode,

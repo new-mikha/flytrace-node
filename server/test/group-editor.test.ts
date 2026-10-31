@@ -257,7 +257,7 @@ describe('creating and editing', () => {
       expect(plain).toContain(`data-swap="${swap}"`); // forms sent in place
     for (const part of ['id="settings"', 'id="task"']) expect(plain).toContain(part);
     expect(plain).toContain('/assets/js/swap.js');
-    // a posted form comes back at the same scroll position
+    // a posted form comes back at the same scroll position:
     expect(plain).toContain('/assets/js/keep-scroll.js');
     const home = (await owner.get('/')).body; // the group list's Delete opens the same dialog
     expect(home).toContain(`data-confirm-action="/groups/${id}/delete"`);

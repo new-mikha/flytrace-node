@@ -84,13 +84,13 @@ beforeAll(async () => {
   await addGroup(`NoFix ${run}`, true, 2, null);
   await addGroup(`Private ${run}`, false, 3, '2025-01-01T10:00:00Z');
   await addGroup(`Single ${run}`, true, 1, '2025-01-01T10:00:00Z');
-  // the viewer's own: never in "others"
+  // the viewer's own: never in "others":
   await addGroup(`Mine ${run}`, true, 3, '2029-12-31T10:00:00Z', VIEWER);
   app = await buildApp(config, pool);
 });
 
 afterAll(async () => {
-  // groups and trackers cascade
+  // groups and trackers cascade:
   await pool.query('DELETE FROM users WHERE username = ANY($1)', [[OWNER, VIEWER, VIEWADMIN]]);
   await app.close();
 });
@@ -187,7 +187,7 @@ describe("GET / (signed in): others' groups", () => {
     for (const hidden of ['EdgeOut', 'Older', 'NoFix', 'Private', 'Single'])
       expect(open).not.toContain(`${hidden} ${run}`);
     // "Mine" is listed once, among their own groups, and not again among the others'
-    // as shown text (the Delete dialog's question also names it, in an attribute)
+    // as shown text (the Delete dialog's question also names it, in an attribute):
     expect(open.split(`Mine ${run}<`)).toHaveLength(2);
     expect(open).toMatch(/Show all \d+ groups/);
   });

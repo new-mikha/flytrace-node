@@ -94,6 +94,6 @@
   document.addEventListener('change', guard);
   window.addEventListener('pageshow', guard);
   guard();
-  // browsers fill saved logins a moment after the page loads
+  // browsers fill saved logins a moment after the page loads:
   for (const ms of [150, 600, 1500]) setTimeout(guard, ms);
 })();

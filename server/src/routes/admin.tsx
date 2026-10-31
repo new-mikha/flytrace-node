@@ -149,7 +149,7 @@ export async function adminRoutes(
       async (request, reply) => {
         const target = await getManagedUser(pool, request.params.id);
         if (!target) return reply.redirect('/admin', 302);
-        // the lock page posts to /lock or /unlock
+        // the lock page posts to /lock or /unlock:
         const section: SectionSlug = slug === 'unlock' ? 'lock' : (slug as SectionSlug);
         const back = `/admin/users/${target.id}/${section}`;
         if (target.id === request.user!.id) {

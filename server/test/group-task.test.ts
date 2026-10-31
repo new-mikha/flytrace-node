@@ -79,7 +79,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  // events and groups cascade
+  // events and groups cascade:
   await pool.query('DELETE FROM users WHERE username LIKE $1', [`__test_t%_${run}`]);
   await app.close();
 });
@@ -130,7 +130,7 @@ describe('single-event mode: the Today Task', () => {
       /\/groups\/(\d+)/.exec(String((await owner.post('/groups')).headers.location))![1],
     );
     const before = (await groupEvent(id)).version;
-    // box unchecked: nothing is sent for it
+    // box unchecked: nothing is sent for it:
     expect((await owner.post(`/groups/${id}/task`, {})).statusCode).toBe(302);
     expect(await groupEvent(id)).toMatchObject({ event_id: null, version: before + 1 });
     expect((await owner.get(`/groups/${id}`)).body).toContain('not showing the Today Task');
@@ -208,7 +208,7 @@ describe("multiple-events mode: the group's event", () => {
     const res = await owner.post(`/groups/${id}/event`, { event: String(theirs!.id) });
     expect(res.statusCode).toBe(302);
     expect(await groupEvent(id)).toEqual(before);
-    // not a number: nothing changes either
+    // not a number: nothing changes either:
     expect((await owner.post(`/groups/${id}/event`, { event: 'x' })).statusCode).toBe(302);
     expect(await groupEvent(id)).toEqual(before);
   });

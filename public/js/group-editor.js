@@ -36,7 +36,7 @@
 (() => {
   const main = document.querySelector('main');
   if (!main) return;
-  // shows what needs this script (Select all / none)
+  // shows what needs this script (Select all / none):
   document.documentElement.classList.add('ft-js');
   const closest = (event, selector) =>
     event.target instanceof Element ? event.target.closest(selector) : null;
@@ -106,7 +106,7 @@
       checks()[0]?.focus();
     } else {
       section.removeAttribute('data-selecting');
-      // what a cancelled selection left behind is dropped
+      // what a cancelled selection left behind is dropped:
       for (const c of checks()) c.checked = c.dataset.was === '1';
       section.querySelector('.ft-onoff-start')?.focus();
     }
@@ -174,7 +174,7 @@
     const form = event.target;
     if (!(form instanceof HTMLFormElement) || !form.closest('#trackers, #add-tracker')) return;
     event.preventDefault();
-    // app.js would show its own spinner and wait for a page that never loads
+    // app.js would show its own spinner and wait for a page that never loads:
     event.stopPropagation();
     send(form);
   });

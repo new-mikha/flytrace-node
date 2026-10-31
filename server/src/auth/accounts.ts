@@ -250,7 +250,7 @@ export async function disableTwoFactor(pool: Pool, userId: string): Promise<void
 
 export async function deleteAccount(pool: Pool, userId: string): Promise<void> {
   await endSessions(pool, userId);
-  // cascades to groups, trackers, roles, tokens, ...
+  // cascades to groups, trackers, roles, tokens, ...:
   await pool.query('DELETE FROM users WHERE id = $1', [userId]);
 }
 

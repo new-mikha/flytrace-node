@@ -77,7 +77,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await browser?.close();
-  // events, waypoints and tasks cascade
+  // events, waypoints and tasks cascade:
   await pool.query('DELETE FROM users WHERE username = $1', [USER]);
   await app?.close();
 });
@@ -122,7 +122,7 @@ describe('bulk buttons on the event page', () => {
         ['A2', 'A10', 'B1', 'C2'].map((wpt) => ({ wpt, radius: '750' })),
       ); // numbers by value: A2 before A10
 
-      // again: it replaces the lines, it does not add to them
+      // again: it replaces the lines, it does not add to them:
       await page.click('[data-task-bulk="order"]');
       expect(await rows(page)).toEqual(ADDED.map((wpt) => ({ wpt, radius: '750' })));
 

@@ -211,7 +211,7 @@ export async function accountRoutes(
         422,
       );
 
-    // other devices are logged out
+    // other devices are logged out:
     await setPassword(pool, account.id, f.password, request.session.sessionId);
     audit(request, 'password.changed', 'Password changed; other sessions ended');
     const to = recipientOf(account);

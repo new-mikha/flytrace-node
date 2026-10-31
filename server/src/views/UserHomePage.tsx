@@ -147,7 +147,7 @@ export function UserHomePage({
   others?: { list: PublicGroupsList; showAll: boolean } | null;
 }) {
   const admin = user.roles.includes('Admins');
-  // admins also get the unlisted ones
+  // admins also get the unlisted ones:
   const what = admin ? "others' groups" : "others' public groups";
   return (
     <Layout
