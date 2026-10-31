@@ -21,7 +21,7 @@
 // Browser test of the waypoints manager: the format list saves at once, Edit opens the row in
 // place, Update and Delete (through the dialog) are sent in place, adding by hand, and the stored
 // rows are checked in the database. Run with `npm run test:e2e`.
-import { chromium, type Browser } from 'playwright-core';
+import { chromium, type Browser, type Page } from 'playwright-core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../src/app.ts';
@@ -38,6 +38,18 @@ let pool: Pool;
 let browser: Browser;
 let base: string;
 let eventId: number;
+
+// the row just changed flashes: its cells have a running animation
+const flashing = (page: Page, name: string) =>
+  page.evaluate(
+    (n) =>
+      Array.from(document.querySelectorAll('#waypoints tr.ft-wpt-new')).some(
+        (tr) =>
+          tr.textContent?.includes(n) &&
+          Array.from(tr.children).some((td) => td.getAnimations().length > 0),
+      ),
+    name,
+  );
 
 const stored = async () =>
   (
@@ -111,6 +123,7 @@ describe('waypoints manager', () => {
       await page.click('#waypoints .ft-wpt-edit button[type="submit"]');
       await page.waitForSelector('#waypoints td[data-label="Alt"]:has-text("123.5")');
       expect(await page.evaluate(() => (window as any).marker)).toBe('same page');
+      expect(await flashing(page, 'ALPHA')).toBe(true);
       const [alpha] = await stored();
       expect(alpha!.alt).toBe(123.5);
       expect(alpha!.lat).toBeCloseTo(-26.06966, 4);
@@ -126,6 +139,7 @@ describe('waypoints manager', () => {
       await page.fill('#add-alt', '5');
       await page.click('#add-waypoint button[type="submit"]');
       await page.waitForSelector('#waypoints tr:has-text("CHARLIE")');
+      expect(await flashing(page, 'CHARLIE')).toBe(true);
       const charlie = (await stored()).find((w) => w.name === 'CHARLIE')!;
       expect(charlie.lat).toBeCloseTo(12.5, 9);
       expect(charlie.lon).toBeCloseTo(100 + 15.5 / 60, 9);
