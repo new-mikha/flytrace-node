@@ -358,6 +358,19 @@ describe('loading waypoints from a file', () => {
     ]); // in file order, so "the order added" is the file's
   });
 
+  it('stores coordinates exactly, including a zero right after the decimal point', async () => {
+    // Legacy bug report: a latitude like -26.06966 lost its zero when edited, and the map failed.
+    const owner = await loginAs(OWNER);
+    const ev = await eventWithWaypoints(OWNER, `Zero ${run}`, []);
+    const kml = `<kml><Placemark><name>Mt Dare</name><Point><coordinates>135.0123,-26.06966,100</coordinates></Point></Placemark></kml>`;
+    expect((await upload(owner, ev.id, 'a.kml', kml)).statusCode).toBe(302);
+    const { rows } = await pool.query<{ lat: number; lon: number }>(
+      'SELECT lat, lon FROM waypoints WHERE event_id = $1',
+      [ev.id],
+    );
+    expect(rows).toEqual([{ lat: -26.06966, lon: 135.0123 }]);
+  });
+
   it('replaces waypoints with the same name (any case), or keeps them when asked to', async () => {
     const owner = await loginAs(OWNER);
     const ev = await eventWithWaypoints(OWNER, `Merge ${run}`, ['ALPHA']);

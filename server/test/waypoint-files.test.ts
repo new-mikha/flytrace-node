@@ -243,3 +243,34 @@ describe('real files', () => {
     expect(new Set(forbes.map((w) => w.name.toLowerCase())).size).toBe(164);
   });
 });
+
+describe('the 2016 Dalby KML file', () => {
+  // An old file (other names than the 2024 ones, and it has COMPID and CIVLID placemarks, which only
+  // the GPX rules ignore), written by GpsDump with a KML 2.1 namespace.
+  const kml = parseWaypointFile('dalby2016.kml', sample('dalby2016.kml'));
+
+  it('reads all 174 placemarks in file order, with the code as the description', () => {
+    expect(kml).toHaveLength(174);
+    expect(kml[0]).toEqual({
+      name: 'BRAEUN',
+      description: 'BRA055',
+      lat: 47.829418,
+      lon: 11.127816,
+      alt: 550,
+    });
+    expect(kml[1]).toMatchObject({ name: '1DALBY', lat: -27.158866, lon: 151.263785, alt: 351 });
+  });
+
+  it('keeps a zero right after the decimal point (a legacy bug report: "Mt Dare" at -26.06966)', () => {
+    // The legacy edit form dropped that zero (-26.6966), which broke the map. Reading is exact:
+    const byName = new Map(kml.map((w) => [w.name, w]));
+    expect(byName.get('BYMONT')).toMatchObject({ lat: -26.065784 }); // -26.0|65784
+    expect(byName.get('ASHFRD')).toMatchObject({ lon: 151.088867 }); // 151.0|88867
+    expect(
+      parseWaypointFile(
+        'a.kml',
+        '<kml><Placemark><name>Mt Dare</name><Point><coordinates>135.2,-26.06966,100</coordinates></Point></Placemark></kml>',
+      )[0],
+    ).toMatchObject({ lat: -26.06966, lon: 135.2 });
+  });
+});

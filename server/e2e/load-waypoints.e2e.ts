@@ -126,6 +126,7 @@ describe('real files', () => {
     ['Dalby2024.cup', 173],
     ['Dalby2024.gpx', 173],
     ['Forbes24.gpx', 164],
+    ['dalby2016.kml', 174],
   ])('%s loads with all its waypoints', async (file, count) => {
     const {
       rows: [u],
