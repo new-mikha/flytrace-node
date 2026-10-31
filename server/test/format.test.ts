@@ -40,9 +40,21 @@ describe('formatTimestamp', () => {
 
   it('shows the time in the configured zone, with its name', () => {
     process.env.TZ = 'Australia/Sydney'; // UTC+11 in March
-    expect(formatTimestamp(new Date('2026-03-05T04:07:00Z'), now)).toBe('Thu 5 Mar 15:07 GMT+11');
+    expect(formatTimestamp(new Date('2026-03-05T04:07:00Z'), now)).toBe('Thu 5 Mar 15:07 AEDT');
     process.env.TZ = 'Europe/Berlin';
-    expect(formatTimestamp(new Date('2026-03-05T04:07:00Z'), now)).toBe('Thu 5 Mar 5:07 GMT+1');
+    expect(formatTimestamp(new Date('2026-03-05T04:07:00Z'), now)).toBe('Thu 5 Mar 5:07 CET');
+  });
+
+  it('names the zone readably: the abbreviation of the season, else GMT+offset', () => {
+    const d = new Date('2026-03-05T04:07:00Z');
+    process.env.TZ = 'Australia/Brisbane'; // no daylight saving
+    expect(formatTimestamp(d, now)).toBe('Thu 5 Mar 14:07 AEST');
+    process.env.TZ = 'America/New_York';
+    expect(formatTimestamp(d, now)).toBe('Wed 4 Mar 23:07 EST');
+    process.env.TZ = 'Asia/Singapore'; // no abbreviation in any locale
+    expect(formatTimestamp(d, now)).toBe('Thu 5 Mar 12:07 GMT+8');
+    process.env.TZ = 'Australia/Sydney';
+    expect(formatTimestamp(new Date('2026-07-05T04:07:00Z'), now)).toBe('Sun 5 Jul 14:07 AEST');
   });
 
   it('adds the year only when it is not the current year', () => {
@@ -57,7 +69,7 @@ describe('formatTimestamp', () => {
     // 20:00 UTC on New Year's Eve is already 2026 in Sydney, still 2025 in UTC.
     const d = new Date('2025-12-31T20:00:00Z');
     process.env.TZ = 'Australia/Sydney';
-    expect(formatTimestamp(d, now)).toBe('Thu 1 Jan 7:00 GMT+11');
+    expect(formatTimestamp(d, now)).toBe('Thu 1 Jan 7:00 AEDT');
     process.env.TZ = 'UTC';
     expect(formatTimestamp(d, now)).toBe('Wed 31 Dec 2025 20:00 UTC');
   });

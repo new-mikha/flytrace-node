@@ -38,11 +38,35 @@ function formatterFor(timeZone: string | undefined): Intl.DateTimeFormat {
       hour: 'numeric',
       minute: '2-digit',
       hourCycle: 'h23',
-      timeZoneName: 'short',
     });
     formatters.set(key, f);
   }
   return f;
+}
+
+/**
+ * A readable zone name ("AEDT", "CET", "EDT", "UTC"). `Intl` only knows an abbreviation in the
+ * locales where people use it (en-AU: AEDT, en-GB: CET, en-US: EDT), and says "GMT+11" elsewhere,
+ * so the locales are tried in turn and the first real abbreviation wins. A zone with no
+ * abbreviation anywhere (Asia/Kolkata) keeps "GMT+5:30".
+ */
+const ZONE_LOCALES = ['en-US', 'en-AU', 'en-GB', 'en-NZ', 'en-CA', 'en-ZA', 'en-IN'];
+const zoneFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function zoneName(d: Date, timeZone: string | undefined): string {
+  let fallback = '';
+  for (const locale of ZONE_LOCALES) {
+    const key = `${locale}|${timeZone ?? ''}`;
+    let f = zoneFormatters.get(key);
+    if (!f) {
+      f = new Intl.DateTimeFormat(locale, { timeZone, timeZoneName: 'short' });
+      zoneFormatters.set(key, f);
+    }
+    const name = f.formatToParts(d).find((p) => p.type === 'timeZoneName')?.value ?? '';
+    if (!/^GMT([+-]|$)/.test(name)) return name;
+    fallback ||= name;
+  }
+  return fallback;
 }
 
 function partsOf(
@@ -56,14 +80,14 @@ function partsOf(
 
 /**
  * `ddd d MMM H:mm zone` in the site's time zone, e.g. "Wed 5 Mar 4:07 UTC" or "Wed 5 Mar 15:07
- * GMT+11". The year is added when it is not the current year (`now`, the year in that same zone):
- * "Wed 5 Mar 2025 15:07 GMT+11". `timeZone` asks for another zone ("UTC").
+ * AEDT". The year is added when it is not the current year (`now`, the year in that same zone):
+ * "Wed 5 Mar 2025 15:07 AEDT". `timeZone` asks for another zone ("UTC").
  */
 export function formatTimestamp(d: Date, now: Date = new Date(), timeZone?: string): string {
   const zone = timeZone ?? (process.env.TZ || undefined);
   const t = partsOf(d, zone);
   const year = t.year !== partsOf(now, zone).year ? ` ${t.year}` : '';
-  return `${t.weekday} ${t.day} ${t.month}${year} ${Number(t.hour)}:${t.minute} ${t.timeZoneName}`;
+  return `${t.weekday} ${t.day} ${t.month}${year} ${Number(t.hour)}:${t.minute} ${zoneName(d, zone)}`;
 }
 
 export interface Age {
