@@ -712,9 +712,17 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 .ft-bulk-caret { display: inline-block; transition: transform .2s; }
 .ft-bulk-toggle[aria-expanded="true"] .ft-bulk-caret { transform: rotate(90deg); }
 @media (max-width: 575.98px) {
-  .ft-task-rows th.ft-task-no { width: 3.5rem; font-size: .85rem; }
-  .ft-task-rows .input-group { width: 7rem; }
+  /* Phones: the table is exactly as wide as the card (fixed layout), Turn point takes what the other columns leave. */
+  .ft-task-wrap { display: block; }
+  .ft-task-rows { table-layout: fixed; width: 100%; }
+  .ft-task-rows th:nth-child(1) { width: 3.6rem; }
+  .ft-task-rows th:nth-child(3) { width: 6.6rem; }
+  .ft-task-rows th:nth-child(4) { width: 3rem; }
+  .ft-task-rows th, .ft-task-rows td { padding-left: .35rem; padding-right: .35rem; font-size: .85rem; }
+  .ft-task-rows th.ft-task-no { white-space: normal; }
+  .ft-task-rows .input-group { width: 100%; }
   .ft-task-rows select[name="wpt"] { min-width: 0; }
+  .ft-task-rows .ft-task-remove { padding: .15rem .4rem; }
 }
 
 /* The events table has three columns: where it is a table (xl and up) it spans the width: the name column is wide (55%), the count takes only what it needs, all left-aligned,
