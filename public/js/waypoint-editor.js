@@ -69,10 +69,24 @@
     closest(event, '.ft-wpt-edit')?.querySelector('a[data-wpt-cancel]')?.click();
   });
 
-  // ---- the row just added or updated (the server marks it) is brought into view after a swap
+  // ---- the row just added or updated (the server marks it) is brought into view after a swap, but
+  // only when that add or update caused the swap: a refused delete must not scroll back to it
+  let saved = false;
+  main.addEventListener(
+    'submit',
+    (event) => {
+      saved =
+        event.target instanceof Element && !!event.target.closest('#add-waypoint, .ft-wpt-edit');
+    },
+    true,
+  );
   const holder = document.querySelector('.ft-waypoints-page');
   if (holder)
     new MutationObserver(() => {
+      if (!saved) return;
+      saved = false;
+      // a refused change has no success message, and the old mark is not worth a trip
+      if (!document.querySelector('#ft-flash .alert-success')) return;
       const row = holder.querySelector('.ft-wpt-new');
       if (!row) return;
       const box = row.getBoundingClientRect();

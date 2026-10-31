@@ -152,6 +152,37 @@ describe('waypoints manager', () => {
       await page.waitForSelector('#waypoints tr:has-text("BRAVO")', { state: 'detached' });
       expect((await stored()).map((w) => w.name)).toEqual(['ALPHA', 'CHARLIE']);
       expect(await page.evaluate(() => (window as any).marker)).toBe('same page');
+
+      // a refused delete (the waypoint is in the task) does not scroll back to the marked row
+      await pool.query(
+        "INSERT INTO waypoints (event_id, name, lat, lon, alt) SELECT $1, 'Z' || n, 1, 2, 3 FROM generate_series(10, 60) n",
+        [eventId],
+      );
+      await pool.query('INSERT INTO tasks (waypoint_id, radius, wpt_order) VALUES ($1, 400, 0)', [
+        await idOf('Z60'),
+      ]);
+      await page.goto(`${base}/events/${eventId}/waypoints`);
+      await page
+        .locator('#waypoints tr:has-text("Z60") a[data-confirm-action]')
+        .scrollIntoViewIfNeeded();
+      await page.click('#waypoints tr:has-text("Z60") a[data-confirm-action]');
+      await page.waitForSelector('#ft-confirm.show');
+      const rowTop = () =>
+        page.evaluate(
+          () =>
+            Array.from(document.querySelectorAll('#waypoints tr'))
+              .find((tr) => tr.textContent?.includes('Z60'))!
+              .getBoundingClientRect().top,
+        );
+      const before = await rowTop();
+      await page.click('#ft-confirm-button');
+      await page.waitForSelector('#ft-flash .alert-danger');
+      await page.waitForTimeout(800);
+      // (the message above may push the page down, so the row is compared on the screen)
+      expect(Math.abs((await rowTop()) - before)).toBeLessThan(150);
+      // still on the screen: it did not jump to the marked row
+      const after = await rowTop();
+      expect(after > 0 && after < 900).toBe(true);
     } finally {
       await page.close();
     }
