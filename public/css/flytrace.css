@@ -701,6 +701,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 @media (min-width: 768px) {
   .ft-jumbotron-card.ft-jumbotron-wide:has(.ft-event-page) { max-width: 40rem; }
 }
+.ft-task-rows .ft-short { display: none; }
 .ft-task-wrap { display: table; max-width: 100%; } /* only as wide as the rows, so Remove stays close to the point */
 .ft-task-rows select[name="wpt"] { min-width: 14rem; }
 .ft-js .ft-no-js { display: none; }
@@ -728,6 +729,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-task-rows th:nth-child(4) { width: 3.4rem; }
   .ft-task-rows th, .ft-task-rows td { padding-left: .35rem; padding-right: .35rem; font-size: .85rem; }
   .ft-task-rows th.ft-task-no { white-space: normal; }
+  .ft-task-rows .ft-long { display: none; } /* "Add new ->" is "New ->" on phones */
+  .ft-task-rows .ft-short { display: inline; }
   .ft-task-rows .input-group { width: 100%; }
   .ft-task-rows select[name="wpt"] { min-width: 0; }
   .ft-task-rows .ft-task-remove { padding: .15rem .4rem; }

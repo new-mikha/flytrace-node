@@ -59,7 +59,12 @@
     }
     rows.forEach((row, i) => {
       const last = i === rows.length - 1;
-      row.querySelector('th').textContent = last ? 'Add new ->' : i === 0 ? 'Start' : String(i);
+      const label = row.querySelector('th');
+      // the same markup as the server's: "Add new ->", shortened to "New ->" on phones by the CSS
+      if (last)
+        label.innerHTML =
+          '<span class="ft-long">Add new</span><span class="ft-short">New</span> ->';
+      else label.textContent = i === 0 ? 'Start' : String(i);
       // nothing to remove in the empty line:
       row.querySelector('.ft-task-remove').style.display = last ? 'none' : '';
     });

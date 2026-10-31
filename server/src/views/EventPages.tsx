@@ -63,7 +63,17 @@ function TaskRow({
   return (
     <tr class="ft-task-row">
       <th scope="row" class="ft-task-no">
-        {last ? 'Add new ->' : index === 0 ? 'Start' : String(index)}
+        {last ? (
+          <>
+            <span class="ft-long">Add new</span>
+            <span class="ft-short">New</span>
+            {' ->'}
+          </>
+        ) : index === 0 ? (
+          'Start'
+        ) : (
+          String(index)
+        )}
       </th>
       <td>
         <select class="form-select form-select-sm" name="wpt" aria-label="Turn point">
