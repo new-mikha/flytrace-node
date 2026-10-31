@@ -709,7 +709,8 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-task-rows input[name="radius"] { max-width: 5.5rem; }
 }
 
-/* The events table has only three columns: where it is a table (xl and up) it stays narrower than the groups table. Below that it is cards, full width. */
+/* The events table has three columns: where it is a table (xl and up) the name takes the spare width and the count and the actions are narrow, next to each other at the right. */
 @media (min-width: 1200px) {
-  .ft-table-events { max-width: 40rem; }
+  .ft-table-events th:nth-child(2), .ft-table-events td:nth-child(2) { width: 8rem; }
+  .ft-table-events th:nth-child(3), .ft-table-events td:nth-child(3) { width: 10rem; }
 }
