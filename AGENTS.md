@@ -137,6 +137,22 @@ simulated client its own `remoteAddress`.
   group and reused for every viewer, and (3) a weak `ETag` over the group's data state plus `If-None-Match` gives the
   `"NIL"` case back as a 304 — handle that 304 explicitly (`cache: 'no-store'` and a stored tag), because a browser
   serving the cached body transparently would freeze the displayed ages.
+- **Tracker snapshots and tracks live in memory only. There is no table of track points** — do not propose one (for
+  history, for gap filling, or as a cache of last-known positions). Reason: if a point is not coming from the source
+  service it can be ignored, and the existing client was tuned against a server that held nothing but what the source
+  had just handed it. One snapshot per tracker (current point, previous point, type, user message, error, and the full
+  track newest-first, trimmed to 48 h behind its own newest point, merged on each poll by union on timestamp as
+  `SpotLocationRequest` does); evicted after ~20 minutes without a viewer, tracks included. No snapshot means
+  `Type: "wait"` — the absence of data, not a rule we add. Both endpoints read the same snapshot object, which is what
+  keeps them consistent: the client only stops re-asking for a track once its newest point reconciles with the marker.
+  **Why a points table is actively wrong, not merely unnecessary:** our data's staleness follows who has been
+  watching, not the tracker's activity (we only poll while a map is open), so a stored "last known position" can be
+  months old while the tracker flies daily. Serving it would anchor the map's auto-fit (`_succCallTime == null`, fires
+  once) on the wrong continent, let "Show tracks" fetch an ancient track, and then draw a 20,000 km segment when the
+  real position arrives 30 seconds later. `Type: "wait"` makes all of that structurally impossible, and
+  `isHavingCoordinates` already excludes such trackers from track requests. Filling a long silence is the source's
+  job: SPOT pages back while a full page of 50 messages still leaves the span under 48 h (max 5 iterations), inReach
+  requests a 4-day window outright.
 
 ## Planned (not started)
 
