@@ -153,6 +153,16 @@ simulated client its own `remoteAddress`.
   `isHavingCoordinates` already excludes such trackers from track requests. Filling a long silence is the source's
   job: SPOT pages back while a full page of 50 messages still leaves the span under 48 h (max 5 iterations), inReach
   requests a 4-day window outright.
+- **Exactly one app process: tracker polling runs inside the web process, and the app is never run as more than one
+  instance.** No Node clustering, no second instance behind nginx, no `pm2 -i`. Two instances would each keep their
+  own snapshots and each poll the same feeds, doubling traffic to SPOT and Garmin (which have rate limits we do not
+  understand) and giving viewers different answers depending on which process they reach. The poller lives in the web
+  process on purpose: snapshots are in memory (see above), and both endpoints reading the same snapshot object is what
+  keeps them reconciled, so a separate poller process would need the snapshots serialized across a boundary — the
+  storage layer we removed, in another form. Only a genuine need to scale out horizontally justifies splitting the
+  poller off, and that is the moment to design the sharing, not before; on the Pi it does not arise. When the
+  scheduler is built, guard this in code too: take a Postgres session advisory lock at startup and, if it is already
+  held, log loudly and run without polling rather than competing for the feeds.
 
 ## Planned (not started)
 
