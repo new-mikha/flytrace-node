@@ -121,6 +121,22 @@ simulated client its own `remoteAddress`.
 - No JSON login API, no "Remember me", no stored procedures or triggers.
 - Legacy rows whose names are the literal text `${output}` (broken client tool, many users) are kept as they are.
   The import renames duplicate names (`X (2)`, ...) and prints each rename.
+- The coordinates endpoint always sends the **full list** of the group's latest positions. The legacy incremental
+  protocol is not ported: no global revision counter (`revision.bin`, `RevisionPersister`, the round-up to the next
+  hundred), no seeds, no `Src` / `Res` / `"NIL"`, no `IncrTest` / `IncrSurr` surrogate self-test, no `TestCheck`,
+  no `IsAlwaysFullGroup`. Reason: legacy production ran with `IncrDebugRatio = 1` for years, which sent every
+  tracker on every call anyway, so the incremental path's output was never actually exercised; and the saving is
+  tiny — the largest captured full response (42 trackers) is 27 KB of JSON but **858 bytes gzipped**. `StartTs` is
+  sent unconditionally (the legacy `Src == null ? StartTs : null` rule goes with the seeds). `groups.version` stays
+  for cache invalidation, but is no longer part of the wire protocol: the client drops trackers missing from a full
+  response, so removals self-correct. Do not confuse it with the separate `Ver` field (the service's own API version,
+  which makes the map page reload after a deploy). See `docs/legacy-coordinates-api.md` for how the legacy one worked.
+  If bandwidth ever does matter, the fallback is **not** to revive seeds: a full response is viewer-independent
+  (every gating decision reads the group's own settings), so (1) an nginx micro-cache keyed on the group id, with a
+  TTL of a few seconds, is invisible because ages render in whole minutes, (2) the payload can be serialized once per
+  group and reused for every viewer, and (3) a weak `ETag` over the group's data state plus `If-None-Match` gives the
+  `"NIL"` case back as a 304 — handle that 304 explicitly (`cache: 'no-store'` and a stored tag), because a browser
+  serving the cached body transparently would freeze the displayed ages.
 
 ## Planned (not started)
 
