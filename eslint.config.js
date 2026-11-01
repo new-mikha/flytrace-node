@@ -24,7 +24,15 @@
 import tsParser from '@typescript-eslint/parser';
 
 export default [
-  { ignores: ['**/node_modules/**', 'dist/**', '**/db/legacy/dump/**', 'public/vendor/**'] },
+  {
+    ignores: [
+      '**/node_modules/**',
+      'dist/**',
+      '**/db/legacy/dump/**',
+      'public/vendor/**',
+      'public/js/map/main.js',
+    ],
+  },
   {
     files: ['**/*.{ts,tsx,js}'],
     languageOptions: { parser: tsParser, parserOptions: { ecmaFeatures: { jsx: true } } },

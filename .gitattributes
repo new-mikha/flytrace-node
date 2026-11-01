@@ -1,2 +1,3 @@
 # Sample files from other programs keep their own line endings (the real files have CRLF, the parsers must cope).
 server/test/fixtures/** -text
+public/js/map/main.js -text

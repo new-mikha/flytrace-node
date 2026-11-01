@@ -3,3 +3,4 @@ dist
 package-lock.json
 **/db/legacy/dump/**
 public/vendor
+public/js/map/main.js
