@@ -29,7 +29,7 @@ import type { ParsedTracker } from './trackerInput.ts';
 export interface GroupTracker {
   id: number;
   name: string;
-  type: 'S' | 'G' | 'T';
+  type: 'S' | 'G';
   foreignId: string;
   isOn: boolean;
 }
@@ -68,7 +68,7 @@ export async function getGroup(pool: Pool, id: number): Promise<EditableGroup | 
     pool.query<{
       id: number;
       name: string;
-      tracker_type: 'S' | 'G' | 'T';
+      tracker_type: 'S' | 'G';
       foreign_id: string;
       is_on: boolean;
     }>(
