@@ -426,6 +426,79 @@ goes on showing the last fix with an error line in the pilot list.
 
 ---
 
+## 5.5 Are the intervals ours, or imposed by SPOT and Garmin?
+
+Short answer: **the SPOT numbers are SPOT's own published limits, copied verbatim; the inReach number is our own
+guess, and it is more aggressive than anyone else's.** No, we cannot poll every second.
+
+### SPOT: documented, and enforced
+
+SPOT's support page for the public XML feed asks for **at least 2.5 minutes (150 s) between calls to the same
+feed**, and, when pulling several feeds, **a sleep of at least 2 seconds between feed requests**. Those are exactly
+our two settings:
+
+| Our setting | Value | SPOT's published rule |
+|---|---|---|
+| `SPOT_SameFeedHitInterval_Seconds` | 150 | "at least 2.5 minutes between calls of the same feed" |
+| `SPOT_MinTimeFromPrevStart_Ms` | 2000 | "sleep of at least 2 seconds between feed requests" |
+
+So the scheduler is not a general-purpose rate limiter that happens to be set conservatively — it is a direct
+implementation of SPOT's terms, and the two parameters mean exactly what SPOT's two rules mean. That is almost
+certainly why the scheduler is built the way it is (per-feed interval *and* a separate global gap between any two
+requests): it needed to satisfy both rules at once.
+
+SPOT enforces this. Their pages state that calls are rate limited, that **HTTP 429** means slow down, and that
+repeatedly hitting the same feed in very short periods can get **the IP blocked or the feed disabled**. The last
+part matters: the punishment can land on the tracker owner, not just on us.
+
+Also worth carrying over: the feed returns at most the **last 50 messages** per page (hence the paging), and SPOT
+only serves **up to 7 days** of history whatever we ask for.
+
+### inReach: nothing published
+
+I could find no official Garmin limit for the MapShare KML feed. What exists is community evidence:
+
+- A developer polling at **1-minute** intervals got **429 Too Many Requests**, was locked out for an hour or two,
+  and settled on **10 minutes**.
+- Garmin's own line is that the feed is polled "at a frequency desired by the consumer" — i.e. they do not state
+  one.
+- Devices only *produce* points every **10 minutes** on the Standard plan and **2 minutes** on Premium, so anything
+  faster than that fetches nothing new.
+
+Our **30 s** is therefore well inside the range where at least one person has been throttled, and 20–60× faster
+than the device reporting rate. It has evidently not caused trouble (the production log shows 30 s polling of five
+inReach feeds with no errors), which is probably down to two things: we only ever watch a handful of inReach feeds
+at a time, and the common-case request is cheap — iteration 0 is sent without `d1`, returns a single point, and
+stops as soon as its `Id` matches what we already have (§5.3). But it is luck and low volume, not design. **For the
+rewrite I would not keep 30 s.** Something in the 2–5 minute range costs viewers almost nothing (the device is not
+reporting faster than that anyway) and removes the risk.
+
+Note also that the feed host has moved over the years — `inreach.garmin.com` → `share.garmin.com` →
+`explore.garmin.com` is reported as current, with `share.garmin.com/Feed/Share/<name>` still answering. Our stored
+ids are all `share.garmin.com/...`, so this needs watching. **(unverified)**
+
+### What the legacy code does when a limit is hit: nothing
+
+This is the real gap, and it is worth fixing in the rewrite rather than porting:
+
+- **Only HTTP 404 is recognised** (`WebFeedRequest.cs:218`) and mapped to `BadTrackerId`. Every other HTTP status,
+  **429 included**, falls through to a generic `AuxError` carrying the exception message, shown to the viewer as
+  "Cannot retrieve location data for the tracker: ...".
+- **There is no backoff anywhere.** `ConsequentErrorsCounter` and its three `ThresholdCounter`s only decide whether
+  a failure is logged at Info or at Error (which drives the SMTP alert). They do not change the schedule. A feed
+  returning 429 is retried on exactly the same cadence as a healthy one, forever.
+- **Nor is there any retry-after handling**, since the response headers are never inspected on the error path.
+- An unknown SPOT `<error><text>` is treated as "no data" and logged; if SPOT ever signalled throttling that way we
+  would absorb it silently.
+- The only thing that ever stops a failing feed being polled is the 20-minute no-viewer eviction.
+
+So the system is well-behaved as long as the configured intervals are right, and has no defence at all if they are
+wrong or if the far end changes its mind. A rewrite should: honour `Retry-After`, treat 429 as a first-class
+outcome with per-feed exponential backoff, and keep the per-feed and global gaps as hard floors rather than
+targets.
+
+---
+
 ## 6. End to end: opening a map
 
 ```
@@ -458,6 +531,9 @@ scripts, preserving map centre and zoom through hidden fields.
 
 Things that will bite if ported naively, in rough order of importance:
 
+0. **The polling intervals are external constraints, not tuning knobs** (§5.5): 150 s per SPOT feed and 2 s between
+   any two SPOT requests are SPOT's published rules, and breaking them risks the feed owner's access, not just
+   ours. Add the 429/backoff handling the legacy code lacks.
 1. **The whole design assumes one process with memory.** Group definitions, tracker snapshots, the revision counter
    and the "boring" eviction clock are all process-local. Two Node workers would each poll every feed and issue
    conflicting revisions. Either keep a single poller process, or move snapshots and the revision counter into
