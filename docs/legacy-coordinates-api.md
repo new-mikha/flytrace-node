@@ -478,13 +478,37 @@ only serves **up to 7 days** of history whatever we ask for.
 
 I could find no official Garmin limit for the MapShare KML feed. What exists is community evidence:
 
-- A developer polling at **1-minute** intervals got **429 Too Many Requests**, was locked out for an hour or two,
-  and settled on **10 minutes**. This is a forum report, not Garmin documentation, and it is the **only** concrete
-  mention of 429 found for either service — SPOT's own pages do not mention it (see above).
-- Garmin's own line is that the feed is polled "at a frequency desired by the consumer" — i.e. they do not state
-  one.
+One Garmin forum thread, "Maximum Polling for KML Feed" (posted "over 3 years ago", so roughly 2023), is the
+**only** concrete mention of 429 found for either service — SPOT's own pages do not mention it (see above).
+<https://forums.garmin.com/outdoor-recreation/outdoor-recreation-archive/f/inreach-general/337645/maximum-polling-for-kml-feed>
+
+The original poster (user `7616318`), verbatim:
+
+> I finally hit a  '429 Too Many Requests' error today from my web app that does some limited live tracking.
+>
+> I cranked it up to 1 minute polling since the event is using all 2 minute trackers.
+>
+> When I noticed the error, I turned it off and tried on the hour until requests went through again (took about an
+> hour or two).
+>
+> I've now got it polling every 10 minutes which seems ok but the fact remains there is no documentation about how
+> much polling is too much!
+
+Read that for what it is: **one user's anecdote**. He was not told he was blocked — "about an hour or two" is his
+own estimate of when requests started working again, and the thread never uses the words "locked out", "blocked" or
+"banned". The 10-minute figure is his own choice ("seems ok"), not a published threshold. The single Garmin reply
+in the thread, from `Garmin-Leslie`, offers to take it to a private message and **does not address polling limits
+at all**.
+
+So for inReach there is no documented limit, no documented status code, and no documented recovery time — only
+evidence that 429 exists and that one person saw it at 1-minute polling.
 - Devices only *produce* points every **10 minutes** on the Standard plan and **2 minutes** on Premium, so anything
-  faster than that fetches nothing new.
+  faster than that fetches nothing new. (The poster above was running 2-minute trackers and still got throttled at
+  1-minute polling.)
+- A Garmin representative is reported elsewhere as saying the feed is polled "at a frequency desired by the
+  consumer", i.e. that they set no limit. **I have not verified that quote** — it came from a search summary of a
+  thread I did not open, and the one Garmin reply in the thread I did verify says nothing about limits. Treat it
+  as hearsay. **(unverified)**
 
 Our **30 s** is therefore well inside the range where at least one person has been throttled, and 20–60× faster
 than the device reporting rate. It has evidently not caused trouble (the production log shows 30 s polling of five
