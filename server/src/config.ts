@@ -89,7 +89,9 @@ const schema = z.object({
   MAIL_CONTACT_ADDRESS: optional(z.email()),
 
   // The map page (Google Maps JavaScript API): a browser key limited to this site's addresses, and the
-  // Map ID that the map's advanced markers need. Without them Google shows its own error on the map.
+  // Map ID that the map's advanced markers need. Both are needed in production. While developing the map
+  // works without them: Google's DEMO_MAP_ID is used, and with no key the map is watermarked and shows
+  // a dialog saying that the page can't load Google Maps correctly (it can be closed).
   GOOGLE_MAPS_API_KEY: optional(z.string()),
   GOOGLE_MAPS_MAP_ID: optional(z.string()),
 });

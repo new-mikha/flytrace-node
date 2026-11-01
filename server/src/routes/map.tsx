@@ -37,6 +37,11 @@ const idOf = (raw: string): number => (/^\d{1,10}$/.test(raw) ? Number(raw) : 0)
  * address of a group can look at it. The answers are made up for now (`tracking/fake.ts`).
  */
 export async function mapRoutes(app: FastifyInstance, pool: Pool, config: Config): Promise<void> {
+  // Google's own Map ID for trying things out: with it, and with no key at all, the map still works
+  // while developing (watermarked, with a dialog that can be closed). Not used in production.
+  const mapId =
+    config.GOOGLE_MAPS_MAP_ID ?? (config.NODE_ENV === 'production' ? undefined : 'DEMO_MAP_ID');
+
   // A group that does not exist goes to the home page, as in the legacy site.
   app.get<{ Params: { id: string } }>('/map/:id', async (request, reply) => {
     const group = await getMapGroup(pool, idOf(request.params.id));
@@ -49,7 +54,7 @@ export async function mapRoutes(app: FastifyInstance, pool: Pool, config: Config
         groupId={group.id}
         groupName={group.name}
         mapsKey={config.GOOGLE_MAPS_API_KEY}
-        mapId={config.GOOGLE_MAPS_MAP_ID}
+        mapId={mapId}
       />,
     );
   });
