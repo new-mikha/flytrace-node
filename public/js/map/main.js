@@ -77,9 +77,11 @@ function initialize() {
             _groupId == 143)
             _tracksEnabled = false;
 
-        var suggLat = Number($('#' + _reloadLatId)[0].value);
-        var suggLon = Number($('#' + _reloadLonId)[0].value);
-        var suggZoom = Number($('#' + _reloadZoomId)[0].value);
+        // The map's position survives a reload of the page in the address (see onLookupComplete); it was
+        // posted back through hidden fields in the ASP.NET version:
+        var suggLat = Number(queryString.lat);
+        var suggLon = Number(queryString.lon);
+        var suggZoom = Number(queryString.zoom);
 
         if (suggLat == "" || suggLat == null || isNaN(suggLat) ||
             suggLon == "" || suggLon == null || isNaN(suggLon) ||
@@ -370,7 +372,7 @@ function gotPosition(pos) {
             _accuracyCircle = new google.maps.Circle(accuracyCircleOptions);
 
             var img = document.createElement("img");
-            img.src = 'App_Themes/Default/current_position.png';
+            img.src = '/assets/img/map/current_position.png';
             img.style = 'transform: translate(0px,8px)';
 
             _currentLocationMarker = new google.maps.marker.AdvancedMarkerElement({
@@ -449,25 +451,25 @@ function getMarkerImage(netTrackerData) {
     var trackerName = netTrackerData.Name;
 
     if (isTrackType(netTrackerData)) {
-        iconPath = 'App_Themes/Default/red-dot.png';
+        iconPath = '/assets/img/map/red-dot.png';
 
         if (trackerName != null && trackerName != "") {
             var firstChar = trackerName.toUpperCase().charAt(0);
             if (firstChar >= 'A' && firstChar <= 'Z')
-                iconPath = 'App_Themes/Default/named-markers/marker' + firstChar + '.png';
+                iconPath = '/assets/img/map/named-markers/marker' + firstChar + '.png';
         }
     } else {
         if (isOkType(netTrackerData) || isCustomType(netTrackerData) || isHelpType(netTrackerData)) {
             if (isOkType(netTrackerData)) {
-                iconPath = 'App_Themes/Default/finish.png';
+                iconPath = '/assets/img/map/finish.png';
             } else if (isCustomType(netTrackerData)) {
-                iconPath = 'App_Themes/Default/finish-custom.png';
+                iconPath = '/assets/img/map/finish-custom.png';
             } else {
-                iconPath = 'App_Themes/Default/arrow.png';
+                iconPath = '/assets/img/map/arrow.png';
             }
         }
         else {
-            iconPath = 'App_Themes/Default/redarrow.png';
+            iconPath = '/assets/img/map/redarrow.png';
         }
     }
     
@@ -739,7 +741,7 @@ function clearError() {
 function onLookup() {
     try {
         _prevTime = new Date();
-        FlyTrace.Service.TrackerService.GetCoordinates(_groupId, _currentSeed, _prevTime, onLookupComplete, onError);
+        TrackerApi.getCoordinates(_groupId, onLookupComplete, onError);
         showStatus("Getting data from the server...");
         _isOnCall = true;
     }
@@ -784,10 +786,12 @@ function onLookupComplete(result) {
         log("Result version : " + result.Ver);
 
         if (_currentVersion != null && result.Ver != null && _currentVersion != result.Ver) {
-            $('#' + _reloadLatId)[0].value = _map.getCenter().lat();
-            $('#' + _reloadLonId)[0].value = _map.getCenter().lng();
-            $('#' + _reloadZoomId)[0].value = _map.getZoom();
-            __doPostBack(_reloadLatId, "");
+            // The server has changed, so load the page again, at the same place on the map:
+            var reloadUrl = window.location.href;
+            reloadUrl = updateUrlParameter(reloadUrl, "lat", _map.getCenter().lat());
+            reloadUrl = updateUrlParameter(reloadUrl, "lon", _map.getCenter().lng());
+            reloadUrl = updateUrlParameter(reloadUrl, "zoom", _map.getZoom());
+            window.location.href = reloadUrl;
             return;
         }
 
@@ -1053,7 +1057,7 @@ function processResult(result, isIncremental) {
 
             log(incrDebugMsg);
 
-            FlyTrace.Service.TrackerService.TestCheck(incrDebugMsg);
+            TrackerApi.testCheck(incrDebugMsg);
         }
         catch (debugMsgExc) {
             log(debugMsgExc.message);
@@ -1245,7 +1249,7 @@ function getContent(marker) {
 
     try {
         if (marker == _currentLocationMarker) {
-            return "<img src=App_Themes/Default/kolobok_cool.gif>&nbsp;&nbsp;This is your position";
+            return "<img src=/assets/img/map/kolobok_cool.gif>&nbsp;&nbsp;This is your position";
         }
 
         var trackerHolder = null;
@@ -1262,14 +1266,14 @@ function getContent(marker) {
         if (trackerHolder != null) {
             var iconSource;
             if (isTrackType(trackerHolder.NetTrackerData)) {
-                iconSource = "App_Themes/Default/info.png";
+                iconSource = "/assets/img/map/info.png";
             } else if (isOkType(trackerHolder.NetTrackerData)) {
-                iconSource = "App_Themes/Default/finish.png";
+                iconSource = "/assets/img/map/finish.png";
             } else if (isCustomType(trackerHolder.NetTrackerData)) {
-                iconSource = "App_Themes/Default/finish-custom.png";
+                iconSource = "/assets/img/map/finish-custom.png";
             } else {
                 // help & sos
-                iconSource = "App_Themes/Default/help.png";
+                iconSource = "/assets/img/map/help.png";
             }
             var ageStr = getAgeStr(trackerHolder.UpdateTs, trackerHolder.NetTrackerData.Age);
 
@@ -1579,7 +1583,7 @@ function checkFullTracks(firstPriorityOnly) {
 
         if (request.Items.length > 0) {
             _getTracksCallStartTs = new Date();
-            FlyTrace.Service.TrackerService.GetTracks(_groupId, request, _getTracksCallStartTs, onGetTracksComplete, onError);
+            TrackerApi.getTracks(_groupId, request, onGetTracksComplete, onError);
             showStatus("Getting track(s) from the server...");
         }
     }
@@ -2305,7 +2309,7 @@ function findElementByClass(node, lookupClass) {
 
 function sendLog() {
     var logElement = document.getElementById('logDiv');
-    FlyTrace.Service.TrackerService.TestCheck(logElement.innerHTML);
+    TrackerApi.testCheck(logElement.innerHTML);
 }
 
 function positionContent() {
