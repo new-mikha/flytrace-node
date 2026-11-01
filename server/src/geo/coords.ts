@@ -111,13 +111,21 @@ export function coordFields(value: number, kind: CoordKind, format: CoordFormat)
 export type CoordResult = { value: number } | { error: string };
 
 const NUMBER = /^[+-]?(\d+([.,]\d*)?|[.,]\d+)$/;
+/** Degrees, minutes and seconds carry no sign: the hemisphere does. */
+const UNSIGNED = /^(\d+([.,]\d*)?|[.,]\d+)$/;
 const num = (s: string) => Number(s.trim().replace(',', '.'));
 
 /** The number in `raw`, or a message with `what` ("Latitude minutes") and the allowed range. */
-function readNumber(raw: string | undefined, what: string, range: string, whole = false) {
+function readNumber(
+  raw: string | undefined,
+  what: string,
+  range: string,
+  whole = false,
+  signed = false,
+) {
   const s = (raw ?? '').trim();
   if (s === '') return { error: `${what} cannot be empty` };
-  if (!NUMBER.test(s) || (whole && !/^\d+$/.test(s)))
+  if (!(signed ? NUMBER : UNSIGNED).test(s) || (whole && !/^\d+$/.test(s)))
     return { error: `${what} should be ${whole ? 'a whole number' : 'a number'} ${range}` };
   return { value: num(s) };
 }
@@ -132,7 +140,13 @@ export function parseCoord(
   const limit = LIMIT[kind];
   let value: number;
   if (format === 'Deg') {
-    const d = readNumber(post[kind], label, `from -${limit} to ${limit}, like -27.15887`);
+    const d = readNumber(
+      post[kind],
+      label,
+      `from -${limit} to ${limit}, like -27.15887`,
+      false,
+      true,
+    );
     if ('error' in d) return d;
     value = d.value;
   } else {

@@ -24,13 +24,12 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { audit } from '../audit.ts';
 import { requireLogin } from '../auth/guards.ts';
 import type { Pool } from '../db.ts';
-import { type CoordFormat, hemisphereOf, isCoordFormat, parseCoord } from '../geo/coords.ts';
+import { hemisphereOf, isCoordFormat } from '../geo/coords.ts';
 import { type EditableEvent, getEvent } from '../repo/eventEditor.ts';
 import { ensureDefaultEvent } from '../repo/events.ts';
 import { getSettings } from '../repo/settings.ts';
 import {
   addWaypoint,
-  checkWaypointText,
   deleteAllWaypoints,
   deleteWaypoint,
   getCoordPrefs,
@@ -38,8 +37,8 @@ import {
   parseWaypointSort,
   saveCoordPrefs,
   updateWaypoint,
-  type WaypointInput,
 } from '../repo/waypoints.ts';
+import { readWaypointInput } from '../repo/waypointInput.ts';
 import {
   confirmDeleteAllWaypoints,
   confirmDeleteWaypoint,
@@ -142,37 +141,6 @@ export async function waypointRoutes(app: FastifyInstance, pool: Pool): Promise<
     return show(request, reply, found);
   });
 
-  /** The posted fields as a waypoint, or the messages (keys: name, lat, lon, alt, description). */
-  function readInput(
-    body: Body,
-    format: CoordFormat,
-  ): { input: WaypointInput } | { errors: Record<string, string> } {
-    const errors: Record<string, string> = {};
-    const name = text(body.name).trim();
-    const description = text(body.description).trim() || null;
-    const textError = checkWaypointText(name, description);
-    if (textError) errors[name === '' || name.length > 50 ? 'name' : 'description'] = textError;
-    const lat = parseCoord(body, 'lat', format);
-    if ('error' in lat) errors.lat = lat.error;
-    const lon = parseCoord(body, 'lon', format);
-    if ('error' in lon) errors.lon = lon.error;
-    const altText = text(body.alt).trim().replace(',', '.');
-    const alt = Number(altText);
-    if (altText === '' || !/^[+-]?\d+(\.\d*)?$|^[+-]?\.\d+$/.test(altText) || !Number.isFinite(alt))
-      errors.alt = 'Altitude should be a number of meters, like 650';
-    else if (Math.abs(alt) > 100000) errors.alt = 'Altitude should be within ±100000 meters';
-    if (Object.keys(errors).length > 0) return { errors };
-    return {
-      input: {
-        name,
-        description,
-        lat: (lat as { value: number }).value,
-        lon: (lon as { value: number }).value,
-        alt,
-      },
-    };
-  }
-
   const refuse = (
     request: FastifyRequest,
     reply: FastifyReply,
@@ -192,7 +160,7 @@ export async function waypointRoutes(app: FastifyInstance, pool: Pool): Promise<
     if (!found) return reply;
     const body = (request.body ?? {}) as Body;
     const prefs = await getCoordPrefs(pool, request.user!.id);
-    const read = readInput(body, prefs.format);
+    const read = readWaypointInput(body, prefs.format);
     if ('errors' in read) return refuse(request, reply, found, body, read.errors);
     const result = await addWaypoint(pool, found.event.id, read.input);
     if (!result.ok) return refuse(request, reply, found, body, { name: result.error });
@@ -225,7 +193,7 @@ export async function waypointRoutes(app: FastifyInstance, pool: Pool): Promise<
       const wid = /^\d+$/.test(request.params.wid) ? Number(request.params.wid) : 0;
       const body = (request.body ?? {}) as Body;
       const prefs = await getCoordPrefs(pool, request.user!.id);
-      const read = readInput(body, prefs.format);
+      const read = readWaypointInput(body, prefs.format);
       if ('errors' in read) return refuse(request, reply, found, body, read.errors, wid);
       const result = await updateWaypoint(pool, found.event.id, wid, read.input);
       if (!result.ok) {

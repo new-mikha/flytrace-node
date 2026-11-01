@@ -24,7 +24,6 @@ import type { Client, Pool } from '../db.ts';
 import { withTransaction } from '../db.ts';
 import type { CoordFormat } from '../geo/coords.ts';
 import { isCoordFormat } from '../geo/coords.ts';
-import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH } from './waypointFiles.ts';
 
 export interface ManagedWaypoint {
   id: number;
@@ -104,16 +103,6 @@ export async function listWaypoints(
 
 const bumpGroups = (c: Client, eventId: number) =>
   c.query('UPDATE groups SET version = version + 1 WHERE event_id = $1', [eventId]);
-
-/** The message for a name or description that cannot be stored, or null. */
-export function checkWaypointText(name: string, description: string | null): string | null {
-  if (name === '') return 'Enter a name for the waypoint.';
-  if (name.length > MAX_NAME_LENGTH)
-    return `The name can have up to ${MAX_NAME_LENGTH} characters.`;
-  if (description && description.length > MAX_DESCRIPTION_LENGTH)
-    return `The description can have up to ${MAX_DESCRIPTION_LENGTH} characters.`;
-  return null;
-}
 
 const used = (name: string) => `'${name}' has already been used as a waypoint name`;
 

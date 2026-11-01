@@ -271,6 +271,24 @@ describe('adding', () => {
   });
 });
 
+describe('refused forms', () => {
+  it('flag only the fields at fault and keep what was typed', async () => {
+    const id = await makeEvent(OWNER, 'Flags');
+    const owner = await loginAs(OWNER);
+    const typed = { name: 'Good name', lat: '95', lon: '10', alt: '5', description: 'kept' };
+    const html = (await owner.post(`/events/${id}/waypoints`, typed)).body;
+    expect(html.match(/is-invalid/g)).toHaveLength(1);
+    expect(html).toContain('Latitude should be from -90 to 90 degrees');
+    expect(html).toContain('value="Good name"');
+    expect(html).toContain('value="kept"');
+    expect(await rows(id)).toHaveLength(0);
+    // a correct form is not flagged at all
+    const ok = await owner.post(`/events/${id}/waypoints`, { ...typed, lat: '-26.06966' });
+    expect(ok.statusCode).toBe(302);
+    expect((await rows(id))[0]!.lat).toBe(-26.06966);
+  });
+});
+
 describe('the highlight', () => {
   it('marks the row just added once, and the waypoints the task uses', async () => {
     const id = await makeEvent(OWNER, 'Hl');
