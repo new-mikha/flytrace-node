@@ -171,6 +171,85 @@ simulated client its own `remoteAddress`.
   poller off, and that is the moment to design the sharing, not before; on the Pi it does not arise. When the
   scheduler is built, guard this in code too: take a Postgres session advisory lock at startup and, if it is already
   held, log loudly and run without polling rather than competing for the feeds.
+- **There are two tracker types, `'S'` (SPOT) and `'G'` (Garmin inReach). There is no `'T'` for test.** Legacy has a
+  third source type in code (`ForeignId.TEST`, a synthetic group built from captured SPOT XML in `App_Data/test/` so
+  the map could be watched without network) but it was never a database value: `GroupFacade` maps the column strictly
+  to `S` or `G` and drops anything else with an error, and `manageGroup.aspx.cs` only ever writes those two. We do not
+  need it — a fake source needs no source type of its own, because it is a fake *transport* for a real source, which
+  is what `TestLocationRequest` was (it wraps `SpotFeedRequest` with the XML handed in as a string instead of
+  fetched). Fakes go in at the HTTP seam or by swapping the source registry in dev and tests.
+- **Development may poll the real SPOT and inReach feeds.** The owner has always done so and asks for it; do not route
+  dev through sample data by default. Beware only that watch mode forgets the in-memory same-feed timer on every
+  restart, so a map left open while editing can out-pace the 150 s rule; `feed_polls` is what blunts that.
+
+## Tracker sources and polling (designed, not built)
+
+Agreed in full but no code written. **Do not start it unless asked**, and when asked, follow this rather than
+inventing a new shape. The legacy mechanics are in `docs/legacy-coordinates-api.md` (§5 fetching rules, §5.2 the
+deployed numbers, §7.0 what we changed).
+
+Layout: `server/src/tracking/` with `snapshots.ts` (the in-memory map, access stamping, eviction), `merge.ts` (fold a
+poll result into a snapshot), `scheduler.ts` (the single timer), `sources/` (`types.ts`, `spot.ts`, `inreach.ts`,
+`index.ts` for the registry); pages and endpoints in `routes/map.tsx` and `routes/tracking.ts`.
+
+```ts
+export type SourceType = 'S' | 'G';
+
+export interface TrackerSource {
+  readonly type: SourceType;
+  readonly name: string;                    // "SPOT", "Garmin inReach"
+  readonly limits: {                        // imposed by the source, not ours to tune
+    sameFeedIntervalMs: number;             // SPOT 150_000, inReach 30_000
+    minGapBetweenStartsMs: number;          // SPOT 2_000
+    maxConcurrent: number;                  // 10
+  };
+  poll(feedId: string, since: Date | null, signal: AbortSignal): Promise<FeedResult>;
+  parseFeedId(text: string): { feedId: string } | { error: string };
+}
+```
+
+- **`limits` are theirs; timeouts and backoff are ours.** SPOT's 150 s per feed and 2 s between requests are SPOT's
+  published rules (§5.5) and breaking them risks the *feed owner's* access, so they live on the source and are not
+  tuned. Our 10 s / 60 s timeouts and the backoff are scheduler config. Legacy had all four as config keys and the
+  inReach factory then read the `SPOT_` keys for three of them by mistake — hence the stray `InReachSPOT_` setting
+  name. Keeping their rules as source constants is what stops that recurring.
+- **`poll()` returns points, never a merged snapshot.** The source decides how many requests to make and what to ask
+  for; `merge.ts` decides what we keep (union on timestamp, newest-first, 48 h behind the newest point), once, for
+  every source. `since` — the newest point we already hold — is all SPOT needs for its paging decision, so a source
+  never sees our track. Legacy made `MergeWithExistingData` abstract on the request, which is why SPOT's paging and
+  the merge are welded into one method.
+- **`FeedResult` is `{ points: FeedPoint[]; error: FeedError | null; requestCount: number }`**, points newest-first,
+  and **both fields may be set at once** — legacy's "a snapshot carries a stale position and a fresh error", which the
+  client renders. `FeedError` is a closed union (`bad-feed-id`, `no-data`, `throttled`, `unauthorized`, `timeout`,
+  `source-error`, `network`) carrying `userMessage` plus `status`, `headers` and `retryAfterMs` when present.
+  `throttled` is first-class so backoff can act on it. Legacy classified only HTTP 404, which is why we cannot say
+  today what either service does when it throttles us.
+- **Log every error code and every response header, for both sources** (the owner asked for this explicitly). Neither
+  service documents a 429 or a `Retry-After`, so the first real one has to be captured in full rather than guessed at.
+  Feed ids and IMEIs are never logged.
+- **`parseFeedId` belongs to the source** (SPOT's 20-50 character id, Garmin's MapShare URL plus the IMEI after `#`),
+  moved out of `repo/trackerInput.ts`. Choosing *between* sources when the owner picked no radio button stays central:
+  that is arbitration, not source knowledge. The radio buttons themselves stay hardcoded in the view.
+- **The registry is `Record<SourceType, TrackerSource>`**, keyed by the same `char(1)` as `group_trackers.tracker_type`
+  and `feed_polls.tracker_type` (legacy: `ForeignAccessCentral.LocationRequestFactories[type]`). **The test of whether
+  the abstraction holds: no `if (type === 'S')` anywhere outside `sources/`.** The scheduler sees only `limits`,
+  `poll` and `FeedResult`; anything else that needs to branch on source means the interface is missing a member.
+- **SPOT paging lives inside `spot.ts` and counts as one unit** to the scheduler — one concurrency slot, one entry in
+  the same-feed timing, one `AbortSignal` for the whole chain. A page is at most 50 messages, page *n* is
+  `?start=n*50+1`, and paging continues only while the page came back full, the merged span is still under 48 h, there
+  have been fewer than 5 iterations, and the points fetched have not yet reached back into what we already hold.
+- **Scheduler mechanics**: one `setTimeout` re-armed after each tick (never `setInterval`, so a slow tick cannot
+  overlap itself); `AbortSignal.any([AbortSignal.timeout(...), shutdown.signal])` per poll, aborted from an `onClose`
+  hook so `app.close()` does not wait on feeds; per-source concurrency caps plus one global cap for the Pi; lazy
+  registration (a tracker enters the map when a group is first requested, as `Type: "wait"`); access stamping on the
+  request path and a sweep dropping snapshots untouched for ~20 minutes, which is what keeps feed load proportional to
+  actual viewers.
+- **Port the parser fixtures from legacy rather than inventing them**: `LocationLib.Test/BasicRequest.xml`,
+  `Combinations.xml` and `InReach/*.kml` (nine files, covering long and short feeds, two points at the same time, and
+  multi-IMEI feeds) with `SpotFeedRequestTests.cs`, `InReachFeedRequestTests.cs`, `InReachLocationRequestTests.cs`.
+  These are the only feed-level samples that exist — `legacy-xml-samples/` holds responses from *our* endpoints, not
+  from theirs. Anonymise the IMEIs and feed ids before copying them in, as was done for the tracker names in
+  `legacy-xml-samples-anon/`, and keep positions and timestamps real so the tests stay meaningful.
 
 ## Planned (not started)
 
