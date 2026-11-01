@@ -4,3 +4,6 @@ package-lock.json
 **/db/legacy/dump/**
 public/vendor
 public/js/map/main.js
+public/js/map/labelMapControl.js
+public/js/map/buttonMapControl.js
+public/third-party

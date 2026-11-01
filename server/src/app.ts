@@ -136,6 +136,12 @@ export async function buildApp(
     prefix: '/vendor/fontawesome/',
     decorateReply: false,
   });
+  // The map page's script (`public/js/map/main.js`, from the legacy site) needs jQuery.
+  await app.register(fastifyStatic, {
+    root: join(packageDir('jquery'), 'dist'),
+    prefix: '/vendor/jquery/',
+    decorateReply: false,
+  });
 
   await app.register(fastifyFormbody);
   // File uploads (waypoint files): one small file per request.

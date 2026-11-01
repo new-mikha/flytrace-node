@@ -30,7 +30,12 @@ export default [
       'dist/**',
       '**/db/legacy/dump/**',
       'public/vendor/**',
+      // Copied from the legacy site (and third-party code), kept as they were so that later changes show
+      // up in a diff against the legacy files:
       'public/js/map/main.js',
+      'public/js/map/labelMapControl.js',
+      'public/js/map/buttonMapControl.js',
+      'public/third-party/**',
     ],
   },
   {

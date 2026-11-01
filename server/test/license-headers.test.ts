@@ -26,9 +26,16 @@ import { projectRoot } from '../src/paths.ts';
 
 const ROOT = projectRoot();
 const EXTENSIONS = /\.(ts|tsx|js|css|sql|sh)$/;
-// Folders that are not ours: dependencies, build output, the production dump (never read), and the
-// copy of the old MSSQL script.
-const SKIP = new Set(['node_modules', 'dist', '.git', 'dump', 'orig-mssql-db-script.sql']);
+// Folders that are not ours: dependencies, build output, the production dump (never read), the copy
+// of the old MSSQL script, and third-party scripts that keep their own license (`public/third-party`).
+const SKIP = new Set([
+  'node_modules',
+  'dist',
+  '.git',
+  'dump',
+  'orig-mssql-db-script.sql',
+  'third-party',
+]);
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
