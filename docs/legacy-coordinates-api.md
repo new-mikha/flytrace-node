@@ -578,7 +578,35 @@ scripts, preserving map centre and zoom through hidden fields.
 
 ## 7. Notes for the rewrite
 
-Things that will bite if ported naively, in rough order of importance:
+### 7.0 Settled since this document was written (1 Nov 2026)
+
+Recorded in full under "Decisions (do not re-propose)" in `AGENTS.md`; summarised here because the items below were
+written before these calls were made, and items 1, 2, 7 and 8 are superseded by them.
+
+- **The coordinates endpoint always sends the full tracker list.** No revision counter, no seeds, no
+  `Src` / `Res` / `"NIL"`, no `IncrSurr` / `IncrTest`, no `TestCheck`. This settles items 2, 7 and 8 and the
+  "still open" question about capturing a true incremental response: it no longer matters.
+- **Snapshots and tracks live in memory only; there is no table of track points.** This confirms item 1 (and item 3,
+  which a shared in-memory snapshot gives for free) and settles item 5: keep both the 48 h server trim and the 12 h
+  client trim, since the client is unchanged. Item 4 goes away with the revision counter — equality no longer gates
+  anything on the wire.
+- **One app process, never a second instance**, with the poller inside it (item 1's "keep a single poller process"
+  branch, made explicit).
+- **Request timeouts, reduced from legacy.** Legacy: 55 s per HTTP request (`Math.Max(20000,
+  DefaultEndWaitTimeout - 5000)`) and 60 s per logical request measured from the chain's start (the scheduler's
+  `TimeoutSpanInSeconds = 60` watchdog, swept rather than exact). Ours: **10 s per HTTP request, 60 s for the whole
+  paging chain**, one `AbortSignal` shared by every page of a chain so the ceiling is exact. 10 s is roughly 10x a
+  normal response, and every second beyond it is a tracker parked in a concurrency slot. **Because we are lowering
+  it, the backoff of item 0 stops being optional**: with no backoff, a merely slow feed gets abandoned and
+  re-requested about six times as often as before, which adds load exactly when the far end is already struggling.
+- **`feed_polls` (`tracker_type`, `foreign_id`, `last_polled_at`)** is the one piece of polling state in Postgres:
+  it exists so a restart does not re-hit a feed sooner than the self-imposed interval, and it is read at startup
+  only. Keyed by the feed, because the same feed in several groups is one snapshot and one schedule
+  (legacy: `IDictionary<ForeignId, TrackerStateHolder>`). It holds no positions and no tracks.
+
+### 7.1 Things that will bite if ported naively
+
+In rough order of importance:
 
 0. **The polling intervals are external constraints, not tuning knobs** (§5.5): 150 s per SPOT feed and 2 s between
    any two SPOT requests are SPOT's published rules, and breaking them risks the feed owner's access, not just

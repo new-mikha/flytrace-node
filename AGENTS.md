@@ -152,7 +152,15 @@ simulated client its own `remoteAddress`.
   real position arrives 30 seconds later. `Type: "wait"` makes all of that structurally impossible, and
   `isHavingCoordinates` already excludes such trackers from track requests. Filling a long silence is the source's
   job: SPOT pages back while a full page of 50 messages still leaves the span under 48 h (max 5 iterations), inReach
-  requests a 4-day window outright.
+  requests a 4-day window outright. The one exception, and not a reintroduction of the above: `feed_polls`
+  (`tracker_type`, `foreign_id`, `last_polled_at`) records when each feed was last polled, so a restart does not
+  re-hit a feed sooner than the interval we impose on ourselves (SPOT: 150 s per feed). Read at startup only, keyed
+  by the feed rather than by a `group_trackers` row because one feed in several groups is polled once for all of
+  them, and holding no positions and no tracks. Request timeouts are **10 s per HTTP request and 60 s for a whole
+  SPOT paging chain** (legacy: 55 s and 60 s) — one `AbortSignal` shared by every page of the chain. Lowering it
+  makes per-tracker backoff after consecutive failures mandatory rather than optional, since legacy has none and a
+  merely slow feed would otherwise be abandoned and re-requested far more often. See
+  `docs/legacy-coordinates-api.md` §7.0.
 - **Exactly one app process: tracker polling runs inside the web process, and the app is never run as more than one
   instance.** No Node clustering, no second instance behind nginx, no `pm2 -i`. Two instances would each keep their
   own snapshots and each poll the same feeds, doubling traffic to SPOT and Garmin (which have rate limits we do not
