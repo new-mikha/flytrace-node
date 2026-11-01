@@ -447,9 +447,10 @@ implementation of SPOT's terms, and the two parameters mean exactly what SPOT's 
 certainly why the scheduler is built the way it is (per-feed interval *and* a separate global gap between any two
 requests): it needed to satisfy both rules at once.
 
-SPOT enforces this. Their pages state that calls are rate limited, that **HTTP 429** means slow down, and that
-repeatedly hitting the same feed in very short periods can get **the IP blocked or the feed disabled**. The last
-part matters: the punishment can land on the tracker owner, not just on us.
+SPOT enforces this. **Their own support pages** state that calls are rate limited, that **HTTP 429** means slow
+down, and that repeatedly hitting the same feed in very short periods can get **the IP blocked or the feed
+disabled**. The last part matters: the punishment can land on the tracker owner, not just on us. What SPOT does
+*not* document is how long a 429 lasts, or whether it carries a `Retry-After` header.
 
 Also worth carrying over: the feed returns at most the **last 50 messages** per page (hence the paging), and SPOT
 only serves **up to 7 days** of history whatever we ask for.
@@ -459,7 +460,8 @@ only serves **up to 7 days** of history whatever we ask for.
 I could find no official Garmin limit for the MapShare KML feed. What exists is community evidence:
 
 - A developer polling at **1-minute** intervals got **429 Too Many Requests**, was locked out for an hour or two,
-  and settled on **10 minutes**.
+  and settled on **10 minutes**. This is a forum report, not Garmin documentation: Garmin publishes no status
+  codes for the feed at all, so 429 on the Garmin side is **anecdotal**, unlike SPOT's, which is published.
 - Garmin's own line is that the feed is polled "at a frequency desired by the consumer" — i.e. they do not state
   one.
 - Devices only *produce* points every **10 minutes** on the Standard plan and **2 minutes** on Premium, so anything
@@ -487,15 +489,18 @@ This is the real gap, and it is worth fixing in the rewrite rather than porting:
 - **There is no backoff anywhere.** `ConsequentErrorsCounter` and its three `ThresholdCounter`s only decide whether
   a failure is logged at Info or at Error (which drives the SMTP alert). They do not change the schedule. A feed
   returning 429 is retried on exactly the same cadence as a healthy one, forever.
-- **Nor is there any retry-after handling**, since the response headers are never inspected on the error path.
+- **The response headers are never inspected on the error path**, so if either service does send a `Retry-After`
+  on a 429, we neither see nor obey it. Whether they send one is **unknown** — neither SPOT nor Garmin documents
+  it, and I found no report either way. It would have to be established by capturing a real 429.
 - An unknown SPOT `<error><text>` is treated as "no data" and logged; if SPOT ever signalled throttling that way we
   would absorb it silently.
 - The only thing that ever stops a failing feed being polled is the 20-minute no-viewer eviction.
 
 So the system is well-behaved as long as the configured intervals are right, and has no defence at all if they are
-wrong or if the far end changes its mind. A rewrite should: honour `Retry-After`, treat 429 as a first-class
-outcome with per-feed exponential backoff, and keep the per-feed and global gaps as hard floors rather than
-targets.
+wrong or if the far end changes its mind. A rewrite should: treat 429 as a first-class outcome with per-feed
+exponential backoff, keep the per-feed and global gaps as hard floors rather than targets, and log the full
+response headers of a 429 the first time one is seen — that is the cheapest way to find out whether either
+service sends `Retry-After`, which is currently an open question, not a known fact.
 
 ---
 
