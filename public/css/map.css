@@ -1,0 +1,106 @@
+/*
+  Flytrace, online viewer for GPS trackers.
+  Copyright (C) 2011-2026 Mikhail Karmazin
+
+  This file is part of Flytrace.
+
+  Flytrace is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  Flytrace is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
+  The map page (`server/src/views/MapPage.tsx`), from the legacy site's style sheet. The ids and classes
+  are the ones `public/js/map/main.js` builds the screen from, hence no `ft-` prefix.
+*/
+
+* {
+  font-family: Arial, Helvetica, Verdana, sans-serif;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+}
+
+#content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+#mapPanel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  display: inherit;
+}
+
+#listPanel {
+  width: 100%;
+  display: none;
+}
+
+#horSplitter {
+  background-color: yellow;
+}
+
+#listPanel tr:nth-child(even) {
+  background: #ccc;
+}
+
+#listPanel thead {
+  font-weight: bold;
+}
+
+#listPanel tr:nth-child(odd) {
+  background: #fff;
+}
+
+.infoUsrMsg {
+  width: 12em;
+  margin-bottom: 0.5em;
+}
+
+.marker-text-row {
+  display: block;
+  text-align: center;
+  position: relative;
+}
+
+.marker-text-cell {
+  display: inline-block;
+}
+
+.TrackerCoordsCtl {
+  font-family: 'courier New', Courier, monospace;
+}
+
+.marker-bounce {
+  animation: marker-bounce 2s infinite;
+}
+
+@keyframes marker-bounce {
+  0%,
+  50%,
+  100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-30px);
+  }
+  75% {
+    transform: translateY(-15px);
+  }
+}

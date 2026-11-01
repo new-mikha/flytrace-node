@@ -37,6 +37,7 @@ import { waypointRoutes } from './routes/waypoints.tsx';
 import { groupRoutes } from './routes/groups.tsx';
 import { homeRoutes } from './routes/home.tsx';
 import { identityRoutes } from './routes/identity.tsx';
+import { mapRoutes } from './routes/map.tsx';
 import { pageRoutes } from './routes/pages.ts';
 import { settingsRoutes } from './routes/settings.tsx';
 import { themeOf, themeRoutes } from './routes/theme.ts';
@@ -160,6 +161,7 @@ export async function buildApp(
   await groupRoutes(app, pool);
   await eventRoutes(app, pool);
   await waypointRoutes(app, pool);
+  await mapRoutes(app, pool, config);
   await homeRoutes(app, pool);
   await pageRoutes(app);
 

@@ -87,6 +87,11 @@ const schema = z.object({
   MAIL_FROM_NAME: z.string().default('Flytrace'),
   // Shown in emails as the address to write to with questions.
   MAIL_CONTACT_ADDRESS: optional(z.email()),
+
+  // The map page (Google Maps JavaScript API): a browser key limited to this site's addresses, and the
+  // Map ID that the map's advanced markers need. Without them Google shows its own error on the map.
+  GOOGLE_MAPS_API_KEY: optional(z.string()),
+  GOOGLE_MAPS_MAP_ID: optional(z.string()),
 });
 
 export type Config = z.infer<typeof schema>;
