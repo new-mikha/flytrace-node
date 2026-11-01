@@ -434,8 +434,8 @@ guess, and it is more aggressive than anyone else's.** No, we cannot poll every 
 ### SPOT: documented, and enforced
 
 SPOT's support page for the public XML feed asks for **at least 2.5 minutes (150 s) between calls to the same
-feed**, and, when pulling several feeds, **a sleep of at least 2 seconds between feed requests**. Those are exactly
-our two settings:
+feed**, and, when pulling several feeds, **a sleep of at least 2 seconds between feed requests** (quoted in full
+below). Those are exactly our two settings:
 
 | Our setting | Value | SPOT's published rule |
 |---|---|---|
@@ -447,10 +447,29 @@ implementation of SPOT's terms, and the two parameters mean exactly what SPOT's 
 certainly why the scheduler is built the way it is (per-feed interval *and* a separate global gap between any two
 requests): it needed to satisfy both rules at once.
 
-SPOT enforces this. **Their own support pages** state that calls are rate limited, that **HTTP 429** means slow
-down, and that repeatedly hitting the same feed in very short periods can get **the IP blocked or the feed
-disabled**. The last part matters: the punishment can land on the tracker owner, not just on us. What SPOT does
-*not* document is how long a 429 lasts, or whether it carries a `Retry-After` header.
+The wording on SPOT's page, quoted verbatim (bold is theirs), fetched 1 Nov 2026 from
+<https://www.findmespot.com/en-us/support/spot-gen4/get-help/general/public-api-and-xml-feed> and identical on the
+`en-ca` version of the same page:
+
+> Be considerate when making API calls, this service is provided free of charge, please do not abuse it.
+>
+> **Please allow as least 2.5 minutes between calls of the same feed and if you are pulling multiple feeds have
+> your application sleep at least 2 seconds between feed requests**
+>
+> Repeatedly accessing the same feed in very short time periods will result in your IP being blocked or your feed
+> disabled.
+
+The consequence clause matters: the punishment can land on the **tracker owner**, not just on us.
+
+**SPOT does not document HTTP 429 anywhere I can verify.** Neither live page mentions 429, "Too Many Requests" or
+`Retry-After`. An earlier draft of this document said SPOT documents 429; that was wrong — it came from a search
+engine's summary attributing it to a Gen3 support page that returns **404**. The only concrete 429 evidence for
+either service is the Garmin forum report below. What SPOT actually publishes is the two intervals and the
+blocking consequence, with no stated status code, no stated duration of a block, and no stated way to detect one.
+
+The same page also confirms two limits worth carrying into the rewrite: the feed returns the **last 50 messages**
+per page (paging in increments of 50), and "The API will only return data from the point in time the feed was
+created, up to a maximum of **7 days**".
 
 Also worth carrying over: the feed returns at most the **last 50 messages** per page (hence the paging), and SPOT
 only serves **up to 7 days** of history whatever we ask for.
@@ -460,8 +479,8 @@ only serves **up to 7 days** of history whatever we ask for.
 I could find no official Garmin limit for the MapShare KML feed. What exists is community evidence:
 
 - A developer polling at **1-minute** intervals got **429 Too Many Requests**, was locked out for an hour or two,
-  and settled on **10 minutes**. This is a forum report, not Garmin documentation: Garmin publishes no status
-  codes for the feed at all, so 429 on the Garmin side is **anecdotal**, unlike SPOT's, which is published.
+  and settled on **10 minutes**. This is a forum report, not Garmin documentation, and it is the **only** concrete
+  mention of 429 found for either service — SPOT's own pages do not mention it (see above).
 - Garmin's own line is that the feed is polled "at a frequency desired by the consumer" — i.e. they do not state
   one.
 - Devices only *produce* points every **10 minutes** on the Standard plan and **2 minutes** on Premium, so anything
@@ -490,8 +509,9 @@ This is the real gap, and it is worth fixing in the rewrite rather than porting:
   a failure is logged at Info or at Error (which drives the SMTP alert). They do not change the schedule. A feed
   returning 429 is retried on exactly the same cadence as a healthy one, forever.
 - **The response headers are never inspected on the error path**, so if either service does send a `Retry-After`
-  on a 429, we neither see nor obey it. Whether they send one is **unknown** — neither SPOT nor Garmin documents
-  it, and I found no report either way. It would have to be established by capturing a real 429.
+  on a 429, we neither see nor obey it. Whether they send one is **unknown**: SPOT's live support pages do not
+  mention `Retry-After` or 429 at all, Garmin documents nothing, and I found no report either way. It can only be
+  established by capturing a real 429.
 - An unknown SPOT `<error><text>` is treated as "no data" and logged; if SPOT ever signalled throttling that way we
   would absorb it silently.
 - The only thing that ever stops a failing feed being polled is the 20-minute no-viewer eviction.
@@ -538,7 +558,9 @@ Things that will bite if ported naively, in rough order of importance:
 
 0. **The polling intervals are external constraints, not tuning knobs** (§5.5): 150 s per SPOT feed and 2 s between
    any two SPOT requests are SPOT's published rules, and breaking them risks the feed owner's access, not just
-   ours. Add the 429/backoff handling the legacy code lacks.
+   ours — SPOT's published consequence for abuse is the **feed owner's** feed being disabled or our IP blocked. Add
+   the backoff handling the legacy code lacks, and log a throttling response in full the first time one appears,
+   since neither service documents what one looks like.
 1. **The whole design assumes one process with memory.** Group definitions, tracker snapshots, the revision counter
    and the "boring" eviction clock are all process-local. Two Node workers would each poll every feed and issue
    conflicting revisions. Either keep a single poller process, or move snapshots and the revision counter into
