@@ -8,6 +8,10 @@ then maps it onto what already exists in this repo (`flytrace-node`) and what is
 Everything here was taken from reading the legacy source; where something could not be confirmed it is marked
 **(verify)**. File paths are relative to the legacy repo root unless they start with `flytrace-node/`.
 
+For the coordinates/tracks endpoints, the incremental-update protocol (version, revision, "full" groups) and the
+polling machinery behind them, see the companion deep-dive [`legacy-coordinates-api.md`](legacy-coordinates-api.md),
+which is checked against production logs and captured responses.
+
 ---
 
 ## 1. Orientation
