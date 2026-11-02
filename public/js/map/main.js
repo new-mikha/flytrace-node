@@ -77,15 +77,21 @@ function initialize() {
             _groupId == 143)
             _tracksEnabled = false;
 
-        // The map's position survives a reload of the page in the address (see onLookupComplete); it was
-        // posted back through hidden fields in the ASP.NET version:
-        var suggLat = Number(queryString.lat);
-        var suggLon = Number(queryString.lon);
-        var suggZoom = Number(queryString.zoom);
+        // The map's position survives a reload of the page in this tab's sessionStorage (see
+        // onLookupComplete); it was posted back through hidden fields in the ASP.NET version. It is
+        // used once: removed as soon as it is read, so a later visit starts afresh.
+        var suggLat = NaN;
+        var suggLon = NaN;
+        var suggZoom = NaN;
+        try {
+            var savedView = JSON.parse(sessionStorage.getItem(viewStorageKey()));
+            sessionStorage.removeItem(viewStorageKey());
+            suggLat = Number(savedView.lat);
+            suggLon = Number(savedView.lon);
+            suggZoom = Number(savedView.zoom);
+        } catch (ignored) { }
 
-        if (suggLat == "" || suggLat == null || isNaN(suggLat) ||
-            suggLon == "" || suggLon == null || isNaN(suggLon) ||
-            suggZoom == "" || suggZoom == null || suggZoom <= 0 || isNaN(suggZoom)) {
+        if (isNaN(suggLat) || isNaN(suggLon) || isNaN(suggZoom) || suggZoom <= 0) {
             suggLat = -33.361073;
             suggLon = 147.9303;
             suggZoom = 12;
@@ -174,6 +180,10 @@ function initialize() {
         console.log(exc);
         alert(exc.message);
     }
+}
+
+function viewStorageKey() {
+    return 'ft-map-view-' + _groupId;
 }
 
 function updateUrlParameter(url, param, paramVal) {
@@ -781,11 +791,12 @@ function onLookupComplete(result) {
 
         if (_currentVersion != null && result.ver != null && _currentVersion != result.ver) {
             // The server has changed, so load the page again, at the same place on the map:
-            var reloadUrl = window.location.href;
-            reloadUrl = updateUrlParameter(reloadUrl, "lat", _map.getCenter().lat());
-            reloadUrl = updateUrlParameter(reloadUrl, "lon", _map.getCenter().lng());
-            reloadUrl = updateUrlParameter(reloadUrl, "zoom", _map.getZoom());
-            window.location.href = reloadUrl;
+            try {
+                sessionStorage.setItem(viewStorageKey(), JSON.stringify({
+                    lat: _map.getCenter().lat(), lon: _map.getCenter().lng(), zoom: _map.getZoom()
+                }));
+            } catch (ignored) { }
+            window.location.reload();
             return;
         }
 
