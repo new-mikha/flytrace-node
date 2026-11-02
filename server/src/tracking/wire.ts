@@ -19,48 +19,50 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // What the map page's script (`public/js/map/main.js`) is sent, in camelCase (the legacy site's names
-// were capitalised). Dates travel as ISO 8601 text, which is what `JSON.stringify` makes of a `Date`;
+// were capitalised). Empty values (null, false, 0, "", no time) are left out of the JSON; the
+// optional fields below are those, and `tracker-api.js` puts back the zeros and `false` the script
+// computes with. Dates travel as ISO 8601 text, which is what `JSON.stringify` makes of a `Date`;
 // `public/js/map/tracker-api.js` turns them back into dates.
 
 /** The latest position of one tracker. */
 export interface CoordItem {
   name: string;
-  lat: number;
-  lon: number;
+  lat?: number;
+  lon?: number;
   /** Always metres, whatever `altitudeUnits` says: the script converts it for showing. */
-  alt: number | null;
+  alt?: number;
   /** `wait` (not fetched yet), `TRACK`, `OK`, `TEST`, `HELP`, `SOS`, `CUSTOM`, or null (no position). */
-  type: string | null;
-  usrMsg: string | null;
-  ts: Date;
+  type?: string;
+  usrMsg?: string;
+  ts?: Date;
   /** Seconds between `ts` and the moment of the answer. */
-  age: number;
+  age?: number;
   /** What is wrong with the tracker, in words for the person looking at the map. */
-  error: string | null;
-  prevLat: number;
-  prevLon: number;
-  prevTs: Date;
-  prevAge: number;
-  isHidden: boolean;
+  error?: string;
+  prevLat?: number;
+  prevLon?: number;
+  prevTs?: Date;
+  prevAge?: number;
+  isHidden?: boolean;
 }
 
 /** The answer to the coordinates request: always the whole group. */
 export interface GroupData {
-  trackers: CoordItem[] | null;
-  altitudeUnits: string | null;
+  trackers: CoordItem[];
+  altitudeUnits?: string;
   /** Points older than this are not drawn (the event's "hide old points"). */
-  startTs: Date | null;
+  startTs?: Date;
   /** The page reloads itself when this changes, so a new version of the script is picked up. */
   ver: number;
 }
 
 export interface TrackPoint {
-  lat: number;
-  lon: number;
+  lat?: number;
+  lon?: number;
   ts: Date;
-  age: number;
+  age?: number;
   /** Set on the newest point of a track only. */
-  type: string | null;
+  type?: string;
 }
 
 export interface TrackResponseItem {

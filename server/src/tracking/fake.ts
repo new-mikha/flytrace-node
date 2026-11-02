@@ -85,35 +85,32 @@ function ageSeconds(ts: Date, now: Date): number {
     : Math.max(0, Math.round((now.getTime() - ts.getTime()) / 1000));
 }
 
+/** Leaves out what is empty: null, false, 0, "" and "no time" (the script copes with undefined). */
+function omitEmpty<T extends object>(item: T): T {
+  const kept = Object.entries(item).filter(
+    ([, v]) => !(v == null || v === false || v === 0 || v === '' || isNoTime(v)),
+  );
+  return Object.fromEntries(kept) as T;
+}
+
+function isNoTime(v: unknown): boolean {
+  return v instanceof Date && v.getTime() === NO_TIME.getTime();
+}
+
 function waiting(name: string): CoordItem {
-  return {
-    name,
-    lat: 0,
-    lon: 0,
-    alt: null,
-    type: 'wait',
-    usrMsg: null,
-    ts: NO_TIME,
-    age: 0,
-    error: null,
-    prevLat: 0,
-    prevLon: 0,
-    prevTs: NO_TIME,
-    prevAge: 0,
-    isHidden: false,
-  };
+  return { name, type: 'wait' };
 }
 
 function answered(tracker: FakeTracker, now: Date): CoordItem {
   const ts = new Date(tracker.ts);
   const prevTs = new Date(tracker.prevTs);
-  return {
+  return omitEmpty({
     ...tracker,
     ts,
     age: ageSeconds(ts, now),
     prevTs,
     prevAge: ageSeconds(prevTs, now),
-  };
+  }) as CoordItem;
 }
 
 /** The answer to a coordinates request. */
@@ -125,7 +122,6 @@ export function fakeCoordinates(groupId: number, now = new Date()): GroupData {
       hasAnswered(index, stage) ? answered(tracker, now) : waiting(tracker.name),
     ),
     altitudeUnits: 'm',
-    startTs: null,
     ver: 1,
   };
 }
@@ -146,13 +142,9 @@ export function fakeTracks(
     if (index < 0 || !track || !hasAnswered(index, stage)) continue;
 
     const laterThan = item.laterThan ? new Date(item.laterThan) : null;
-    const points: TrackPoint[] = track.track
-      .map((p) => ({
-        ...p,
-        ts: new Date(p.ts),
-        age: ageSeconds(new Date(p.ts), now),
-      }))
-      .filter((p) => !laterThan || p.ts.getTime() > laterThan.getTime());
+    const points = track.track
+      .map((p) => omitEmpty({ ...p, ts: new Date(p.ts), age: ageSeconds(new Date(p.ts), now) }))
+      .filter((p) => !laterThan || p.ts.getTime() > laterThan.getTime()) as TrackPoint[];
     if (points.length > 0) result.push({ trackerName: track.trackerName, track: points });
   }
   return result;

@@ -1102,7 +1102,7 @@ function fixLineToPrev(trackerHolder) {
 
     var isOkToShow2ndPoint =
         _startTs == null ||
-            netTrackerData.prevTs.getTime() >= _startTs.getTime();
+            (netTrackerData.prevTs != null && netTrackerData.prevTs.getTime() >= _startTs.getTime());
 
     if (isOkToShow2ndPoint &&
         netTrackerData.prevLat != null &&
@@ -1556,7 +1556,7 @@ function onGetTracksComplete(result) {
                 if (newestTrackPoint.ts.getTime() == trackerHolder.NetTrackerData.ts.getTime()) {
                     log(trackerHolder.name + ' had corresponding marker and newestTrackPoint.ts: ' + newestTrackPoint.ts);
                     trackNeedUpdate = true;
-                } else if (newestTrackPoint.ts.getTime() == trackerHolder.NetTrackerData.prevTs.getTime()) {
+                } else if (trackerHolder.NetTrackerData.prevTs != null && newestTrackPoint.ts.getTime() == trackerHolder.NetTrackerData.prevTs.getTime()) {
                     log(trackerHolder.name + ' had corresponding marker PREV point and newestTrackPoint.ts: ' + newestTrackPoint.ts);
                     // Almost impossible situation, but let's handle that.
                     // Create a "mock-up" of the TrackPoint object as it would arrive from the server:

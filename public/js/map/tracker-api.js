@@ -30,16 +30,39 @@ var TrackerApi = (function () {
     return typeof value === 'string' && ISO_DATE.test(value) ? new Date(value) : value;
   }
 
+  // The server leaves out what is empty (0, false, null, ""). The script computes with these numbers
+  // and flags, so they come back here; the rest (alt, type, usrMsg, error, startTs, ...) stays undefined.
+  function fillCoordinates(data) {
+    (data.trackers || []).forEach(function (t) {
+      ['lat', 'lon', 'age', 'prevLat', 'prevLon', 'prevAge'].forEach(function (k) {
+        if (t[k] === undefined) t[k] = 0;
+      });
+      if (t.isHidden === undefined) t.isHidden = false;
+    });
+    return data;
+  }
+
+  function fillTracks(items) {
+    items.forEach(function (item) {
+      item.track.forEach(function (p) {
+        ['lat', 'lon', 'age'].forEach(function (k) {
+          if (p[k] === undefined) p[k] = 0;
+        });
+      });
+    });
+    return items;
+  }
+
   // `onSuccess` gets the answer; `onError` gets whatever went wrong on the way (no connection, a
   // refusal), but not what `onSuccess` itself throws.
-  function send(url, options, onSuccess, onError) {
+  function send(url, options, fill, onSuccess, onError) {
     fetch(url, Object.assign({ cache: 'no-store', credentials: 'same-origin' }, options))
       .then(function (response) {
         if (!response.ok) throw new Error('The server answered ' + response.status + '.');
         return response.text();
       })
       .then(function (text) {
-        return JSON.parse(text, reviveDates);
+        return fill(JSON.parse(text, reviveDates));
       })
       .then(onSuccess, onError);
   }
@@ -47,7 +70,7 @@ var TrackerApi = (function () {
   return {
     // The latest position of every tracker of the group: always all of them.
     getCoordinates: function (groupId, onSuccess, onError) {
-      send('/map/' + groupId + '/coordinates', {}, onSuccess, onError);
+      send('/map/' + groupId + '/coordinates', {}, fillCoordinates, onSuccess, onError);
     },
 
     // The tracks of the trackers named in `request.items` (up to 10), newer than their `laterThan`.
@@ -59,6 +82,7 @@ var TrackerApi = (function () {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(request),
         },
+        fillTracks,
         onSuccess,
         onError,
       );
