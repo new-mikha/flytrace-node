@@ -4,3 +4,5 @@ dist/
 # Production data: emails and password hashes. Never commit.
 db/legacy/dump/
 .DS_Store
+
+.idea/
