@@ -47,7 +47,7 @@ interface FakeTracker {
   prevLat: number;
   prevLon: number;
   prevTs: string;
-  isHidden: boolean;
+  hidden: boolean;
 }
 
 interface FakeTrack {
@@ -122,7 +122,7 @@ export function fakeCoordinates(groupId: number, now = new Date()): GroupData {
       hasAnswered(index, stage) ? answered(tracker, now) : waiting(tracker.name),
     ),
     altitudeUnits: 'm',
-    ver: 1,
+    ver: 2,
   };
 }
 

@@ -37,7 +37,7 @@ var TrackerApi = (function () {
       ['lat', 'lon', 'age', 'prevLat', 'prevLon', 'prevAge'].forEach(function (k) {
         if (t[k] === undefined) t[k] = 0;
       });
-      if (t.isHidden === undefined) t.isHidden = false;
+      if (t.hidden === undefined) t.hidden = false;
     });
     return data;
   }

@@ -43,7 +43,7 @@ export interface CoordItem {
   prevLon?: number;
   prevTs?: Date;
   prevAge?: number;
-  isHidden?: boolean;
+  hidden?: boolean;
 }
 
 /** The answer to the coordinates request: always the whole group. */

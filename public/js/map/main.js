@@ -410,7 +410,7 @@ function addMapButton(title, eventHandler, screenPosition, textColor) {
 
 function isMarkerDisplayble(netTrackerData) {
     return isHavingCoordinates(netTrackerData) &&
-        (isSosType(netTrackerData) || !netTrackerData.isHidden);
+        (isSosType(netTrackerData) || !netTrackerData.hidden);
 }
 
 function isHavingCoordinates(netTrackerData) {
@@ -842,8 +842,8 @@ function processResult(result) {
             if (netTrackerData.lon === undefined)
                 netTrackerData.lon = 0;
 
-            if (netTrackerData.isHidden === undefined)
-                netTrackerData.isHidden = false;
+            if (netTrackerData.hidden === undefined)
+                netTrackerData.hidden = false;
 
             var trackerHolder = FindTrackerHolder(netTrackerData.name);
 
@@ -1579,7 +1579,7 @@ function onGetTracksComplete(result) {
                     netTrackerData.type = newestTrackPoint.type; // it's always set for the newest point, and always null for all other points
                     netTrackerData.ts = newestTrackPoint.ts;
                     netTrackerData.age = newestTrackPoint.age;
-                    netTrackerData.isHidden = trackerHolder.NetTrackerData.isHidden;
+                    netTrackerData.hidden = trackerHolder.NetTrackerData.hidden;
                     if (trackData.track.length == 0) {   // TODO: is it possible at all?????
                         netTrackerData.prevLat = trackerHolder.NetTrackerData.lat;
                         netTrackerData.prevLon = trackerHolder.NetTrackerData.lon;
@@ -1878,7 +1878,7 @@ function updateTrackersDisplay() {
         var trackerHolder = _trackerHolders[iTrackerHolder];
 
         var name = trackerHolder.NetTrackerData.name;
-        if (trackerHolder.NetTrackerData.isHidden) {
+        if (trackerHolder.NetTrackerData.hidden) {
             SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.NameCtl, name + "&nbsp;&ndash;&nbsp;<span class='InfoMessage'>hidden</span>");
 
             trackerHolder.StatusControlsSet.Row.style.color = "#707070";
