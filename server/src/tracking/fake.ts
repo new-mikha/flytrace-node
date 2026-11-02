@@ -34,25 +34,25 @@ import trackersJson from './fake-data/trackers.json' with { type: 'json' };
 import tracksJson from './fake-data/tracks.json' with { type: 'json' };
 import type { CoordItem, GroupData, TrackPoint, TrackRequest, TrackResponseItem } from './wire.ts';
 
-/** What the fixture files hold: the source's facts. `Age` is worked out when answering. */
+/** What the fixture files hold: the source's facts. `age` is worked out when answering. */
 interface FakeTracker {
-  Name: string;
-  Lat: number;
-  Lon: number;
-  Alt: number | null;
-  Type: string | null;
-  UsrMsg: string | null;
-  Ts: string;
-  Error: string | null;
-  PrevLat: number;
-  PrevLon: number;
-  PrevTs: string;
-  IsHidden: boolean;
+  name: string;
+  lat: number;
+  lon: number;
+  alt: number | null;
+  type: string | null;
+  usrMsg: string | null;
+  ts: string;
+  error: string | null;
+  prevLat: number;
+  prevLon: number;
+  prevTs: string;
+  isHidden: boolean;
 }
 
 interface FakeTrack {
-  TrackerName: string;
-  Track: { Lat: number; Lon: number; Ts: string; Type: string | null }[];
+  trackerName: string;
+  track: { lat: number; lon: number; ts: string; type: string | null }[];
 }
 
 const TRACKERS = trackersJson as FakeTracker[];
@@ -87,32 +87,32 @@ function ageSeconds(ts: Date, now: Date): number {
 
 function waiting(name: string): CoordItem {
   return {
-    Name: name,
-    Lat: 0,
-    Lon: 0,
-    Alt: null,
-    Type: 'wait',
-    UsrMsg: null,
-    Ts: NO_TIME,
-    Age: 0,
-    Error: null,
-    PrevLat: 0,
-    PrevLon: 0,
-    PrevTs: NO_TIME,
-    PrevAge: 0,
-    IsHidden: false,
+    name,
+    lat: 0,
+    lon: 0,
+    alt: null,
+    type: 'wait',
+    usrMsg: null,
+    ts: NO_TIME,
+    age: 0,
+    error: null,
+    prevLat: 0,
+    prevLon: 0,
+    prevTs: NO_TIME,
+    prevAge: 0,
+    isHidden: false,
   };
 }
 
 function answered(tracker: FakeTracker, now: Date): CoordItem {
-  const ts = new Date(tracker.Ts);
-  const prevTs = new Date(tracker.PrevTs);
+  const ts = new Date(tracker.ts);
+  const prevTs = new Date(tracker.prevTs);
   return {
     ...tracker,
-    Ts: ts,
-    Age: ageSeconds(ts, now),
-    PrevTs: prevTs,
-    PrevAge: ageSeconds(prevTs, now),
+    ts,
+    age: ageSeconds(ts, now),
+    prevTs,
+    prevAge: ageSeconds(prevTs, now),
   };
 }
 
@@ -121,12 +121,12 @@ export function fakeCoordinates(groupId: number, now = new Date()): GroupData {
   requests.set(groupId, (requests.get(groupId) ?? 0) + 1);
   const stage = currentStage(groupId);
   return {
-    Trackers: TRACKERS.map((tracker, index) =>
-      hasAnswered(index, stage) ? answered(tracker, now) : waiting(tracker.Name),
+    trackers: TRACKERS.map((tracker, index) =>
+      hasAnswered(index, stage) ? answered(tracker, now) : waiting(tracker.name),
     ),
-    AltitudeUnits: 'm',
-    StartTs: null,
-    Ver: 1,
+    altitudeUnits: 'm',
+    startTs: null,
+    ver: 1,
   };
 }
 
@@ -138,20 +138,22 @@ export function fakeTracks(
 ): TrackResponseItem[] {
   const stage = currentStage(groupId);
   const result: TrackResponseItem[] = [];
-  for (const item of request.Items ?? []) {
+  for (const item of request.items ?? []) {
     const index = TRACKERS.findIndex(
-      (t) => t.Name.toLowerCase() === String(item.TrackerName).toLowerCase(),
+      (t) => t.name.toLowerCase() === String(item.trackerName).toLowerCase(),
     );
-    const track = TRACKS.find((t) => t.TrackerName === TRACKERS[index]?.Name);
+    const track = TRACKS.find((t) => t.trackerName === TRACKERS[index]?.name);
     if (index < 0 || !track || !hasAnswered(index, stage)) continue;
 
-    const laterThan = item.LaterThan ? new Date(item.LaterThan) : null;
-    const points: TrackPoint[] = track.Track.map((p) => ({
-      ...p,
-      Ts: new Date(p.Ts),
-      Age: ageSeconds(new Date(p.Ts), now),
-    })).filter((p) => !laterThan || p.Ts.getTime() > laterThan.getTime());
-    if (points.length > 0) result.push({ TrackerName: track.TrackerName, Track: points });
+    const laterThan = item.laterThan ? new Date(item.laterThan) : null;
+    const points: TrackPoint[] = track.track
+      .map((p) => ({
+        ...p,
+        ts: new Date(p.ts),
+        age: ageSeconds(new Date(p.ts), now),
+      }))
+      .filter((p) => !laterThan || p.ts.getTime() > laterThan.getTime());
+    if (points.length > 0) result.push({ trackerName: track.trackerName, track: points });
   }
   return result;
 }

@@ -73,14 +73,14 @@ export async function mapRoutes(app: FastifyInstance, pool: Pool, config: Config
     const group = await getMapGroup(pool, idOf(request.params.id));
     if (!group) return reply.code(404).send({ error: 'No such group' });
 
-    const items = (request.body as TrackRequest | null)?.Items;
+    const items = (request.body as TrackRequest | null)?.items;
     if (
       !Array.isArray(items) ||
       items.length > MAX_TRACKS_PER_REQUEST ||
-      items.some((item) => typeof item?.TrackerName !== 'string' || item.TrackerName === '')
+      items.some((item) => typeof item?.trackerName !== 'string' || item.trackerName === '')
     )
       return reply.code(400).send({ error: 'Bad request' });
 
-    return reply.header('cache-control', 'no-store').send(fakeTracks(group.id, { Items: items }));
+    return reply.header('cache-control', 'no-store').send(fakeTracks(group.id, { items }));
   });
 }

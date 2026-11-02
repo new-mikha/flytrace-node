@@ -50,7 +50,7 @@ var TrackerApi = (function () {
       send('/map/' + groupId + '/coordinates', {}, onSuccess, onError);
     },
 
-    // The tracks of the trackers named in `request.Items` (up to 10), newer than their `LaterThan`.
+    // The tracks of the trackers named in `request.items` (up to 10), newer than their `laterThan`.
     getTracks: function (groupId, request, onSuccess, onError) {
       send(
         '/map/' + groupId + '/tracks',

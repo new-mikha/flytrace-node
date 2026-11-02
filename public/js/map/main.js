@@ -410,27 +410,27 @@ function addMapButton(title, eventHandler, screenPosition, textColor) {
 
 function isMarkerDisplayble(netTrackerData) {
     return isHavingCoordinates(netTrackerData) &&
-        (isSosType(netTrackerData) || !netTrackerData.IsHidden);
+        (isSosType(netTrackerData) || !netTrackerData.isHidden);
 }
 
 function isHavingCoordinates(netTrackerData) {
-    return netTrackerData.Type != null && !isWaitType(netTrackerData);
+    return netTrackerData.type != null && !isWaitType(netTrackerData);
 }
 
 function isWaitType(netTrackerData) {
-    return netTrackerData.Type === "wait";
+    return netTrackerData.type === "wait";
 }
 
 function isTrackType(netTrackerData) {
-    return netTrackerData.Type === "" || netTrackerData.Type === "TRACK";
+    return netTrackerData.type === "" || netTrackerData.type === "TRACK";
 }
 
 function isOkType(netTrackerData) {
-    return netTrackerData.Type === "OK" || netTrackerData.Type === "TEST";
+    return netTrackerData.type === "OK" || netTrackerData.type === "TEST";
 }
 
 function isCustomType(netTrackerData) {
-    return netTrackerData.Type === "CUSTOM";
+    return netTrackerData.type === "CUSTOM";
 }
 
 function isHelpType(netTrackerData) {
@@ -448,7 +448,7 @@ var _infoWindowOpenMarker = null;
 function getMarkerImage(netTrackerData) {
     var iconPath;
 
-    var trackerName = netTrackerData.Name;
+    var trackerName = netTrackerData.name;
 
     if (isTrackType(netTrackerData)) {
         iconPath = '/assets/img/map/red-dot.png';
@@ -501,7 +501,7 @@ var _isOnCall = false;
 var _requiredSecondsBetweenCalls = 30;
 
 function setupMarkerAndLabel(netTrackerData) {
-    var location = new google.maps.LatLng(netTrackerData.Lat, netTrackerData.Lon);
+    var location = new google.maps.LatLng(netTrackerData.lat, netTrackerData.lon);
 
     var img = document.createElement("img");
     img.src = getMarkerImage(netTrackerData);
@@ -510,7 +510,7 @@ function setupMarkerAndLabel(netTrackerData) {
         position: location,
         map: _map,
         content: img,
-        title: netTrackerData.Name,
+        title: netTrackerData.name,
         zIndex: 1
     });
 
@@ -660,7 +660,7 @@ function anyPilotShown() {
     if (_trackerHolders != null) {
         for (var iTrackerHolder = 0; iTrackerHolder < _trackerHolders.length; iTrackerHolder++) {
             var trackerHolder = _trackerHolders[iTrackerHolder];
-            if (trackerHolder.NetTrackerData.Type != null) {
+            if (trackerHolder.NetTrackerData.type != null) {
                 result = true;
                 break;
             }
@@ -777,9 +777,9 @@ function onLookupComplete(result) {
         clearError();
 
         log("Current version : " + _currentVersion);
-        log("Result version : " + result.Ver);
+        log("Result version : " + result.ver);
 
-        if (_currentVersion != null && result.Ver != null && _currentVersion != result.Ver) {
+        if (_currentVersion != null && result.ver != null && _currentVersion != result.ver) {
             // The server has changed, so load the page again, at the same place on the map:
             var reloadUrl = window.location.href;
             reloadUrl = updateUrlParameter(reloadUrl, "lat", _map.getCenter().lat());
@@ -789,7 +789,7 @@ function onLookupComplete(result) {
             return;
         }
 
-        _currentVersion = result.Ver;
+        _currentVersion = result.ver;
 
         processResult(result);
 
@@ -820,32 +820,32 @@ function processResult(result) {
 
     var oldStartTs = _startTs;
 
-    if (result.StartTs === undefined)
+    if (result.startTs === undefined)
         _startTs = null;
     else
-        _startTs = result.StartTs;
+        _startTs = result.startTs;
 
     // These are dates, and every answer brings new objects, so compare the times:
     var isStartTsChanged =
         (oldStartTs == null ? null : oldStartTs.getTime()) !==
         (_startTs == null ? null : _startTs.getTime());
 
-    if (result.Trackers != null) {
-        _altitudeUnits = result.AltitudeUnits;
+    if (result.trackers != null) {
+        _altitudeUnits = result.altitudeUnits;
         var addedRow = false;
-        for (var iResult = 0; iResult < result.Trackers.length; iResult++) {
-            var netTrackerData = result.Trackers[iResult];
+        for (var iResult = 0; iResult < result.trackers.length; iResult++) {
+            var netTrackerData = result.trackers[iResult];
 
-            if (netTrackerData.Lat === undefined)
-                netTrackerData.Lat = 0;
+            if (netTrackerData.lat === undefined)
+                netTrackerData.lat = 0;
 
-            if (netTrackerData.Lon === undefined)
-                netTrackerData.Lon = 0;
+            if (netTrackerData.lon === undefined)
+                netTrackerData.lon = 0;
 
-            if (netTrackerData.IsHidden === undefined)
-                netTrackerData.IsHidden = false;
+            if (netTrackerData.isHidden === undefined)
+                netTrackerData.isHidden = false;
 
-            var trackerHolder = FindTrackerHolder(netTrackerData.Name);
+            var trackerHolder = FindTrackerHolder(netTrackerData.name);
 
             // logically it's possible that we already have coordinates (or error, or whatever) when 
             // next call returns "wait" for the tracker. In this case we ignore this tracker for the moment.
@@ -859,7 +859,7 @@ function processResult(result) {
 
             if (trackerHolder == null) {
                 trackerHolder = new Object();
-                trackerHolder.Name = netTrackerData.Name;
+                trackerHolder.name = netTrackerData.name;
 
                 trackerHolder.trackData = new Object();
                 trackerHolder.trackData.track = null;
@@ -881,7 +881,7 @@ function processResult(result) {
                 _trackerHolders.push(trackerHolder);
                 addedRow = true;
 
-                SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.NameCtl, netTrackerData.Name);
+                SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.NameCtl, netTrackerData.name);
             } else if (!isMarkerDisplayble(netTrackerData)) {
                 hideMarker(trackerHolder);
             } else {
@@ -899,36 +899,36 @@ function processResult(result) {
                 var trackData = trackerHolder.trackData;
                 var track = trackData.track;
                 if (track.length > 0) {
-                    log('Checking track for ' + trackerHolder.Name);
-                    var receivedTime = netTrackerData.Ts.getTime();
-                    var trackTime = track[0].Ts.getTime();
+                    log('Checking track for ' + trackerHolder.name);
+                    var receivedTime = netTrackerData.ts.getTime();
+                    var trackTime = track[0].ts.getTime();
 
                     if (receivedTime > trackTime) {
-                        log('Updating track for ' + trackerHolder.Name + ': netTrackerData.PrevTs is ' + netTrackerData.PrevTs
-                            + ', track[0].Ts is ' + track[0].Ts);
+                        log('Updating track for ' + trackerHolder.name + ': netTrackerData.prevTs is ' + netTrackerData.prevTs
+                            + ', track[0].ts is ' + track[0].ts);
                         var currPoint = new Object();
-                        currPoint.Lat = netTrackerData.Lat;
-                        currPoint.Lon = netTrackerData.Lon;
-                        currPoint.Ts = netTrackerData.Ts;
-                        currPoint.Age = netTrackerData.Age;
+                        currPoint.lat = netTrackerData.lat;
+                        currPoint.lon = netTrackerData.lon;
+                        currPoint.ts = netTrackerData.ts;
+                        currPoint.age = netTrackerData.age;
                         track.splice(0, 0, currPoint);
                         trackPointsToAdd = 1;
-                        if (netTrackerData.PrevTs != null &&
-                            netTrackerData.PrevTs.getTime() == trackTime) {
-                            log('Simply added a point to the track for ' + trackerHolder.Name);
-                            trackData.latestReceivedTs = netTrackerData.Ts;
+                        if (netTrackerData.prevTs != null &&
+                            netTrackerData.prevTs.getTime() == trackTime) {
+                            log('Simply added a point to the track for ' + trackerHolder.name);
+                            trackData.latestReceivedTs = netTrackerData.ts;
                         } else {
-                            log('Refresh need for the whole track for ' + trackerHolder.Name);
+                            log('Refresh need for the whole track for ' + trackerHolder.name);
                             // we will show track to the new point, but some points are probably missing 
                             // and we need to get them. So we DON'T update trackData.latestReceivedTs
                             trackData.needGetTrack = true;
 
-                            if (netTrackerData.PrevLat != null && netTrackerData.PrevLat != 0) {
+                            if (netTrackerData.prevLat != null && netTrackerData.prevLat != 0) {
                                 var prevPoint = new Object();
-                                prevPoint.Lat = netTrackerData.PrevLat;
-                                prevPoint.Lon = netTrackerData.PrevLon;
-                                prevPoint.Ts = netTrackerData.PrevTs;
-                                prevPoint.Age = netTrackerData.PrevAge;
+                                prevPoint.lat = netTrackerData.prevLat;
+                                prevPoint.lon = netTrackerData.prevLon;
+                                prevPoint.ts = netTrackerData.prevTs;
+                                prevPoint.age = netTrackerData.prevAge;
                                 track.splice(1, 0, prevPoint);
                                 trackPointsToAdd++; // should be 2 after that
                             }
@@ -936,7 +936,7 @@ function processResult(result) {
 
                         var logStr = '';
                         for (var iFoo = 0; iFoo < trackData.track.length; iFoo++) {
-                            logStr += '... ' + trackData.track[iFoo].Ts + ": " + trackData.track[iFoo].Lat + '<br />';
+                            logStr += '... ' + trackData.track[iFoo].ts + ": " + trackData.track[iFoo].lat + '<br />';
                         }
                         log(logStr);
                     }
@@ -963,9 +963,9 @@ function processResult(result) {
         for (var iTrackerHolder = _trackerHolders.length - 1; iTrackerHolder >= 0; iTrackerHolder--) {
             var found = false;
 
-            if (result.Trackers != null) {
-                for (var iResult = 0; iResult < result.Trackers.length; iResult++) {
-                    if (_trackerHolders[iTrackerHolder].Name == result.Trackers[iResult].Name) {
+            if (result.trackers != null) {
+                for (var iResult = 0; iResult < result.trackers.length; iResult++) {
+                    if (_trackerHolders[iTrackerHolder].name == result.trackers[iResult].name) {
                         found = true;
                         break;
                     }
@@ -1011,8 +1011,8 @@ function sortTable() {
             return 1;
 
         var order = 1;
-        var aVal = a.trackerHolder.Name.toUpperCase();
-        var bVal = b.trackerHolder.Name.toUpperCase();
+        var aVal = a.trackerHolder.name.toUpperCase();
+        var bVal = b.trackerHolder.name.toUpperCase();
 
         if (aVal < bVal)
             return -1 * order;
@@ -1062,7 +1062,7 @@ function updateMarkerPosition(trackerHolder, newNetTrackerData) {
     var isOldDisplayed = isMarkerDisplayble(oldNetTrackerData);
 
     if (isOldDisplayed &&
-        oldNetTrackerData.Ts.getTime() == newNetTrackerData.Ts.getTime()) {
+        oldNetTrackerData.ts.getTime() == newNetTrackerData.ts.getTime()) {
         return;
     }
 
@@ -1070,7 +1070,7 @@ function updateMarkerPosition(trackerHolder, newNetTrackerData) {
         hideMarker(trackerHolder);
         trackerHolder.marker = setupMarkerAndLabel(newNetTrackerData);
     } else {
-        var newLatLng = new google.maps.LatLng(newNetTrackerData.Lat, newNetTrackerData.Lon);
+        var newLatLng = new google.maps.LatLng(newNetTrackerData.lat, newNetTrackerData.lon);
         trackerHolder.marker.position = newLatLng;
         if (trackerHolder.marker.label)
             trackerHolder.marker.label.set('position', trackerHolder.marker.position);
@@ -1078,8 +1078,8 @@ function updateMarkerPosition(trackerHolder, newNetTrackerData) {
         animate(trackerHolder.marker)
     }
 
-    if (oldNetTrackerData.Type == null ||
-        oldNetTrackerData.Type != newNetTrackerData.Type) {
+    if (oldNetTrackerData.type == null ||
+        oldNetTrackerData.type != newNetTrackerData.type) {
         trackerHolder.marker.content.src = getMarkerImage(newNetTrackerData);
     }
 }
@@ -1102,22 +1102,22 @@ function fixLineToPrev(trackerHolder) {
 
     var isOkToShow2ndPoint =
         _startTs == null ||
-            netTrackerData.PrevTs.getTime() >= _startTs.getTime();
+            netTrackerData.prevTs.getTime() >= _startTs.getTime();
 
     if (isOkToShow2ndPoint &&
-        netTrackerData.PrevLat != null &&
-        netTrackerData.PrevLat != 0) {
-        var prevLat = netTrackerData.PrevLat;
-        var prevLon = netTrackerData.PrevLon;
+        netTrackerData.prevLat != null &&
+        netTrackerData.prevLat != 0) {
+        var prevLat = netTrackerData.prevLat;
+        var prevLon = netTrackerData.prevLon;
 
-        if (netTrackerData.Lat == prevLat && netTrackerData.Lon == prevLon) { // This situation has been seen. So add a tiny bit to the track to make it visible at least in max zoom.
+        if (netTrackerData.lat == prevLat && netTrackerData.lon == prevLon) { // This situation has been seen. So add a tiny bit to the track to make it visible at least in max zoom.
             prevLat = prevLat - 0.000003;
         }
 
         pathToPrev =
             new google.maps.MVCArray(
                 [
-                    new google.maps.LatLng(netTrackerData.Lat, netTrackerData.Lon),
+                    new google.maps.LatLng(netTrackerData.lat, netTrackerData.lon),
                     new google.maps.LatLng(prevLat, prevLon)
                 ]
             );
@@ -1127,20 +1127,20 @@ function fixLineToPrev(trackerHolder) {
         if (trackerHolder.LineToPrev != null) {
             trackerHolder.LineToPrev.setMap(null);
             trackerHolder.LineToPrev = null;
-            log(trackerHolder.Name + ': hiding the newest leg');
+            log(trackerHolder.name + ': hiding the newest leg');
         }
     } else {
         if (trackerHolder.LineToPrev != null) {
             var existingPath = trackerHolder.LineToPrev.getPath();
             if (existingPath == null ||
                 existingPath.getLength() != 2 || !existingPath.getAt(0).equals(pathToPrev.getAt(0)) || !existingPath.getAt(1).equals(pathToPrev.getAt(1))) {
-                log(trackerHolder.Name + ': setting the newest leg line');
+                log(trackerHolder.name + ': setting the newest leg line');
                 trackerHolder.LineToPrev.setPath(pathToPrev);
             } else {
-                log(trackerHolder.Name + ': no update to the newest leg required');
+                log(trackerHolder.name + ': no update to the newest leg required');
             }
         } else {
-            log(trackerHolder.Name + ': creating the newest leg line');
+            log(trackerHolder.name + ': creating the newest leg line');
             trackerHolder.LineToPrev =
                 new google.maps.Polyline({
                     path: pathToPrev,
@@ -1185,17 +1185,17 @@ function getContent(marker) {
                 // help & sos
                 iconSource = "/assets/img/map/help.png";
             }
-            var ageStr = getAgeStr(trackerHolder.UpdateTs, trackerHolder.NetTrackerData.Age);
+            var ageStr = getAgeStr(trackerHolder.UpdateTs, trackerHolder.NetTrackerData.age);
 
             var errAddOn = "";
-            if (trackerHolder.NetTrackerData.Error != null) {
-                errAddOn = trackerHolder.NetTrackerData.Error + "<br />";
+            if (trackerHolder.NetTrackerData.error != null) {
+                errAddOn = trackerHolder.NetTrackerData.error + "<br />";
             }
 
-            var coordsStr = getDegrees(trackerHolder.NetTrackerData.Lat, trackerHolder.NetTrackerData.Lon, true);
-            var coordsStrFlat = getDegrees(trackerHolder.NetTrackerData.Lat, trackerHolder.NetTrackerData.Lon, false);
+            var coordsStr = getDegrees(trackerHolder.NetTrackerData.lat, trackerHolder.NetTrackerData.lon, true);
+            var coordsStrFlat = getDegrees(trackerHolder.NetTrackerData.lat, trackerHolder.NetTrackerData.lon, false);
 
-            var ts = trackerHolder.NetTrackerData.Ts;
+            var ts = trackerHolder.NetTrackerData.ts;
 
             var tsString =
                 ts.getDate() + " " + getMonthStr(ts.getMonth()) + " " + ts.getHours() + ":" + padInteger(ts.getMinutes(), 2);
@@ -1207,7 +1207,7 @@ function getContent(marker) {
                     "</td></tr></table>";
 
             var statusStr =
-                "<a href='javascript: centerAndZoom(\"" + trackerHolder.Name + "\");'>" + getDisplayType(trackerHolder.NetTrackerData) + "</a>";
+                "<a href='javascript: centerAndZoom(\"" + trackerHolder.name + "\");'>" + getDisplayType(trackerHolder.NetTrackerData) + "</a>";
 
             var formattedUserMessage = formatUserMessage(trackerHolder.NetTrackerData);
             if (formattedUserMessage != "") {
@@ -1217,7 +1217,7 @@ function getContent(marker) {
             content =
                 "<div style='margin-bottom: 0.5em'><img align='left' style='margin-right: 0.5em' src=" + iconSource + "> " +
                     tsString + " (" + ageStr + " ago)<br />" +
-                    "<span style='font-size: larger; white-space:nowrap'><b>" + trackerHolder.Name + ": " + statusStr + "</b></span></div>" +
+                    "<span style='font-size: larger; white-space:nowrap'><b>" + trackerHolder.name + ": " + statusStr + "</b></span></div>" +
                     formattedUserMessage +
                     coordsTableStr +
                     errAddOn +
@@ -1234,8 +1234,8 @@ function getContent(marker) {
 function getGoogleMapLink(trackerHolder) {
     return "<div style='text-align: right'>" +
         "<a target='_blank' href='http://maps.google.com.au/maps?q=" +
-        trackerHolder.NetTrackerData.Lat + "," +
-        trackerHolder.NetTrackerData.Lon +
+        trackerHolder.NetTrackerData.lat + "," +
+        trackerHolder.NetTrackerData.lon +
         "'>Google map</a></div>";
 }
 
@@ -1244,11 +1244,11 @@ function getTrackControlStr(trackerHolder) {
     var trackStr;
     var trackData = trackerHolder.trackData;
     if (!trackData.shouldDisplayTrack) {
-        trackStr = "<a href='javascript: showTrack(\"" + trackerHolder.Name + "\");'>Show full track</a>";
+        trackStr = "<a href='javascript: showTrack(\"" + trackerHolder.name + "\");'>Show full track</a>";
     } else if (trackData.shouldDisplayTrack && trackData.needGetTrack) {
-        trackStr = "Getting full track... (<a href='javascript: hideTrack(\"" + trackerHolder.Name + "\");'>cancel</a>)";
+        trackStr = "Getting full track... (<a href='javascript: hideTrack(\"" + trackerHolder.name + "\");'>cancel</a>)";
     } else {
-        trackStr = "<a href='javascript: hideTrack(\"" + trackerHolder.Name + "\");'>Hide full track</a>";
+        trackStr = "<a href='javascript: hideTrack(\"" + trackerHolder.name + "\");'>Hide full track</a>";
     }
 
     return trackStr;
@@ -1419,7 +1419,7 @@ function showTrackForHolder(trackerHolder) {
 
     if (trackData.track == null ||
         trackData.track.length == 0 ||
-        trackData.track[0].Ts.getTime() != trackerHolder.NetTrackerData.Ts.getTime()) {
+        trackData.track[0].ts.getTime() != trackerHolder.NetTrackerData.ts.getTime()) {
         trackData.needGetTrack = true;
         trackData.isFirstPriority = true;
         trackData.requestTs = new Date();
@@ -1471,23 +1471,23 @@ function checkFullTracks(firstPriorityOnly) {
         });
 
         var request = new Object();
-        request.Items = new Array();
+        request.items = new Array();
 
         for (var iIndex = 0; iIndex < indexesToCheck.length; iIndex++) {
             var iTrackerHolder = indexesToCheck[iIndex];
             var trackerHolder = _trackerHolders[iTrackerHolder];
 
             var reqItem = new Object();
-            reqItem.TrackerName = trackerHolder.Name;
+            reqItem.trackerName = trackerHolder.name;
             if (trackerHolder.trackData.latestReceivedTs != null)
-                reqItem.LaterThan = trackerHolder.trackData.latestReceivedTs;
+                reqItem.laterThan = trackerHolder.trackData.latestReceivedTs;
 
-            request.Items.push(reqItem);
+            request.items.push(reqItem);
 
-            if (request.Items.length >= 10) break;
+            if (request.items.length >= 10) break;
         }
 
-        if (request.Items.length > 0) {
+        if (request.items.length > 0) {
             _getTracksCallStartTs = new Date();
             TrackerApi.getTracks(_groupId, request, onGetTracksComplete, onError);
             showStatus("Getting track(s) from the server...");
@@ -1516,81 +1516,81 @@ function onGetTracksComplete(result) {
 
         for (var iTrackResponseItem = 0; iTrackResponseItem < result.length; iTrackResponseItem++) {
             var trackResponseItem = result[iTrackResponseItem];
-            if (trackResponseItem.Track == null || trackResponseItem.Track.length == 0) continue;
+            if (trackResponseItem.track == null || trackResponseItem.track.length == 0) continue;
 
-            var newestTrackPoint = trackResponseItem.Track[0];
-            var oldestTrackPoint = trackResponseItem.Track[trackResponseItem.Track.length - 1];
+            var newestTrackPoint = trackResponseItem.track[0];
+            var oldestTrackPoint = trackResponseItem.track[trackResponseItem.track.length - 1];
 
-            var trackerHolder = FindTrackerHolder(trackResponseItem.TrackerName);
+            var trackerHolder = FindTrackerHolder(trackResponseItem.trackerName);
 
-            log('Received for ' + trackerHolder.Name + ': ' + trackResponseItem.Track.length);
+            log('Received for ' + trackerHolder.name + ': ' + trackResponseItem.track.length);
 
             // Ensure that it's a valid tracker that already have marker on the map
             if (trackerHolder != null && isMarkerDisplayble(trackerHolder.NetTrackerData)) {
                 var trackData = trackerHolder.trackData;
 
                 if (trackData.track == null) {
-                    trackData.track = trackResponseItem.Track;
+                    trackData.track = trackResponseItem.track;
                 } else {
-                    log('Track wasn\'t null for ' + trackerHolder.Name + ', had ' + trackData.track.length + ' points, removong old...');
-                    log('The oldest point: ' + oldestTrackPoint.Ts);
-                    removeNewTrackPoints(trackData.track, oldestTrackPoint.Ts);
-                    trackData.track = trackResponseItem.Track.concat(trackData.track);
-                    log('Now track for ' + trackerHolder.Name + ' has ' + trackData.track.length + ' points.');
+                    log('Track wasn\'t null for ' + trackerHolder.name + ', had ' + trackData.track.length + ' points, removong old...');
+                    log('The oldest point: ' + oldestTrackPoint.ts);
+                    removeNewTrackPoints(trackData.track, oldestTrackPoint.ts);
+                    trackData.track = trackResponseItem.track.concat(trackData.track);
+                    log('Now track for ' + trackerHolder.name + ' has ' + trackData.track.length + ' points.');
                 }
 
                 // remove points that are too old for today track
                 removeOldPoints(trackData.track);
-                log('And after removing old points track for ' + trackerHolder.Name + ' has ' + trackData.track.length + ' points.');
-                log('Marker curr.time is ' + trackerHolder.NetTrackerData.Ts);
-                log('Marker prev.time is ' + trackerHolder.NetTrackerData.PrevTs);
+                log('And after removing old points track for ' + trackerHolder.name + ' has ' + trackData.track.length + ' points.');
+                log('Marker curr.time is ' + trackerHolder.NetTrackerData.ts);
+                log('Marker prev.time is ' + trackerHolder.NetTrackerData.prevTs);
 
                 var logStr = '';
                 for (var iFoo = 0; iFoo < trackData.track.length; iFoo++) {
-                    logStr += '... ' + trackData.track[iFoo].Ts + ": " + trackData.track[iFoo].Lat + '<br />';
+                    logStr += '... ' + trackData.track[iFoo].ts + ": " + trackData.track[iFoo].lat + '<br />';
                 }
                 log(logStr);
 
                 var trackNeedUpdate = false;
 
-                if (newestTrackPoint.Ts.getTime() == trackerHolder.NetTrackerData.Ts.getTime()) {
-                    log(trackerHolder.Name + ' had corresponding marker and newestTrackPoint.Ts: ' + newestTrackPoint.Ts);
+                if (newestTrackPoint.ts.getTime() == trackerHolder.NetTrackerData.ts.getTime()) {
+                    log(trackerHolder.name + ' had corresponding marker and newestTrackPoint.ts: ' + newestTrackPoint.ts);
                     trackNeedUpdate = true;
-                } else if (newestTrackPoint.Ts.getTime() == trackerHolder.NetTrackerData.PrevTs.getTime()) {
-                    log(trackerHolder.Name + ' had corresponding marker PREV point and newestTrackPoint.Ts: ' + newestTrackPoint.Ts);
+                } else if (newestTrackPoint.ts.getTime() == trackerHolder.NetTrackerData.prevTs.getTime()) {
+                    log(trackerHolder.name + ' had corresponding marker PREV point and newestTrackPoint.ts: ' + newestTrackPoint.ts);
                     // Almost impossible situation, but let's handle that.
                     // Create a "mock-up" of the TrackPoint object as it would arrive from the server:
                     var currPoint = new Object();
-                    currPoint.Lat = trackerHolder.NetTrackerData.Lat;
-                    currPoint.Lon = trackerHolder.NetTrackerData.Lon;
-                    currPoint.Ts = trackerHolder.NetTrackerData.Ts;
-                    currPoint.Age = trackerHolder.NetTrackerData.Age;
+                    currPoint.lat = trackerHolder.NetTrackerData.lat;
+                    currPoint.lon = trackerHolder.NetTrackerData.lon;
+                    currPoint.ts = trackerHolder.NetTrackerData.ts;
+                    currPoint.age = trackerHolder.NetTrackerData.age;
                     trackData.track.splice(0, 0, currPoint);
 
                     trackNeedUpdate = true;
-                } else if (newestTrackPoint.Ts > trackerHolder.NetTrackerData.Ts) {
-                    log('Full track arrived before update to the marker for ' + trackerHolder.Name);
+                } else if (newestTrackPoint.ts > trackerHolder.NetTrackerData.ts) {
+                    log('Full track arrived before update to the marker for ' + trackerHolder.name);
                     // Possible if the full track arrived before update to the point.
                     // Create a "mock-up" of the Tracker object as it would arrive from the server:
                     var netTrackerData = new Object();
-                    netTrackerData.Name = trackerHolder.Name;
-                    netTrackerData.Lat = newestTrackPoint.Lat;
-                    netTrackerData.Lon = newestTrackPoint.Lon;
-                    netTrackerData.Type = newestTrackPoint.Type; // it's always set for the newest point, and always null for all other points
-                    netTrackerData.Ts = newestTrackPoint.Ts;
-                    netTrackerData.Age = newestTrackPoint.Age;
-                    netTrackerData.IsHidden = trackerHolder.NetTrackerData.IsHidden;
+                    netTrackerData.name = trackerHolder.name;
+                    netTrackerData.lat = newestTrackPoint.lat;
+                    netTrackerData.lon = newestTrackPoint.lon;
+                    netTrackerData.type = newestTrackPoint.type; // it's always set for the newest point, and always null for all other points
+                    netTrackerData.ts = newestTrackPoint.ts;
+                    netTrackerData.age = newestTrackPoint.age;
+                    netTrackerData.isHidden = trackerHolder.NetTrackerData.isHidden;
                     if (trackData.track.length == 0) {   // TODO: is it possible at all?????
-                        netTrackerData.PrevLat = trackerHolder.NetTrackerData.Lat;
-                        netTrackerData.PrevLon = trackerHolder.NetTrackerData.Lon;
-                        netTrackerData.PrevTs = trackerHolder.NetTrackerData.Ts;
-                        netTrackerData.PrevAge = trackerHolder.NetTrackerData.Age;
+                        netTrackerData.prevLat = trackerHolder.NetTrackerData.lat;
+                        netTrackerData.prevLon = trackerHolder.NetTrackerData.lon;
+                        netTrackerData.prevTs = trackerHolder.NetTrackerData.ts;
+                        netTrackerData.prevAge = trackerHolder.NetTrackerData.age;
                     } else {
-                        var prevTrackPoint = trackResponseItem.Track[1];
-                        netTrackerData.PrevLat = prevTrackPoint.Lat;
-                        netTrackerData.PrevLon = prevTrackPoint.Lon;
-                        netTrackerData.PrevTs = prevTrackPoint.Ts;
-                        netTrackerData.PrevAge = prevTrackPoint.Age;
+                        var prevTrackPoint = trackResponseItem.track[1];
+                        netTrackerData.prevLat = prevTrackPoint.lat;
+                        netTrackerData.prevLon = prevTrackPoint.lon;
+                        netTrackerData.prevTs = prevTrackPoint.ts;
+                        netTrackerData.prevAge = prevTrackPoint.age;
                     }
 
                     updateMarkerPosition(trackerHolder, netTrackerData);
@@ -1600,18 +1600,18 @@ function onGetTracksComplete(result) {
 
                     trackNeedUpdate = true;
                 } else {
-                    log(trackerHolder.Name + ' had newestTrackPoint.Ts < trackerHolder.NetTrackerData.Ts');
+                    log(trackerHolder.name + ' had newestTrackPoint.ts < trackerHolder.NetTrackerData.ts');
 
-                    // it means newestTrackPoint.Ts < trackerHolder.NetTrackerData.Ts (or even < PrevTs if latter exists)
+                    // it means newestTrackPoint.ts < trackerHolder.NetTrackerData.ts (or even < prevTs if latter exists)
                     // This situation is practically impossible. But if it happens, just skip the tracker: the track will be 
                     // retrieved on the next call to checkFullTracks. 
                     // So we DON'T set needGetTrack to false here.
                 }
 
-                log(trackerHolder.Name + ': trackNeedUpdate==' + trackNeedUpdate.toString());
+                log(trackerHolder.name + ': trackNeedUpdate==' + trackNeedUpdate.toString());
                 if (trackNeedUpdate) {
                     trackData.needGetTrack = false;
-                    trackData.latestReceivedTs = trackerHolder.NetTrackerData.Ts;
+                    trackData.latestReceivedTs = trackerHolder.NetTrackerData.ts;
 
                     syncTrackLine(trackerHolder, -1);
                 }
@@ -1644,7 +1644,7 @@ function syncTrackLine(trackerHolder, nPointsToAdd) {
         if (!isMarkerDisplayble(trackerHolder.NetTrackerData) || !trackData.shouldDisplayTrack ||
             trackData.track == null ||
             trackData.track.length < 2) {
-            log(trackerHolder.Name + ': track should not be shown, checking the latest line...');
+            log(trackerHolder.name + ': track should not be shown, checking the latest line...');
 
             if (trackerHolder.trackData.trackPolyline != null) {
                 trackerHolder.trackData.trackPolyline.setMap(null);
@@ -1656,7 +1656,7 @@ function syncTrackLine(trackerHolder, nPointsToAdd) {
             return;
         }
 
-        log(trackerHolder.Name + ': showing full track');
+        log(trackerHolder.name + ': showing full track');
 
         if (trackerHolder.LineToPrev != null) {
             trackerHolder.LineToPrev.setMap(null);
@@ -1664,7 +1664,7 @@ function syncTrackLine(trackerHolder, nPointsToAdd) {
         }
 
         if (trackData.trackPolyline != null && nPointsToAdd < 0) {   // we need to replace the whole polyline, so remove the existing one:
-            log(trackerHolder.Name + ': replacing the whole track');
+            log(trackerHolder.name + ': replacing the whole track');
             trackData.trackPolyline.setMap(null);
             trackData.trackPolyline = null;
         }
@@ -1677,7 +1677,7 @@ function syncTrackLine(trackerHolder, nPointsToAdd) {
         if (nPointsToAdd == 0) {   // nothing to do: trackPolyline is already not null (otherwise nPointsToAdd==track.length,
             // and we already checked that latter is greater than 1), which means it's on the map (we 
             // don't keep invisible polylines) and no points has to be added. So just return:
-            log(trackerHolder.Name + ': no update to the track required');
+            log(trackerHolder.name + ': no update to the track required');
             return;
         }
 
@@ -1692,10 +1692,10 @@ function syncTrackLine(trackerHolder, nPointsToAdd) {
             var trackPoint = trackData.track[iPoint];
 
             if (_startTs != null &&
-                trackPoint.Ts.getTime() < _startTs.getTime())
+                trackPoint.ts.getTime() < _startTs.getTime())
                 break;
 
-            var latLng = new google.maps.LatLng(trackPoint.Lat, trackPoint.Lon);
+            var latLng = new google.maps.LatLng(trackPoint.lat, trackPoint.lon);
             polylinePoints.insertAt(iPoint, latLng);
         }
 
@@ -1714,7 +1714,7 @@ function syncTrackLine(trackerHolder, nPointsToAdd) {
         }
     }
     catch (exc) {
-        log(trackerHolder.Name + ': error: ' + exc.message);
+        log(trackerHolder.name + ': error: ' + exc.message);
         throw exc;
     }
 }
@@ -1726,13 +1726,13 @@ function removeOldPoints(trackPointsArray) {
 
     // remove points that are too old, this would work for very long 
     var oldPointThreshold = new Date();
-    oldPointThreshold.setTime(newestTrackPoint.Ts.getTime() - 12 * 3600 * 1000);
+    oldPointThreshold.setTime(newestTrackPoint.ts.getTime() - 12 * 3600 * 1000);
     log('oldPointThreshold: ' + oldPointThreshold);
 
     // array is already sorted by Ts descending
     var iRemoveStart = -1;
     for (var i = 0; i < trackPointsArray.length; i++) {
-        if (trackPointsArray[i].Ts < oldPointThreshold) {
+        if (trackPointsArray[i].ts < oldPointThreshold) {
             iRemoveStart = i;
             break;
         }
@@ -1748,7 +1748,7 @@ function removeNewTrackPoints(trackPointsArray, eldestTsToRemove) {
     // array is already sorted by Ts descending
     var numToRemove = 0;
     while (numToRemove < trackPointsArray.length) {
-        if (trackPointsArray[numToRemove].Ts < eldestTsToRemove) {
+        if (trackPointsArray[numToRemove].ts < eldestTsToRemove) {
             break;
         }
         numToRemove++;
@@ -1815,8 +1815,8 @@ function closeInfoWindow() {
 }
 
 function formatUserMessage(netTrackerData) {
-    if (netTrackerData.UsrMsg != null && netTrackerData.UsrMsg != "")
-        return "&quot;<i>" + netTrackerData.UsrMsg + "</i>&quot;";
+    if (netTrackerData.usrMsg != null && netTrackerData.usrMsg != "")
+        return "&quot;<i>" + netTrackerData.usrMsg + "</i>&quot;";
     else
         return "";
 }
@@ -1826,29 +1826,29 @@ function getDisplayType(netTrackerData) {
         return "ON TRACK";
     }
 
-    if (netTrackerData.Type == "OK" || netTrackerData.Type == "TEST") {
-        if (netTrackerData.UsrMsg != null && netTrackerData.UsrMsg != "")
+    if (netTrackerData.type == "OK" || netTrackerData.type == "TEST") {
+        if (netTrackerData.usrMsg != null && netTrackerData.usrMsg != "")
             return "OK";
         else
             return "LANDED (Ok)";
     }
 
-    if (netTrackerData.Type == "CUSTOM") {
-        if (netTrackerData.UsrMsg != null && netTrackerData.UsrMsg != "")
+    if (netTrackerData.type == "CUSTOM") {
+        if (netTrackerData.usrMsg != null && netTrackerData.usrMsg != "")
             return "CUSTOM";
         else
             return "LANDED (custom)";
     }
 
-    return netTrackerData.Type;
+    return netTrackerData.type;
 }
 
 //function getDisplayType(netTrackerData)
 //{
 //    var usrMsg = "";
-//    if (netTrackerData.UsrMsg != null && netTrackerData.UsrMsg != "")
+//    if (netTrackerData.usrMsg != null && netTrackerData.usrMsg != "")
 //    {
-//        usrMsg = ": &quot;<i>" + netTrackerData.UsrMsg + "</i>&quot;";
+//        usrMsg = ": &quot;<i>" + netTrackerData.usrMsg + "</i>&quot;";
 //    }
 
 //    if (isTrackType(netTrackerData))
@@ -1856,17 +1856,17 @@ function getDisplayType(netTrackerData) {
 //        return "ON TRACK";
 //    }
 
-//    if (netTrackerData.Type == "OK" || netTrackerData.Type == "TEST")
+//    if (netTrackerData.type == "OK" || netTrackerData.type == "TEST")
 //    {
 //        return "OK" + usrMsg;
 //    }
 
-//    if (netTrackerData.Type == "CUSTOM")
+//    if (netTrackerData.type == "CUSTOM")
 //    {
 //        return "CUST";
 //    }
 
-//    return netTrackerData.Type + usrMsg;
+//    return netTrackerData.type + usrMsg;
 //}
 
 var _trackerHolders;
@@ -1877,8 +1877,8 @@ function updateTrackersDisplay() {
     for (var iTrackerHolder = 0; iTrackerHolder < _trackerHolders.length; iTrackerHolder++) {
         var trackerHolder = _trackerHolders[iTrackerHolder];
 
-        var name = trackerHolder.NetTrackerData.Name;
-        if (trackerHolder.NetTrackerData.IsHidden) {
+        var name = trackerHolder.NetTrackerData.name;
+        if (trackerHolder.NetTrackerData.isHidden) {
             SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.NameCtl, name + "&nbsp;&ndash;&nbsp;<span class='InfoMessage'>hidden</span>");
 
             trackerHolder.StatusControlsSet.Row.style.color = "#707070";
@@ -1888,14 +1888,14 @@ function updateTrackersDisplay() {
             trackerHolder.StatusControlsSet.Row.style.color = "";
         }
 
-        if (trackerHolder.NetTrackerData.Type == null) {
+        if (trackerHolder.NetTrackerData.type == null) {
             SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.CoordsCtl, "");
             SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.StatusCtl, "None");
         } else if (isWaitType(trackerHolder.NetTrackerData)) {
             SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.CoordsCtl, "");
             SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.StatusCtl, "Waiting for the data...");
         } else {
-            var coordStr = getDegrees(trackerHolder.NetTrackerData.Lat, trackerHolder.NetTrackerData.Lon, true);
+            var coordStr = getDegrees(trackerHolder.NetTrackerData.lat, trackerHolder.NetTrackerData.lon, true);
             SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.CoordsCtl, coordStr);
 
             var displayType = getDisplayType(trackerHolder.NetTrackerData);
@@ -1911,7 +1911,7 @@ function updateTrackersDisplay() {
         setAgeAndAltitude(trackerHolder);
 
         // Error could be null, and it's Ok to call SetStatusControlInnerHtml with that:
-        SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.ErrorCtl, trackerHolder.NetTrackerData.Error);
+        SetStatusControlInnerHtml(trackerHolder.StatusControlsSet.ErrorCtl, trackerHolder.NetTrackerData.error);
 
         if (_isInfoWindowOpen && _infoWindowOpenMarker == trackerHolder.marker) {
             _infoWindow.setContent(getContent(trackerHolder.marker));
@@ -1924,12 +1924,12 @@ function setAgeAndAltitude(trackerHolder) {
     var utcTsAndTrack;
 
     if (isHavingCoordinates(trackerHolder.NetTrackerData)) {
-        ageStr = getAgeStr(trackerHolder.UpdateTs, trackerHolder.NetTrackerData.Age);
+        ageStr = getAgeStr(trackerHolder.UpdateTs, trackerHolder.NetTrackerData.age);
 
         var marker = trackerHolder.marker;
 
         if (marker) {
-            var newTitle = trackerHolder.Name + ": " + ageStr + " ago";
+            var newTitle = trackerHolder.name + ": " + ageStr + " ago";
 
             if (marker.title != newTitle)
                 marker.title = newTitle;
@@ -1940,12 +1940,12 @@ function setAgeAndAltitude(trackerHolder) {
                 //   // lines.splice(0, 0, newTitle);
                 //    marker.label.setText(lines);
                 //} else
-                if (trackerHolder.NetTrackerData.Alt != null
+                if (trackerHolder.NetTrackerData.alt != null
                     && isTrackType(trackerHolder.NetTrackerData)
                     && !!_altitudeUnits
                     ) {
                     var altStr;
-                    var alt = trackerHolder.NetTrackerData.Alt;
+                    var alt = trackerHolder.NetTrackerData.alt;
                     if (_altitudeUnits === 'm') {
                         altStr = 'alt ' + (Math.round(alt / 100) / 10) + " km";
                     } else {
@@ -1959,7 +1959,7 @@ function setAgeAndAltitude(trackerHolder) {
             }
         }
 
-        utcTsAndTrack = dateFormat(trackerHolder.NetTrackerData.Ts, "default", false);
+        utcTsAndTrack = dateFormat(trackerHolder.NetTrackerData.ts, "default", false);
 
         if (isMarkerDisplayble(trackerHolder.NetTrackerData))
             utcTsAndTrack += "<br />" + getTrackControlStr(trackerHolder);
@@ -2067,7 +2067,7 @@ function FindTrackerHolder(trackerName) {
     if (_trackerHolders == null) return null;
 
     for (var iTrackerHolder = 0; iTrackerHolder < _trackerHolders.length; iTrackerHolder++) {
-        if (_trackerHolders[iTrackerHolder].Name == trackerName) {
+        if (_trackerHolders[iTrackerHolder].name == trackerName) {
             return _trackerHolders[iTrackerHolder];
         }
     }
@@ -2140,8 +2140,8 @@ function fitAllTrackers(showAlertForNoCoords) {
             var trackerHolder = _trackerHolders[iTrackerHolder];
             if (isHavingCoordinates(trackerHolder.NetTrackerData) &&
                 trackerHolder.marker != null &&
-                trackerHolder.NetTrackerData.Lat > -999 &&
-                trackerHolder.NetTrackerData.Lon > -999) {
+                trackerHolder.NetTrackerData.lat > -999 &&
+                trackerHolder.NetTrackerData.lon > -999) {
                 if (bounds == null) {
                     bounds = new google.maps.LatLngBounds(trackerHolder.marker.position);
                 } else {
