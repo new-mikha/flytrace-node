@@ -64,8 +64,8 @@ var TrackerApi = (function () {
       );
     },
 
-    // The legacy site collected the script's own consistency reports and log; now they stay in the
-    // browser's console.
+    // The legacy site collected the script's log (the "send log" button, only there when logging is
+    // on); now it stays in the browser's console.
     testCheck: function (message) {
       console.warn(message);
     },

@@ -769,18 +769,12 @@ var _trackColors =
         '#006600'
     ];
 
-var _currentSeed = null;
-
 var _currentVersion = null;
 
 function onLookupComplete(result) {
     _isOnCall = false;
     try {
         clearError();
-
-        log("Current seed: " + _currentSeed);
-        log("Source seed: " + result.Src);
-        log("Result seed: " + result.Res);
 
         log("Current version : " + _currentVersion);
         log("Result version : " + result.Ver);
@@ -797,26 +791,7 @@ function onLookupComplete(result) {
 
         _currentVersion = result.Ver;
 
-        var isIncremental = result.Src != null && result.Src !== "";
-
-        var hasAnythingToProcess =
-            result.Res != "NIL" &&
-                (!isIncremental ||
-                  result.Src == _currentSeed // if incremental, but Src!=_currentSeed then it's result of some old call and this incremental result is just wrong for the current state
-                );
-
-        if (result.IncrSurr) {
-            // case when it's isIncremental but Src != _currentSeed is a bit too complicated to check, so avoid testing it.
-            // But if it's incremental and Src == _currentSeed then go ahead with testing:
-            hasAnythingToProcess = !isIncremental || result.Src == _currentSeed;
-
-            if (result.Res == "NIL") isIncremental = true;
-        }
-
-        log("hasAnythingToProcess: " + hasAnythingToProcess);
-
-        if (hasAnythingToProcess)
-            processResult(result, isIncremental);
+        processResult(result);
 
         _succCallTime = new Date();
     }
@@ -835,27 +810,25 @@ var _startTs = null;
 
 var _altitudeUnits;
 
-function processResult(result, isIncremental) {
+function processResult(result) {
     showStatus("Processing retrieved data...");
     if (_trackerHolders == null) {
         _trackerHolders = new Array();
     }
 
-    var incrDebugMsg = "";
-
     var gotMarkersAdded = false;
 
-    var isStartTsChanged = false;
-    if (!isIncremental) {
-        var oldStartTs = _startTs;
+    var oldStartTs = _startTs;
 
-        if (result.StartTs === undefined)
-            _startTs = null;
-        else
-            _startTs = result.StartTs;
+    if (result.StartTs === undefined)
+        _startTs = null;
+    else
+        _startTs = result.StartTs;
 
-        isStartTsChanged = oldStartTs !== _startTs;
-    }
+    // These are dates, and every answer brings new objects, so compare the times:
+    var isStartTsChanged =
+        (oldStartTs == null ? null : oldStartTs.getTime()) !==
+        (_startTs == null ? null : _startTs.getTime());
 
     if (result.Trackers != null) {
         _altitudeUnits = result.AltitudeUnits;
@@ -879,19 +852,12 @@ function processResult(result, isIncremental) {
             if (isWaitType(netTrackerData) &&
                 trackerHolder != null &&
                 trackerHolder.NetTrackerData != null) {
-                if (isIncremental) {
-                    incrDebugMsg += "Incremental but got WAIT tracker " + netTrackerData.Name + "\r\n";
-                }
                 continue;
             }
 
             var trackPointsToAdd = 0;
 
             if (trackerHolder == null) {
-                if (isIncremental) {
-                    incrDebugMsg += "Incremental but got new tracker " + netTrackerData.Name + "\r\n";
-                }
-
                 trackerHolder = new Object();
                 trackerHolder.Name = netTrackerData.Name;
 
@@ -919,29 +885,6 @@ function processResult(result, isIncremental) {
             } else if (!isMarkerDisplayble(netTrackerData)) {
                 hideMarker(trackerHolder);
             } else {
-                var oldTs = trackerHolder.NetTrackerData.Ts;
-                var newTs = netTrackerData.Ts;
-
-                if (isIncremental) {
-                    if (netTrackerData.IncrTest &&
-                        oldTs.getTime() > newTs.getTime()) {
-                        var oldTsString = getTsString(oldTs);
-                        var newTsString = getTsString(newTs);
-                        incrDebugMsg +=
-                            "Incr update for " + netTrackerData.Name +
-                                ", but its time is wrong: old is " + oldTsString +
-                                ", new is " + newTsString + "\r\n";
-                    }
-                    else if (!netTrackerData.IncrTest &&
-                        oldTs.getTime() != newTs.getTime()) {
-                        var oldTsString = getTsString(oldTs);
-                        var newTsString = getTsString(newTs);
-                        incrDebugMsg += netTrackerData.Name +
-                            " should not be updated in incr.update, but times are wrong: old is " +
-                            oldTsString + ", new is " + newTsString + "\r\n";
-                    }
-                }
-
                 // at this point it's known that new netTrackerData is displayable (see checks above),
                 // check if it wasn't and that's actually new marker on the map:
                 if (!isMarkerDisplayble(trackerHolder.NetTrackerData)) {
@@ -1015,8 +958,8 @@ function processResult(result, isIncremental) {
         }
     }
 
-    // If not incremental, now remove trackers that are not in the response:
-    if ((!isIncremental || result.IncrSurr) && _trackerHolders != null) {
+    // Remove trackers that are not in the response:
+    if (_trackerHolders != null) {
         for (var iTrackerHolder = _trackerHolders.length - 1; iTrackerHolder >= 0; iTrackerHolder--) {
             var found = false;
 
@@ -1030,11 +973,6 @@ function processResult(result, isIncremental) {
             }
 
             if (!found) {
-                if (isIncremental) {
-                    incrDebugMsg += "Incremental, but " + _trackerHolders[iTrackerHolder].Name +
-                        " is absent in the update.\r\n";
-                }
-
                 hideMarker(_trackerHolders[iTrackerHolder]);
 
                 $(_trackerHolders[iTrackerHolder].StatusControlsSet.Row).remove();
@@ -1042,28 +980,6 @@ function processResult(result, isIncremental) {
             }
         }
     }
-
-    if (incrDebugMsg != "") {
-        try {
-            incrDebugMsg =
-                "Group id: " + _groupId + "\r\n" +
-                    "Call id: " + result.CallId + "\r\n" +
-                    "isIncremental: " + isIncremental.toString() + "\r\n" +
-                    "_currentSeed: " + _currentSeed + "\r\n" +
-                    "src: " + result.Src + "\r\n" +
-                    "res: " + result.Res + "\r\n" +
-                    "IncrSurr: " + result.IncrSurr + "\r\n" +
-                    incrDebugMsg;
-
-            log(incrDebugMsg);
-
-            TrackerApi.testCheck(incrDebugMsg);
-        }
-        catch (debugMsgExc) {
-            log(debugMsgExc.message);
-        }
-    }
-
 
     updateTrackersDisplay();
 
@@ -1076,12 +992,6 @@ function processResult(result, isIncremental) {
             if (gotMarkersAdded)
                 _autoFitHappened = true;
         }
-    }
-
-    if (result.Res == null || result == '') {
-        _currentSeed = null;
-    } else if (result.Res != "NIL") {
-        _currentSeed = result.Res;
     }
 }
 
@@ -1329,10 +1239,6 @@ function getGoogleMapLink(trackerHolder) {
         "'>Google map</a></div>";
 }
 
-
-function getTsString(ts) {
-    return ts.getDate() + " " + getMonthStr(ts.getMonth()) + " " + ts.getHours() + ":" + padInteger(ts.getMinutes(), 2);
-}
 
 function getTrackControlStr(trackerHolder) {
     var trackStr;
