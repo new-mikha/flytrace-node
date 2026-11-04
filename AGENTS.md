@@ -151,16 +151,15 @@ simulated client its own `remoteAddress`.
   once) on the wrong continent, let "Show tracks" fetch an ancient track, and then draw a 20,000 km segment when the
   real position arrives 30 seconds later. `Type: "wait"` makes all of that structurally impossible, and
   `isHavingCoordinates` already excludes such trackers from track requests. Filling a long silence is the source's
-  job: SPOT pages back while a full page of 50 messages still leaves the span under 48 h (max 5 iterations), inReach
+  job: SPOT pages back on a tracker's first fetch (up to 6 pages of 50, while the span is under 48 h), inReach
   requests a 4-day window outright. The one exception, and not a reintroduction of the above: `feed_polls`
   (`tracker_type`, `foreign_id`, `last_polled_at`) records when each feed was last polled, so a restart does not
   re-hit a feed sooner than the interval we impose on ourselves (SPOT: 150 s per feed). Read at startup only, keyed
   by the feed rather than by a `group_trackers` row because one feed in several groups is polled once for all of
   them, and holding no positions and no tracks. Request timeouts are **10 s per HTTP request and 60 s for a whole
-  SPOT paging chain** (legacy: 55 s and 60 s) — one `AbortSignal` shared by every page of the chain. Lowering it
-  makes per-tracker backoff after consecutive failures mandatory rather than optional, since legacy has none and a
-  merely slow feed would otherwise be abandoned and re-requested far more often. See
-  `docs/legacy-coordinates-api.md` §7.0.
+  SPOT paging chain** (legacy: 55 s and 60 s) — one `AbortSignal` shared by every page of the chain. No backoff
+  after failures, as in legacy (decided 4 Nov 2026, with the rest of the legacy timing rules: see "Tracker sources and
+  polling"). See `docs/legacy-coordinates-api.md` §7.0.
 - **Exactly one app process: tracker polling runs inside the web process, and the app is never run as more than one
   instance.** No Node clustering, no second instance behind nginx, no `pm2 -i`. Two instances would each keep their
   own snapshots and each poll the same feeds, doubling traffic to SPOT and Garmin (which have rate limits we do not
@@ -169,7 +168,7 @@ simulated client its own `remoteAddress`.
   keeps them reconciled, so a separate poller process would need the snapshots serialized across a boundary — the
   storage layer we removed, in another form. Only a genuine need to scale out horizontally justifies splitting the
   poller off, and that is the moment to design the sharing, not before; on the Pi it does not arise. When the
-  scheduler is built, guard this in code too: take a Postgres session advisory lock at startup and, if it is already
+  polling is built, guard this in code too: take a Postgres session advisory lock at startup and, if it is already
   held, log loudly and run without polling rather than competing for the feeds.
 - **There are two tracker types, `'S'` (SPOT) and `'G'` (Garmin inReach). There is no `'T'` for test.** Legacy has a
   third source type in code (`ForeignId.TEST`, a synthetic group built from captured SPOT XML in `App_Data/test/` so
@@ -184,46 +183,100 @@ simulated client its own `remoteAddress`.
 
 ## Tracker sources and polling (designed, not built)
 
-Agreed in full but no code written. **Do not start it unless asked**, and when asked, follow this rather than
-inventing a new shape. The legacy mechanics are in `docs/legacy-coordinates-api.md` (§5 fetching rules, §5.2 the
-deployed numbers, §7.0 what we changed).
+Agreed in full (4 Nov 2026) but no code written. **Do not start it unless asked**, and when asked, follow this rather
+than inventing a new shape. The legacy mechanics are in `docs/legacy-coordinates-api.md` (§4 snapshots, §5 fetching
+rules, §5.2 the deployed numbers, §5.3 one fetch in detail, §7.0 what we changed). **The timing rules are the legacy
+ones, kept on purpose** ("if it works, it works"; errors will show in the log).
 
-Layout: `server/src/tracking/` with `snapshots.ts` (the in-memory map, access stamping, eviction), `merge.ts` (fold a
-poll result into a snapshot), `scheduler.ts` (the single timer), `sources/` (`types.ts`, `spot.ts`, `inreach.ts`,
-`index.ts` for the registry); pages and endpoints in `routes/map.tsx` and `routes/tracking.ts`.
+Layout: `server/src/tracking/` with `trackers.ts` (the shared map and the `Tracker` class), `pipeline.ts` (one per
+source: its queue, its 2 s loop, its in-flight count), `merge.ts` (fold fresh points into a track), `sources/`
+(`types.ts`, `spot.ts`, `inreach.ts`, `index.ts` for the registry); pages and endpoints in `routes/map.tsx`.
 
 ```ts
 export type SourceType = 'S' | 'G';
 
 export interface TrackerSource {
   readonly type: SourceType;
-  readonly name: string;                    // "SPOT", "Garmin inReach"
-  readonly limits: {                        // imposed by the source, not ours to tune
-    sameFeedIntervalMs: number;             // SPOT 150_000, inReach 30_000
-    minGapBetweenStartsMs: number;          // SPOT 2_000
-    maxConcurrent: number;                  // 10
+  readonly name: string;                 // "SPOT", "Garmin inReach"
+  readonly rules: {                      // the legacy numbers, both sources
+    startGapMs: number;                  // 2_000: between two request starts of this source
+    maxInFlight: number;                 // 10
+    feedIntervalMs: number;              // SPOT 150_000, inReach 30_000: from the start of the feed's last call
+    callTimeoutMs: number;               // 60_000: the whole call, every page / iteration of it
   };
-  poll(feedId: string, since: Date | null, signal: AbortSignal): Promise<FeedResult>;
+  poll(feedId: string, held: HeldTrack | null, signal: AbortSignal,
+       onLatest: (points: FeedPoint[]) => void): Promise<FeedResult>;
   parseFeedId(text: string): { feedId: string } | { error: string };
 }
 ```
 
-- **`limits` are theirs; timeouts and backoff are ours.** SPOT's 150 s per feed and 2 s between requests are SPOT's
-  published rules (§5.5) and breaking them risks the *feed owner's* access, so they live on the source and are not
-  tuned. Our 10 s / 60 s timeouts and the backoff are scheduler config. Legacy had all four as config keys and the
-  inReach factory then read the `SPOT_` keys for three of them by mistake — hence the stray `InReachSPOT_` setting
-  name. Keeping their rules as source constants is what stops that recurring.
-- **`poll()` returns points, never a merged snapshot.** The source decides how many requests to make and what to ask
-  for; `merge.ts` decides what we keep (union on timestamp, newest-first, 48 h behind the newest point), once, for
-  every source. `since` — the newest point we already hold — is all SPOT needs for its paging decision, so a source
-  never sees our track. Legacy made `MergeWithExistingData` abstract on the request, which is why SPOT's paging and
-  the merge are welded into one method.
+**The map of trackers** (`trackers.ts`, shared by all sources):
+
+- Keyed by the **feed**, `S:<feedId>` or `G:<feedId>`, never by a `group_trackers` id: the same feed in several groups
+  is one `Tracker`, polled once (legacy: `ForeignId`), and `feed_polls` is keyed the same way. The pilot's name comes
+  from the group's row when answering, since two groups may name the same feed differently.
+- A coordinates or tracks request looks up each feed of the group. Found: answer from it. Missing: create a `Tracker`
+  and answer `wait` (`Type: "wait"`). Neither endpoint ever waits for a poll; the client retries (`main.js` keeps
+  `needGetTrack` and asks again at most every 30 s).
+- Each access calls `tracker.resetRemovingTimer()`: clear `_removeTimer`, then `setTimeout` 20 minutes (legacy
+  `TrackerLifetimeWithoutAccess` = 20, in its production config too). When it fires: `trackers.delete(key)` and
+  `_removed = true`. A removed `Tracker` is never queued or polled again; a later request makes a fresh one that
+  starts from `wait`.
+- No enumeration of the map in normal running: every `Tracker` is driven by its own timers. (Shutdown may go through
+  it once to clear them, or the timers are `unref()`ed.)
+
+**One pipeline per source** (`pipeline.ts`, independent timelines, a generic class fed the source's `rules`):
+
+- A queue (a plain array) holding only trackers that are **due**. A new `Tracker` gets
+  `dueAt = last_polled_at + feedIntervalMs` (`feed_polls`, read at startup; 0 when unknown): already due, it goes to
+  the end of the queue (new arrivals of one request sorted by `dueAt`); not yet due (a restart within the interval),
+  a `setTimeout(dueAt - now)` puts it at the end when it is.
+- The main loop is a `setInterval(startGapMs)` (2 s). Each tick: drop `_removed` heads; if the queue is not empty and
+  in-flight < `maxInFlight`, take the head and start its call. At most one start per tick, which is the legacy 2 s
+  start-to-start rule; up to 10 calls overlap only when calls are slow. An empty queue costs up to 2 s of latency,
+  accepted for the simplicity.
+- Starting a call: in-flight + 1, `tracker.inFlight = true`, upsert `feed_polls.last_polled_at = now`, and
+  `setTimeout(feedIntervalMs)` (re-poll timer). When the re-poll timer fires: set `dueAt = now` and put the tracker
+  at the end of the queue; if its call is somehow still running, log a **WARN** and let the end of the call queue it
+  instead (it must never be hit twice at once).
+- Ending a call (success, error or timeout, in a `finally`): in-flight - 1, `tracker.inFlight = false`, store the
+  results (current and previous point, type, user message, error, track) in the `Tracker`.
+- Startup refuses a source whose `callTimeoutMs` is not shorter than its `feedIntervalMs`.
+- **No backoff**, as in legacy: a failing feed is retried on its normal interval for as long as someone watches it.
+  Every error is logged with its status and all response headers (see below).
+
+**Timeouts**: Node's `fetch` with `AbortSignal`s. One signal per call,
+`AbortSignal.any([AbortSignal.timeout(callTimeoutMs), shutdown.signal])`, and per HTTP request
+`AbortSignal.any([callSignal, AbortSignal.timeout(10_000)])` (10 s per request, 60 s per call; legacy 55 s and 60 s).
+The signal also covers reading the body. A timeout rejects with `TimeoutError`, a shutdown with `AbortError`;
+`shutdown` is aborted from an `onClose` hook, together with `clearInterval` of the loops, so `app.close()` does not
+wait on feeds.
+
+**What a call fetches** (inside the source; the pipeline sees one call):
+
+- **SPOT**: on a tracker's **first** fetch (no track held yet), the paging chain: pages of at most 50 messages, page
+  *n* is `?start=n*50+1`, the next page starts as soon as the previous one is in (no gap, as legacy), and only while
+  the page came back full, the merged span is still under 48 h and fewer than 6 pages were read (legacy
+  `Iteration < 5`). **After that, the top page only**, merged into the held track. Accepted edge case: a watched
+  tracker that goes without a successful poll for longer than one page covers (50 messages, about 2 h of 2.5-minute
+  tracking) keeps a hole in its track; a new `Tracker` (after the 20 minutes) pages again.
+- **inReach**: the legacy two-step call (§5.3): iteration 0 without `d1` returns the latest point; if its `Id` is the
+  newest one held, stop; otherwise iteration 1 asks for a 4-day window (`d1`), sanitised against the held track.
+- **The latest point is known before the track**: `onLatest` hands the first response's points to the `Tracker`, which
+  updates the current and previous point, type, message and time straight away (the coordinates endpoint serves them).
+  The track is replaced only when the call ends, and on a first fetch there is **no track at all until the chain is
+  done**: the client asks for tracks with `laterThan` = its newest point, so a page-1-only track would leave the older
+  pages missing for good. Meanwhile the marker can be newer than the track; `main.js` notices and asks again.
+- **`merge.ts` decides what we keep**, once for every source: union on timestamp, newest-first, trimmed to 48 h
+  behind the newest point. The source returns points, never a merged snapshot.
+
+**The rest of the interface**:
+
 - **`FeedResult` is `{ points: FeedPoint[]; error: FeedError | null; requestCount: number }`**, points newest-first,
-  and **both fields may be set at once** — legacy's "a snapshot carries a stale position and a fresh error", which the
-  client renders. `FeedError` is a closed union (`bad-feed-id`, `no-data`, `throttled`, `unauthorized`, `timeout`,
-  `source-error`, `network`) carrying `userMessage` plus `status`, `headers` and `retryAfterMs` when present.
-  `throttled` is first-class so backoff can act on it. Legacy classified only HTTP 404, which is why we cannot say
-  today what either service does when it throttles us.
+  and **both may be set at once** (legacy: a snapshot carries a stale position and a fresh error, which the client
+  renders). `FeedError` is a closed union (`bad-feed-id`, `no-data`, `throttled`, `unauthorized`, `timeout`,
+  `source-error`, `network`) with `userMessage` plus `status`, `headers` and `retryAfterMs` when present. Legacy
+  classified only HTTP 404.
 - **Log every error code and every response header, for both sources** (the owner asked for this explicitly). Neither
   service documents a 429 or a `Retry-After`, so the first real one has to be captured in full rather than guessed at.
   Feed ids and IMEIs are never logged.
@@ -232,18 +285,11 @@ export interface TrackerSource {
   that is arbitration, not source knowledge. The radio buttons themselves stay hardcoded in the view.
 - **The registry is `Record<SourceType, TrackerSource>`**, keyed by the same `char(1)` as `group_trackers.tracker_type`
   and `feed_polls.tracker_type` (legacy: `ForeignAccessCentral.LocationRequestFactories[type]`). **The test of whether
-  the abstraction holds: no `if (type === 'S')` anywhere outside `sources/`.** The scheduler sees only `limits`,
-  `poll` and `FeedResult`; anything else that needs to branch on source means the interface is missing a member.
-- **SPOT paging lives inside `spot.ts` and counts as one unit** to the scheduler — one concurrency slot, one entry in
-  the same-feed timing, one `AbortSignal` for the whole chain. A page is at most 50 messages, page *n* is
-  `?start=n*50+1`, and paging continues only while the page came back full, the merged span is still under 48 h, there
-  have been fewer than 5 iterations, and the points fetched have not yet reached back into what we already hold.
-- **Scheduler mechanics**: one `setTimeout` re-armed after each tick (never `setInterval`, so a slow tick cannot
-  overlap itself); `AbortSignal.any([AbortSignal.timeout(...), shutdown.signal])` per poll, aborted from an `onClose`
-  hook so `app.close()` does not wait on feeds; per-source concurrency caps plus one global cap for the Pi; lazy
-  registration (a tracker enters the map when a group is first requested, as `Type: "wait"`); access stamping on the
-  request path and a sweep dropping snapshots untouched for ~20 minutes, which is what keeps feed load proportional to
-  actual viewers.
+  the abstraction holds: no `if (type === 'S')` anywhere outside `sources/`.** The pipeline sees only `rules`, `poll`
+  and `FeedResult`; anything else that needs to branch on source means the interface is missing a member.
+- **Single process**: take the Postgres advisory lock at startup (see Decisions); if it is held, log loudly and never
+  start the pipelines.
+- **Tests**: vitest fake timers drive the pipelines; sources are swapped in the registry (no real network in tests).
 - **Port the parser fixtures from legacy rather than inventing them**: `LocationLib.Test/BasicRequest.xml`,
   `Combinations.xml` and `InReach/*.kml` (nine files, covering long and short feeds, two points at the same time, and
   multi-IMEI feeds) with `SpotFeedRequestTests.cs`, `InReachFeedRequestTests.cs`, `InReachLocationRequestTests.cs`.

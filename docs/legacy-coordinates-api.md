@@ -596,9 +596,12 @@ written before these calls were made, and items 1, 2, 7 and 8 are superseded by 
   DefaultEndWaitTimeout - 5000)`) and 60 s per logical request measured from the chain's start (the scheduler's
   `TimeoutSpanInSeconds = 60` watchdog, swept rather than exact). Ours: **10 s per HTTP request, 60 s for the whole
   paging chain**, one `AbortSignal` shared by every page of a chain so the ceiling is exact. 10 s is roughly 10x a
-  normal response, and every second beyond it is a tracker parked in a concurrency slot. **Because we are lowering
-  it, the backoff of item 0 stops being optional**: with no backoff, a merely slow feed gets abandoned and
-  re-requested about six times as often as before, which adds load exactly when the far end is already struggling.
+  normal response, and every second beyond it is a tracker parked in a concurrency slot.
+- **The legacy timing rules are kept, and there is no backoff** (4 Nov 2026): 2 s between request starts, at most 10
+  in flight, 150 s (SPOT) and 30 s (inReach) per feed from the start of its last call, as §5.2. This overrides the
+  backoff advice of item 0 and §5.5: a failing feed is retried on its normal interval, as in legacy, and the errors
+  are logged in full with their response headers. SPOT paging happens only on a tracker's first fetch. The design is
+  under "Tracker sources and polling" in `AGENTS.md`.
 - **`feed_polls` (`tracker_type`, `foreign_id`, `last_polled_at`)** is the one piece of polling state in Postgres:
   it exists so a restart does not re-hit a feed sooner than the self-imposed interval, and it is read at startup
   only. Keyed by the feed, because the same feed in several groups is one snapshot and one schedule
