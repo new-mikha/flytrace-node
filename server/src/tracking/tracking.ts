@@ -28,18 +28,26 @@ import { sources } from './sources/index.ts';
 import type { SourceType, TrackerSource } from './sources/types.ts';
 import { Tracker } from './tracker.ts';
 
-/** Any fixed number: only one process may hold it, see "Exactly one app process" in AGENTS.md. */
+/**
+ * The name of a Postgres advisory lock: a lock on nothing but this number, which our code agrees to
+ * respect. Any fixed number will do. Two processes polling would hit every feed twice and answer
+ * differently, see "Exactly one app process" in AGENTS.md.
+ */
 const POLLING_LOCK = 7_316_001;
 
+/** By the feed, not by a group's row: a feed in several groups is one tracker, polled once. */
 const keyOf = (type: SourceType, feedId: string) => `${type}:${feedId}`;
 
 export class Tracking {
   private readonly trackers = new Map<string, Tracker>();
   /** When each feed was last called, from `feed_polls`: a restart must not hit a feed too soon. */
   private readonly lastPolled = new Map<string, number>();
+  /** Aborted by `stop()`: it ends the calls in flight, so closing the app does not wait for feeds. */
   private readonly shutdown = new AbortController();
   private readonly pipelines = new Map<SourceType, Pipeline>();
+  /** Holds the polling lock simply by staying connected. */
   private lockClient: pg.Client | undefined;
+  /** True once this process holds the lock and the pipelines run. */
   private polling = false;
 
   constructor(
@@ -58,8 +66,12 @@ export class Tracking {
 
   /** Called once by the real server. Until then, and in tests, every tracker stays "wait". */
   async start(): Promise<void> {
+    // The lock belongs to a database connection, and Postgres frees it when that connection ends,
+    // even if this process crashes, so nothing stale is left behind. That is why it takes a
+    // connection of its own: the pool's connections are shared and come and go.
     const client = new pg.Client({ connectionString: this.databaseUrl });
     await client.connect();
+    // The "try" form answers at once, true or false, where pg_advisory_lock would wait for the lock:
     const { rows } = await client.query<{ got: boolean }>(
       'SELECT pg_try_advisory_lock($1) AS got',
       [POLLING_LOCK],
@@ -69,9 +81,12 @@ export class Tracking {
       this.log.error('Another process is polling the trackers: this one will not');
       return;
     }
+    // Without a listener a dropped connection would bring the whole app down. The lock goes with the
+    // connection, but polling carries on: that only matters if a second process starts just then.
     client.on('error', (err) => this.log.error(err, 'The polling lock connection failed'));
     this.lockClient = client;
 
+    // Read only here: from now on `remember` keeps the map up to date itself.
     const polls = await this.pool.query<{
       tracker_type: SourceType;
       foreign_id: string;
@@ -86,6 +101,7 @@ export class Tracking {
 
   async stop(): Promise<void> {
     this.polling = false;
+    // First no new calls, then the end of those running:
     for (const pipeline of this.pipelines.values()) pipeline.stop();
     this.shutdown.abort();
     await this.lockClient?.end();
@@ -96,14 +112,18 @@ export class Tracking {
    * get a new tracker, which answers "wait" for now, and join the queue of their source.
    */
   access(feeds: readonly { type: SourceType; feedId: string }[]): Tracker[] {
+    // Gathered by source, so that a pipeline gets all the new trackers of this request at once:
     const fresh = new Map<SourceType, Tracker[]>();
     const trackers = feeds.map(({ type, feedId }) => {
       const key = keyOf(type, feedId);
       let tracker = this.trackers.get(key);
       if (!tracker) {
         tracker = new Tracker(feedId, () => this.trackers.delete(key));
+        // Nobody will ever fill it (tests, or another process holds the lock): a throwaway "wait",
+        // kept out of the map so that it needs no removal:
         if (!this.polling) return tracker;
 
+        // Also covers a tracker removed and asked for again soon after, not only a restart:
         const last = this.lastPolled.get(key) ?? 0;
         tracker.dueAt = last === 0 ? 0 : last + sources[type].rules.feedIntervalMs;
         this.trackers.set(key, tracker);
@@ -116,6 +136,10 @@ export class Tracking {
     return trackers;
   }
 
+  /**
+   * Notes that a call of this feed is starting. The call does not wait for the database, and a
+   * failed write costs little: at worst one early hit on the feed after a restart.
+   */
   private remember(source: TrackerSource, tracker: Tracker, now: number): void {
     this.lastPolled.set(keyOf(source.type, tracker.feedId), now);
     this.pool

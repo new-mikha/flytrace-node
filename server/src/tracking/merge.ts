@@ -21,15 +21,20 @@
 // Folding fresh points into a track: what we keep, the same for every source.
 import type { FeedPoint, HeldTrack } from './sources/types.ts';
 
-/** How far behind its own newest point a track reaches. */
+/**
+ * How far behind its own newest point a track reaches. Not behind now: a tracker that went silent
+ * yesterday still shows yesterday's flight.
+ */
 export const TRACK_HOURS = 48;
 
 /** Union on the time (the held point stays), newest first, trimmed to 48 h behind the newest. */
 export function mergeTrack(held: HeldTrack, fresh: readonly FeedPoint[]): FeedPoint[] {
+  // Held points go in first, so a point that comes again does not replace them:
   const byTime = new Map<number, FeedPoint>();
   for (const point of [...held, ...fresh])
     if (!byTime.has(point.ts.getTime())) byTime.set(point.ts.getTime(), point);
 
+  // Sorted again because fresh points can fall anywhere, not only ahead of the held ones:
   const merged = [...byTime.values()].sort((a, b) => b.ts.getTime() - a.ts.getTime());
   if (merged.length === 0) return merged;
   const threshold = merged[0]!.ts.getTime() - TRACK_HOURS * 3600_000;

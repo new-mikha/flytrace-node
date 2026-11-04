@@ -25,8 +25,9 @@ import type { TrackerSource } from './sources/types.ts';
 import type { Tracker } from './tracker.ts';
 
 export class Pipeline {
-  /** Only trackers that are due. */
+  /** Only trackers that are due, so the head is simply the one waiting longest. */
   private readonly queue: Tracker[] = [];
+  /** Calls running now, for all the feeds of this source. */
   private inFlight = 0;
   private loop: NodeJS.Timeout | undefined;
 
@@ -37,6 +38,8 @@ export class Pipeline {
     /** Called as a call starts, with the time to remember for the feed. */
     private readonly onCallStart: (tracker: Tracker, now: number) => void,
   ) {
+    // Every call must be over before its feed is due again, or it would be hit twice at once.
+    // `onIntervalOver` still copes if that ever happens, but it should not:
     const { callTimeoutMs, feedIntervalMs } = source.rules;
     if (callTimeoutMs >= feedIntervalMs)
       throw new Error(`${source.name}: a call may not last as long as the feed interval`);
@@ -44,6 +47,7 @@ export class Pipeline {
 
   start(): void {
     this.loop = setInterval(() => this.tick(), this.source.rules.startGapMs);
+    // None of these timers should keep the process alive once the server has closed:
     this.loop.unref();
   }
 
@@ -51,7 +55,10 @@ export class Pipeline {
     clearInterval(this.loop);
   }
 
-  /** New trackers: those already due join the queue, the others when they are. */
+  /**
+   * New trackers: those already due join the queue, the others when they are. "Not due" happens
+   * after a restart, or when a feed comes back soon after its tracker was removed.
+   */
   add(trackers: Tracker[]): void {
     const now = Date.now();
     for (const tracker of [...trackers].sort((a, b) => a.dueAt - b.dueAt))
@@ -59,16 +66,22 @@ export class Pipeline {
       else this.after(tracker.dueAt - now, () => this.enqueue(tracker));
   }
 
+  /** Never cancelled: after `stop()` the action only fills a queue nobody reads any more. */
   private after(delayMs: number, action: () => void): void {
     setTimeout(action, delayMs).unref();
   }
 
+  /** A tracker can be removed while it waits for a timer: that is where it stops being polled. */
   private enqueue(tracker: Tracker): void {
     if (!tracker.removed) this.queue.push(tracker);
   }
 
-  /** At most one start per tick: that is the gap between request starts. */
+  /**
+   * At most one start per tick: that is the gap between request starts. With all the slots taken the
+   * head just waits for a later tick. Nobody awaits the call, it looks after its own errors.
+   */
   private tick(): void {
+    // Only the head needs checking: a removed one further back gets here in its turn.
     while (this.queue[0]?.removed) this.queue.shift();
     if (this.queue.length > 0 && this.inFlight < this.source.rules.maxInFlight)
       void this.call(this.queue.shift()!);
@@ -79,15 +92,20 @@ export class Pipeline {
     const startedAt = Date.now();
     this.inFlight++;
     tracker.inFlight = true;
+    // Counted from the start, as in legacy, so a slow call does not push the next one back. Saved
+    // before the request, because a hit counts for the source even if we crash during it:
     this.onCallStart(tracker, startedAt);
     this.after(rules.feedIntervalMs, () => this.onIntervalOver(tracker));
 
+    // Covers the whole call, all its requests; each request has a shorter limit of its own:
     const signal = AbortSignal.any([AbortSignal.timeout(rules.callTimeoutMs), this.shutdown]);
     try {
       const result = await this.source.poll(tracker.feedId, tracker.track, signal, (points) =>
         tracker.applyLatest(points),
       );
       tracker.applyResult(result);
+      // The status and all the headers go to the log: neither service documents its limits, so the
+      // first real refusal has to be captured whole. Feed ids never do.
       const took = `${result.requestCount} request(s), ${Date.now() - startedAt} ms`;
       if (result.error) {
         const { kind, detail, status, headers, retryAfterMs } = result.error;
@@ -111,6 +129,7 @@ export class Pipeline {
     }
   }
 
+  /** The feed may be hit again. Normally its call ended long ago. */
   private onIntervalOver(tracker: Tracker): void {
     tracker.dueAt = Date.now();
     if (tracker.inFlight) {

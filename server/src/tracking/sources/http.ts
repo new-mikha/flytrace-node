@@ -21,6 +21,7 @@
 // The one HTTP request all sources make, and what its failures mean.
 import type { FeedError } from './types.ts';
 
+/** One request. A call of several requests has its own limit too, `callTimeoutMs` of the source. */
 const REQUEST_TIMEOUT_MS = 10_000;
 
 /** Without this the undocumented SPOT address answers in JSON (a note from the legacy code). */
@@ -44,6 +45,7 @@ export const sourceError = (why: string): FeedError => ({
   detail: why,
 });
 
+/** `Retry-After` in milliseconds: the header holds either seconds or a date. Only logged so far. */
 function retryAfter(value: string | null): number | undefined {
   if (!value) return undefined;
   const seconds = Number(value);
@@ -63,6 +65,7 @@ function httpError(response: Response, sourceName: string): FeedError {
     headers,
     retryAfterMs: retryAfter(response.headers.get('retry-after')),
   };
+  // The one status legacy told apart: a feed that does not exist.
   if (status === 404) return { ...badFeedId(sourceName), ...facts };
   const userMessage = cannotRetrieve(`the server answered ${status}.`);
   if (status === 429) return { kind: 'throttled', userMessage, ...facts };
@@ -82,15 +85,18 @@ export async function fetchFeed(
       signal: AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT_MS)]),
     });
     if (!response.ok) {
+      // We will not read it, and until it is dropped it holds the connection:
       await response.body?.cancel();
       return { error: httpError(response, sourceName) };
     }
     return { text: await response.text() };
   } catch (err) {
+    // The name tells which signal fired: a timeout gives TimeoutError, the shutdown AbortError.
     const e = err as Error & { cause?: { code?: string } };
     if (e.name === 'AbortError') throw err;
     if (e.name === 'TimeoutError')
       return { error: { kind: 'timeout', userMessage: cannotRetrieve('no answer in time.') } };
+    // `fetch` says only "fetch failed"; the real reason (ECONNRESET, ENOTFOUND...) is in the cause:
     const why = e.cause?.code ?? e.name;
     return { error: { kind: 'network', userMessage: cannotRetrieve(why), detail: why } };
   }

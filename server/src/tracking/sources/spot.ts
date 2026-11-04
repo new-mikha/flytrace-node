@@ -27,6 +27,7 @@ import type { FeedError, FeedPoint, FeedResult, HeldTrack, TrackerSource } from 
 
 const FEED_URL = 'https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed';
 const PAGE_SIZE = 50;
+/** Legacy's limit (`Iteration < 5`): 300 messages at most on a first fetch. */
 const MAX_PAGES = 6;
 
 const FEED_ID =
@@ -44,6 +45,7 @@ const TYPES: Record<string, string> = {
   POI: 'TRACK',
 };
 
+// Every value stays text: `pointOf` converts what it needs, and an id must not turn into a number.
 const parser = new XMLParser({ parseTagValue: false, ignoreAttributes: true });
 
 interface Message {
@@ -83,6 +85,7 @@ function pointOf(message: Message): FeedPoint | null {
   };
 }
 
+/** SPOT reports these inside a normal answer, as text in an `error` element. */
 function errorOf(text: string, feedId: string): FeedError {
   if (text.includes('No Messages to display')) return noData();
   if (/Feed Not Found|Feed Currently Not Active|Feed Password required/.test(text))
@@ -95,6 +98,7 @@ function errorOf(text: string, feedId: string): FeedError {
 export function parseSpotPage(xml: string, feedId: string): FeedPoint[] | FeedError {
   let document: unknown;
   try {
+    // `true` checks the XML first: a broken answer throws instead of giving half a document.
     document = parser.parse(xml, true);
   } catch (err) {
     return sourceError((err as Error).message);
@@ -103,16 +107,19 @@ export function parseSpotPage(xml: string, feedId: string): FeedPoint[] | FeedEr
   if (error) return errorOf(String(error.text ?? ''), feedId);
 
   const messages = findAll(document, 'message') as Message[];
+  // Merging into nothing just sorts, drops repeated times and trims:
   const points = mergeTrack(
     [],
     messages.map(pointOf).filter((point) => point !== null),
   );
   if (points.length > 0) return points;
+  // Messages but no usable point: their format must have changed.
   return messages.length > 0
     ? { kind: 'source-error', userMessage: 'Inconsistent SPOT server response schema.' }
     : noData();
 }
 
+/** `start` counts messages from 1: the second page is `?start=51`. */
 const pageUrl = (feedId: string, page: number) =>
   `${FEED_URL}/${feedId}/message.xml${page === 0 ? '' : `?start=${page * PAGE_SIZE + 1}`}`;
 
@@ -133,6 +140,7 @@ async function poll(
   for (let page = 0; ; page++) {
     const requestCount = page + 1;
     const answer = await fetchFeed(pageUrl(feedId, page), signal, 'SPOT');
+    // Only a first fetch gets past page one, and `Tracker` drops these points if it fails:
     if ('error' in answer) return { points, error: answer.error, requestCount };
 
     const fresh = parseSpotPage(answer.text, feedId);
@@ -142,6 +150,7 @@ async function poll(
       return { points, error: ended ? null : fresh, requestCount };
     }
     points = mergeTrack(points, fresh);
+    // The marker need not wait for the rest of the chain:
     if (page === 0) onLatest(fresh);
 
     const isLast =

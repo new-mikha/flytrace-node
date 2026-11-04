@@ -27,6 +27,7 @@ import type { CoordItem, GroupData, TrackRequest, TrackResponseItem } from './wi
 /** The page reloads itself when this changes: raise it when the script and the server must match. */
 const VER = 2;
 
+/** In seconds. Never negative: a device's clock can be ahead of ours. */
 const ageOf = (ts: Date, now: Date) =>
   Math.max(0, Math.trunc((now.getTime() - ts.getTime()) / 1000));
 
@@ -39,6 +40,7 @@ function omitEmpty<T extends object>(item: T): T {
 }
 
 function coordItem(row: MapViewTracker, tracker: Tracker, view: MapView, now: Date): CoordItem {
+  // Turned off in the group editor. The script still gets the tracker, and keeps it off the map:
   const hidden = !row.isOn;
   if (!tracker.answered) return omitEmpty({ name: row.name, type: 'wait', hidden });
 
@@ -50,8 +52,11 @@ function coordItem(row: MapViewTracker, tracker: Tracker, view: MapView, now: Da
     item.type = latest.type;
     item.ts = latest.ts;
     item.age = ageOf(latest.ts, now);
+    // What the group's owner chose to show:
     if (view.altitudeUnits) item.alt = latest.alt;
     if (view.showMessages) item.usrMsg = latest.userMessage;
+    // `startTs` is "hide points older than" on the event page, so a hidden point must not show as
+    // the current one, nor as the start of the line to it:
     if (view.startTs && latest.ts < view.startTs) item.hidden = true;
     if (previous && (!view.startTs || previous.ts > view.startTs)) {
       item.prevLat = previous.lat;
@@ -72,6 +77,7 @@ export function coordinates(view: MapView, trackers: Tracker[], now = new Date()
   });
 }
 
+/** Only the newest point carries a type: the script reads it from no other. */
 const trackPoint = (point: FeedPoint, isNewest: boolean, now: Date) =>
   omitEmpty({
     lat: point.lat,
@@ -93,6 +99,7 @@ export function tracks(
     const asked = request.items.find(
       (item) => item.trackerName.toLowerCase() === row.name.toLowerCase(),
     );
+    // The page holds the rest already, so it only gets what is newer:
     const laterThan = asked?.laterThan ? new Date(asked.laterThan).getTime() : -Infinity;
     const track = (trackers[i]!.track ?? []).flatMap((point, index) =>
       point.ts.getTime() > laterThan ? [trackPoint(point, index === 0, now)] : [],

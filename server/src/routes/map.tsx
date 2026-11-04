@@ -31,6 +31,7 @@ import { sendHtml } from '../views/render.tsx';
 /** The most trackers whose tracks the page asks for at once (the script sends up to this many). */
 const MAX_TRACKS_PER_REQUEST = 10;
 
+/** 0, which no group has, for anything that is not a plain number. */
 const idOf = (raw: string): number => (/^\d{1,10}$/.test(raw) ? Number(raw) : 0);
 
 /**
@@ -65,7 +66,9 @@ export async function mapRoutes(
     );
   });
 
-  // The latest position of every tracker of the group.
+  // The latest position of every tracker of the group. `access` is also what keeps the feeds polled:
+  // they are watched for as long as a map keeps asking. `no-store`, or a browser answering from its
+  // cache would freeze the ages shown on the page.
   app.get<{ Params: { id: string } }>('/map/:id/coordinates', async (request, reply) => {
     const view = await getMapView(pool, idOf(request.params.id));
     if (!view) return reply.code(404).send({ error: 'No such group' });
@@ -89,6 +92,7 @@ export async function mapRoutes(
     )
       return reply.code(400).send({ error: 'Bad request' });
 
+    // Names match in any case, as in legacy:
     const names = new Set(items.map((item) => item.trackerName.toLowerCase()));
     const rows = view.trackers.filter((row) => names.has(row.name.toLowerCase()));
     return reply

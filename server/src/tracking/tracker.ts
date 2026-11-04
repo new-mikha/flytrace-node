@@ -27,14 +27,18 @@ import type { FeedError, FeedPoint, FeedResult } from './sources/types.ts';
 const LIFETIME_WITHOUT_ACCESS_MS = 20 * 60_000;
 
 export class Tracker {
-  /** The earliest time the feed may be hit. */
+  /** The earliest time the feed may be hit. Decides only a new tracker's place in the queue. */
   dueAt = 0;
   inFlight = false;
   /** The feed interval ended during a call: the end of the call puts it in the queue. */
   dueWhenDone = false;
+  /** Past its lifetime. Timers and the queue may still hold it, so they check this. */
   removed = false;
 
-  /** False until the feed has answered anything: the map shows "wait". */
+  /**
+   * False until the feed has answered anything: the map shows "wait". Not the same as having no
+   * position: a feed that answered with an error has none either, and the map shows the error.
+   */
   answered = false;
   latest: FeedPoint | null = null;
   previous: FeedPoint | null = null;
@@ -49,17 +53,20 @@ export class Tracker {
     private readonly onRemove: () => void,
   ) {}
 
+  /** Every request for this feed puts its end off: nobody watching means no more polling. */
   resetRemovingTimer(): void {
     clearTimeout(this.removeTimer);
     this.removeTimer = setTimeout(() => {
       this.removed = true;
       this.onRemove();
     }, LIFETIME_WITHOUT_ACCESS_MS);
+    // A pending removal is no reason to keep the process alive:
     this.removeTimer.unref();
   }
 
   /** The first response of a call: the map can show the position while the track is still coming. */
   applyLatest(points: FeedPoint[]): void {
+    // Merged only to find the two newest points; the track itself waits for the end of the call:
     const [latest, previous] = mergeTrack(this.track ?? [], points);
     this.answered = true;
     if (latest) {
@@ -71,10 +78,12 @@ export class Tracker {
   /** The end of a call. An error keeps the position held: the map shows both. */
   applyResult(result: FeedResult): void {
     this.answered = true;
+    // Also clears an old error, when a call went well, even with nothing new:
     this.error = result.error;
     // A first fetch that failed half way starts again next time, with no track until it is whole:
     if (result.error && this.track === null) return;
     const track = mergeTrack(this.track ?? [], result.points);
+    // Nothing held and nothing new, so the position set by `applyLatest` stays:
     if (track.length === 0) return;
     this.track = track;
     this.latest = track[0]!;

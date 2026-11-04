@@ -30,6 +30,8 @@ const WINDOW_DAYS = TRACK_HOURS / 24 + 2;
 const FEED_ID =
   /^\s*?(?:(?:[^\s#?&]+\.)?garmin\.com\/(?:[^\s#?&]+\/)*)??(?<id>[^\s#?&/]+)(?:\?[^#]*?)?\s*?(?:#\s*?(?<imei>\d*?))?\s*?$/i;
 
+// Every value stays text. Attributes are needed: the fields are <Data name="IMEI">, so the name of
+// each is in an attribute, and an empty prefix lets `extendedData` read it as `item.name`.
 const parser = new XMLParser({
   parseTagValue: false,
   ignoreAttributes: false,
@@ -47,6 +49,7 @@ interface DataItem {
   value?: unknown;
 }
 
+/** A placemark's `<ExtendedData>` fields by name. A single one parses as an object, not a list. */
 function extendedData(placemark: Placemark): Map<string, string> {
   const data = placemark.ExtendedData?.Data ?? [];
   const items = Array.isArray(data) ? data : [data];
@@ -56,6 +59,7 @@ function extendedData(placemark: Placemark): Map<string, string> {
 }
 
 function pointOf(placemark: Placemark, data: Map<string, string>, ts: Date): FeedPoint | null {
+  // KML's order, longitude first:
   const [lon, lat, alt] = String(placemark.Point?.coordinates ?? '')
     .split(',')
     .map(Number);
@@ -129,12 +133,14 @@ function withoutMovedPoints(fresh: FeedPoint[], held: HeldTrack): FeedPoint[] {
 
 function feedUrl(feedId: string, since?: Date): { url: string } | { error: FeedError } {
   const [address = '', imei = ''] = feedId.replace(/^https?:\/\//i, '').split('#');
+  // Ours is added below, so the stored address must not bring one of its own:
   if (address.includes('?')) return { error: sourceError('the feed address has a query part.') };
 
   const query = new URLSearchParams();
   // The form they take, 2019-01-16T06:19:00z:
   if (since) query.set('d1', `${since.toISOString().slice(0, 19)}z`);
   if (imei.trim()) query.set('imei', imei.trim());
+  // URLSearchParams encodes the colons of the time; legacy sent them as they are, so we do too:
   const text = query.toString().replaceAll('%3A', ':');
   return { url: `https://${address}${text ? `?${text}` : ''}` };
 }
@@ -174,6 +180,7 @@ async function poll(
     const fresh = await fetchPoints(feedId, signal, windowStart(newestHeld));
     if (!Array.isArray(fresh)) return { points: [], error: fresh, requestCount: 1 };
 
+    // Without an `Id` we cannot tell, so it goes on to the merge, which keeps what is held:
     const newest = fresh[0]!;
     if (newest.id && newest.id === newestHeld.id)
       return { points: [], error: null, requestCount: 1 };
@@ -184,6 +191,7 @@ async function poll(
   const latest = await fetchPoints(feedId, signal);
   if (!Array.isArray(latest)) return { points: [], error: latest, requestCount: 1 };
 
+  // The marker need not wait for the window:
   onLatest(latest);
   const newest = latest[0]!;
   // Not expected, but then there is nothing to go back for:
@@ -191,6 +199,7 @@ async function poll(
   if (reachedBack) return { points: latest, error: null, requestCount: 1 };
 
   const fresh = await fetchPoints(feedId, signal, windowStart(newest));
+  // `Tracker` drops these points on a first fetch that failed, and the next call starts over:
   if (!Array.isArray(fresh)) return { points: latest, error: fresh, requestCount: 2 };
 
   return { points: fresh, error: null, requestCount: 2 };

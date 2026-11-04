@@ -30,6 +30,7 @@ const app = await buildApp(config, createPool(config.DATABASE_URL));
 
 const host = config.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
 await app.listen({ port: config.PORT, host });
+// Here and not in `buildApp`, so that tests get an app that never polls the feeds:
 await app.tracking.start();
 app.log.info(
   `Started: process id ${process.pid}, ${config.NODE_ENV}, time zone
