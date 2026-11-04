@@ -262,15 +262,18 @@ wait on feeds.
   `Iteration < 5`). **After that, the top page only**, merged into the held track. Accepted edge case: a watched
   tracker that goes without a successful poll for longer than one page covers (50 messages, about 2 h of 2.5-minute
   tracking) keeps a hole in its track; a new `Tracker` (after the 20 minutes) pages again.
-- **inReach**: the two-step call (§5.3): the first request, without `d1`, returns the latest point; if its `Id` is the
-  newest one held, stop; otherwise a second request asks for a 4-day window (`d1`), sanitised against the held track.
-  (Legacy actually sent `d1` on the first request too once it held a track; ours stays the cheap one.)
-- **The latest point is known before the track**: `onLatest` hands the first response's points to the `Tracker`, which
-  updates the current and previous point, type, message and time straight away (the coordinates endpoint serves them).
-  The track is replaced only when the call ends, and on a first fetch there is **no track at all until the chain is
-  done**: the client asks for tracks with `laterThan` = its newest point, so a page-1-only track would leave the older
-  pages missing for good. Meanwhile the marker can be newer than the track; `main.js` notices and asks again. A first
-  fetch that fails half way keeps the position it got and starts again next time, still with no track.
+- **inReach** (§5.3): on a **first** fetch, two requests: without `d1` for the latest point, then a 4-day window (`d1`)
+  back from it. **With a track held, one request, always with `d1`** = newest held point minus 4 days, as legacy's first
+  request: if its newest `Id` is the newest held, stop; otherwise its points are sanitised against the held track and
+  merged. A bigger answer on every poll, chosen on purpose (4 Nov 2026): a plain request gives one point, so the marker
+  would run ahead of the track and `prev` could claim the held point when others came between, which makes `main.js`
+  skip those points for good. Legacy's second request is not needed: this window already holds every new point.
+- **On a first fetch the latest point is known before the track**: `onLatest` hands the first response's points to the
+  `Tracker`, which updates the current and previous point, type, message and time straight away (the coordinates
+  endpoint serves them). There is **no track at all until the chain is done**: the client asks for tracks with
+  `laterThan` = its newest point, so a page-1-only track would leave the older pages missing for good. Meanwhile
+  `main.js` keeps asking. A first fetch that fails half way keeps the position it got and starts again next time, still
+  with no track. Once a track is held, the position and the track change together, when the call ends.
 - **`merge.ts` decides what we keep**, once for every source: union on timestamp, newest-first, trimmed to 48 h
   behind the newest point. The source returns points, never a merged snapshot.
 

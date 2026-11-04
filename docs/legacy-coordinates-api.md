@@ -388,9 +388,10 @@ Otherwise it unions with the existing track and stops. Finally trimmed to 48 h b
 
 **inReach** (`InReachLocationRequest`): a two-step strategy.
 - Iteration 0 is sent **without `d1`** on a first fetch and normally returns just the latest point. Once a track is
-  held, `CreateFeedRequest` sends `d1` on iteration 0 too (`InReachLocationRequest.cs`); the rewrite does not. If that point's `Id` equals the
-  newest existing point's `Id`, nothing changed: return the existing track (clearing any stale error) and stop —
-  one cheap request per 30 s in the common case.
+  held, `CreateFeedRequest` sends `d1` on iteration 0 too (`InReachLocationRequest.cs`), so it returns the whole window;
+  the rewrite does the same. If the newest point's `Id` equals the newest existing point's `Id`, nothing changed: return
+  the existing track (clearing any stale error) and stop — one request per 30 s in the common case. The rewrite stops
+  after that request in every case, as the window already holds every new point.
 - Otherwise iteration 1 refetches with `d1 = newestKnownPoint - (48/24 + 2) = 4 days`, generous on purpose because
   Garmin has been seen to mishandle the time part and timezones.
 - The fresh points are sanitised against the old track (`SanitiseFreshPointsOverOlderTrack` drops points whose `Id`
@@ -514,8 +515,8 @@ evidence that 429 exists and that one person saw it at 1-minute polling.
 Our **30 s** is therefore well inside the range where at least one person has been throttled, and 20–60× faster
 than the device reporting rate. It has evidently not caused trouble (the production log shows 30 s polling of five
 inReach feeds with no errors), which is probably down to two things: we only ever watch a handful of inReach feeds
-at a time, and the common-case request is cheap — iteration 0 is sent without `d1`, returns a single point, and
-stops as soon as its `Id` matches what we already have (§5.3). But it is luck and low volume, not design. **For the
+at a time, and the common case is a single request that stops as soon as the newest `Id` matches what we already
+have (§5.3). But it is luck and low volume, not design. **For the
 rewrite I would not keep 30 s.** Something in the 2–5 minute range costs viewers almost nothing (the device is not
 reporting faster than that anyway) and removes the risk.
 

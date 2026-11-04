@@ -24,7 +24,7 @@ import { TRACK_HOURS } from '../merge.ts';
 import { fetchFeed, findAll, noData, sourceError } from './http.ts';
 import type { FeedError, FeedPoint, FeedResult, HeldTrack, TrackerSource } from './types.ts';
 
-/** The window of the second request: back 48 h and two days more, for Garmin's way with times. */
+/** How far back `d1` goes: 48 h and two days more, for Garmin's way with times. */
 const WINDOW_DAYS = TRACK_HOURS / 24 + 2;
 
 const FEED_ID =
@@ -117,9 +117,9 @@ export function parseInReachFeed(kml: string, imei: string): FeedPoint[] | FeedE
 }
 
 /** Garmin has been seen moving a known point in time: such points stay as they were held. */
-function withoutMovedPoints(fresh: FeedPoint[], held: HeldTrack | null): FeedPoint[] {
+function withoutMovedPoints(fresh: FeedPoint[], held: HeldTrack): FeedPoint[] {
   const heldTimes = new Map(
-    (held ?? []).filter((point) => point.id).map((point) => [point.id, point.ts.getTime()]),
+    held.filter((point) => point.id).map((point) => [point.id, point.ts.getTime()]),
   );
   return fresh.filter((point) => {
     const heldTime = point.id ? heldTimes.get(point.id) : undefined;
@@ -141,9 +141,27 @@ function feedUrl(feedId: string, since?: Date): { url: string } | { error: FeedE
 
 const imeiOf = (feedId: string) => (feedId.split('#')[1] ?? '').trim();
 
+const windowStart = (newest: FeedPoint) =>
+  new Date(newest.ts.getTime() - WINDOW_DAYS * 24 * 3600_000);
+
+async function fetchPoints(
+  feedId: string,
+  signal: AbortSignal,
+  since?: Date,
+): Promise<FeedPoint[] | FeedError> {
+  const target = feedUrl(feedId, since);
+  if ('error' in target) return target.error;
+
+  const answer = await fetchFeed(target.url, signal, 'inReach');
+  if ('error' in answer) return answer.error;
+
+  return parseInReachFeed(answer.text, imeiOf(feedId));
+}
+
 /**
- * Two steps: the plain feed gives only the latest point, and when that is the newest one held,
- * nothing has changed. Otherwise a second request asks for the days that are wanted.
+ * With a track held, one request for the whole window: every new point comes at once, so the marker
+ * and the track never disagree. The first fetch has no time to go back from, so the plain feed
+ * gives the latest point first, and a second request the days before it.
  */
 async function poll(
   feedId: string,
@@ -151,40 +169,37 @@ async function poll(
   signal: AbortSignal,
   onLatest: (points: FeedPoint[]) => void,
 ): Promise<FeedResult> {
-  const first = feedUrl(feedId);
-  if ('error' in first) return { points: [], error: first.error, requestCount: 0 };
+  const newestHeld = held?.[0];
+  if (held && newestHeld) {
+    const fresh = await fetchPoints(feedId, signal, windowStart(newestHeld));
+    if (!Array.isArray(fresh)) return { points: [], error: fresh, requestCount: 1 };
 
-  const answer = await fetchFeed(first.url, signal, 'inReach');
-  if ('error' in answer) return { points: [], error: answer.error, requestCount: 1 };
+    const newest = fresh[0]!;
+    if (newest.id && newest.id === newestHeld.id)
+      return { points: [], error: null, requestCount: 1 };
 
-  const latest = parseInReachFeed(answer.text, imeiOf(feedId));
+    return { points: withoutMovedPoints(fresh, held), error: null, requestCount: 1 };
+  }
+
+  const latest = await fetchPoints(feedId, signal);
   if (!Array.isArray(latest)) return { points: [], error: latest, requestCount: 1 };
 
-  const newest = latest[0]!;
-  if (newest.id && newest.id === held?.[0]?.id) return { points: [], error: null, requestCount: 1 };
-
   onLatest(latest);
+  const newest = latest[0]!;
   // Not expected, but then there is nothing to go back for:
   const reachedBack = newest.ts.getTime() - latest.at(-1)!.ts.getTime() >= TRACK_HOURS * 3600_000;
   if (reachedBack) return { points: latest, error: null, requestCount: 1 };
 
-  const since = new Date(newest.ts.getTime() - WINDOW_DAYS * 24 * 3600_000);
-  const second = feedUrl(feedId, since);
-  if ('error' in second) return { points: latest, error: second.error, requestCount: 1 };
-
-  const window = await fetchFeed(second.url, signal, 'inReach');
-  if ('error' in window) return { points: latest, error: window.error, requestCount: 2 };
-
-  const fresh = parseInReachFeed(window.text, imeiOf(feedId));
+  const fresh = await fetchPoints(feedId, signal, windowStart(newest));
   if (!Array.isArray(fresh)) return { points: latest, error: fresh, requestCount: 2 };
 
-  return { points: withoutMovedPoints(fresh, held), error: null, requestCount: 2 };
+  return { points: fresh, error: null, requestCount: 2 };
 }
 
 export const inReach: TrackerSource = {
   type: 'G',
   name: 'inReach',
-  // Two requests of 10 s at most, inside the 30 s:
+  // A first fetch is two requests of 10 s at most, inside the 30 s:
   rules: { startGapMs: 2000, maxInFlight: 10, feedIntervalMs: 30_000, callTimeoutMs: 25_000 },
   poll,
   parseFeedId(text) {
