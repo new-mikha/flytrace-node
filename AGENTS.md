@@ -69,6 +69,7 @@ simulated client its own `remoteAddress`.
   (ESLint `curly`). The owner would also like the statement after `if` / `else` / `for` on its own line and the brace on its own line after a
   multi-line condition, but Prettier cannot do that (it was tried with dprint, see git history `5be71c5`); do not fight Prettier over it.
 - Lines are at most 100 columns; comments, long strings, SQL and regexes may run over (the tools do not wrap them).
+- One class per file, the file named after it (`tracker.ts` for `Tracker`). A small helper class in a test file is fine.
 - VS Code: `.vscode/` recommends the Prettier and ESLint extensions and formats on save.
 
 ## UI conventions
@@ -188,7 +189,7 @@ working first). Change it by this design rather than inventing a new shape. The 
 rules, §5.2 the deployed numbers, §5.3 one fetch in detail, §7.0 what we changed). **The timing rules are the legacy
 ones, kept on purpose** ("if it works, it works"; errors will show in the log).
 
-Layout: `server/src/tracking/` with `trackers.ts` (the shared map and the `Tracker` class), `pipeline.ts` (one per
+Layout: `server/src/tracking/` with `tracking.ts` (the shared map, class `Tracking`), `tracker.ts` (one feed, class `Tracker`), `pipeline.ts` (one per
 source: its queue, its 2 s loop, its in-flight count), `merge.ts` (fold fresh points into a track), `sources/`
 (`types.ts`, `http.ts` the one request and its failures, `spot.ts`, `inreach.ts`, `index.ts` for the registry),
 `answers.ts` (the two answers of the map page); pages and endpoints in `routes/map.tsx`. `Tracking.start()` is called
@@ -212,7 +213,7 @@ export interface TrackerSource {
 }
 ```
 
-**The map of trackers** (`trackers.ts`, shared by all sources):
+**The map of trackers** (`tracking.ts`, shared by all sources):
 
 - Keyed by the **feed**, `S:<feedId>` or `G:<feedId>`, never by a `group_trackers` id: the same feed in several groups
   is one `Tracker`, polled once (legacy: `ForeignId`), and `feed_polls` is keyed the same way. The pilot's name comes

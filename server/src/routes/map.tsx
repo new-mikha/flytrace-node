@@ -23,7 +23,7 @@ import type { Config } from '../config.ts';
 import type { Pool } from '../db.ts';
 import { getMapGroup, getMapView } from '../repo/mapGroups.ts';
 import { coordinates, tracks } from '../tracking/answers.ts';
-import type { Tracking } from '../tracking/trackers.ts';
+import type { Tracking } from '../tracking/tracking.ts';
 import type { TrackRequest } from '../tracking/wire.ts';
 import { MapPage } from '../views/MapPage.tsx';
 import { sendHtml } from '../views/render.tsx';

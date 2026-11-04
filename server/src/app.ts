@@ -41,7 +41,7 @@ import { mapRoutes } from './routes/map.tsx';
 import { pageRoutes } from './routes/pages.ts';
 import { settingsRoutes } from './routes/settings.tsx';
 import { themeOf, themeRoutes } from './routes/theme.ts';
-import { Tracking } from './tracking/trackers.ts';
+import { Tracking } from './tracking/tracking.ts';
 
 /**
  * Production log times: ISO 8601 in the process's time zone with its offset (pino's default is

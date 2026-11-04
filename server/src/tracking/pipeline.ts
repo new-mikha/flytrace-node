@@ -22,7 +22,7 @@
 // and know nothing of each other.
 import type { FastifyBaseLogger } from 'fastify';
 import type { TrackerSource } from './sources/types.ts';
-import type { Tracker } from './trackers.ts';
+import type { Tracker } from './tracker.ts';
 
 export class Pipeline {
   /** Only trackers that are due. */

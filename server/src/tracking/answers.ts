@@ -21,7 +21,7 @@
 // The two answers of the map page, made from the group's rows and what is held for its feeds.
 import type { MapView, MapViewTracker } from '../repo/mapGroups.ts';
 import type { FeedPoint } from './sources/types.ts';
-import type { Tracker } from './trackers.ts';
+import type { Tracker } from './tracker.ts';
 import type { CoordItem, GroupData, TrackRequest, TrackResponseItem } from './wire.ts';
 
 /** The page reloads itself when this changes: raise it when the script and the server must match. */

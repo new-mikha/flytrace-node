@@ -18,86 +18,20 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// What we know about the feeds being watched, in memory only (see "Decisions" in AGENTS.md): the map
-// of `Tracker`s, shared by all sources, and the single-process guard. A feed gets a `Tracker` when a
-// map first asks for it, and loses it 20 minutes after the last time anybody asked.
+// The feeds being watched: the map of `Tracker`s, shared by all sources, and the single-process
+// guard. A feed gets a `Tracker` when a map first asks for it.
 import type { FastifyBaseLogger } from 'fastify';
 import pg from 'pg';
 import type { Pool } from '../db.ts';
-import { mergeTrack } from './merge.ts';
 import { Pipeline } from './pipeline.ts';
 import { sources } from './sources/index.ts';
-import type {
-  FeedError,
-  FeedPoint,
-  FeedResult,
-  SourceType,
-  TrackerSource,
-} from './sources/types.ts';
-
-/** Legacy `TrackerLifetimeWithoutAccess`. */
-const LIFETIME_WITHOUT_ACCESS_MS = 20 * 60_000;
+import type { SourceType, TrackerSource } from './sources/types.ts';
+import { Tracker } from './tracker.ts';
 
 /** Any fixed number: only one process may hold it, see "Exactly one app process" in AGENTS.md. */
 const POLLING_LOCK = 7_316_001;
 
 const keyOf = (type: SourceType, feedId: string) => `${type}:${feedId}`;
-
-export class Tracker {
-  /** The earliest time the feed may be hit. */
-  dueAt = 0;
-  inFlight = false;
-  /** The feed interval ended during a call: the end of the call puts it in the queue. */
-  dueWhenDone = false;
-  removed = false;
-
-  /** False until the feed has answered anything: the map shows "wait". */
-  answered = false;
-  latest: FeedPoint | null = null;
-  previous: FeedPoint | null = null;
-  error: FeedError | null = null;
-  /** Newest first; null until a whole first fetch is done, so the client never gets half of it. */
-  track: FeedPoint[] | null = null;
-
-  private removeTimer: NodeJS.Timeout | undefined;
-
-  constructor(
-    readonly feedId: string,
-    private readonly onRemove: () => void,
-  ) {}
-
-  resetRemovingTimer(): void {
-    clearTimeout(this.removeTimer);
-    this.removeTimer = setTimeout(() => {
-      this.removed = true;
-      this.onRemove();
-    }, LIFETIME_WITHOUT_ACCESS_MS);
-    this.removeTimer.unref();
-  }
-
-  /** The first response of a call: the map can show the position while the track is still coming. */
-  applyLatest(points: FeedPoint[]): void {
-    const [latest, previous] = mergeTrack(this.track ?? [], points);
-    this.answered = true;
-    if (latest) {
-      this.latest = latest;
-      this.previous = previous ?? null;
-    }
-  }
-
-  /** The end of a call. An error keeps the position held: the map shows both. */
-  applyResult(result: FeedResult): void {
-    this.answered = true;
-    this.error = result.error;
-    // A first fetch that failed half way starts again next time, with no track until it is whole:
-    if (result.error && this.track === null) return;
-    const track = mergeTrack(this.track ?? [], result.points);
-    if (track.length === 0) return;
-    this.track = track;
-    this.latest = track[0]!;
-    this.previous = track[1] ?? null;
-  }
-}
 
 export class Tracking {
   private readonly trackers = new Map<string, Tracker>();
