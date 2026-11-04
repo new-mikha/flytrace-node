@@ -41,6 +41,7 @@ import { mapRoutes } from './routes/map.tsx';
 import { pageRoutes } from './routes/pages.ts';
 import { settingsRoutes } from './routes/settings.tsx';
 import { themeOf, themeRoutes } from './routes/theme.ts';
+import { Tracking } from './tracking/trackers.ts';
 
 /**
  * Production log times: ISO 8601 in the process's time zone with its offset (pino's default is
@@ -161,11 +162,14 @@ export async function buildApp(
   await groupRoutes(app, pool);
   await eventRoutes(app, pool);
   await waypointRoutes(app, pool);
-  await mapRoutes(app, pool, config);
+  const tracking = new Tracking(pool, app.log, config.DATABASE_URL);
+  app.decorate('tracking', tracking);
+  await mapRoutes(app, pool, config, tracking);
   await homeRoutes(app, pool);
   await pageRoutes(app);
 
   app.addHook('onClose', async () => {
+    await tracking.stop();
     await mail.flush();
     await pool.end();
   });
@@ -175,5 +179,6 @@ export async function buildApp(
 declare module 'fastify' {
   interface FastifyInstance {
     mail: MailService;
+    tracking: Tracking;
   }
 }

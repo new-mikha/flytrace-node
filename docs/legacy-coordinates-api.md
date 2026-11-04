@@ -387,7 +387,8 @@ existing track or the oldest fetched point is still newer than the newest existi
 Otherwise it unions with the existing track and stops. Finally trimmed to 48 h behind the newest point.
 
 **inReach** (`InReachLocationRequest`): a two-step strategy.
-- Iteration 0 is sent **without `d1`** and normally returns just the latest point. If that point's `Id` equals the
+- Iteration 0 is sent **without `d1`** on a first fetch and normally returns just the latest point. Once a track is
+  held, `CreateFeedRequest` sends `d1` on iteration 0 too (`InReachLocationRequest.cs`); the rewrite does not. If that point's `Id` equals the
   newest existing point's `Id`, nothing changed: return the existing track (clearing any stale error) and stop —
   one cheap request per 30 s in the common case.
 - Otherwise iteration 1 refetches with `d1 = newestKnownPoint - (48/24 + 2) = 4 days`, generous on purpose because

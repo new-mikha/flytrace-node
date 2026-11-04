@@ -21,8 +21,9 @@
 import type { FastifyInstance } from 'fastify';
 import type { Config } from '../config.ts';
 import type { Pool } from '../db.ts';
-import { getMapGroup } from '../repo/mapGroups.ts';
-import { fakeCoordinates, fakeTracks, restartFakeGroup } from '../tracking/fake.ts';
+import { getMapGroup, getMapView } from '../repo/mapGroups.ts';
+import { coordinates, tracks } from '../tracking/answers.ts';
+import type { Tracking } from '../tracking/trackers.ts';
 import type { TrackRequest } from '../tracking/wire.ts';
 import { MapPage } from '../views/MapPage.tsx';
 import { sendHtml } from '../views/render.tsx';
@@ -34,9 +35,15 @@ const idOf = (raw: string): number => (/^\d{1,10}$/.test(raw) ? Number(raw) : 0)
 
 /**
  * A group's map and the two requests its script makes. Public, as the legacy map was: anybody with the
- * address of a group can look at it. The answers are made up for now (`tracking/fake.ts`).
+ * address of a group can look at it. Both requests answer at once with what is held for the feeds;
+ * a feed nobody asked for yet starts being polled, and answers "wait" until then.
  */
-export async function mapRoutes(app: FastifyInstance, pool: Pool, config: Config): Promise<void> {
+export async function mapRoutes(
+  app: FastifyInstance,
+  pool: Pool,
+  config: Config,
+  tracking: Tracking,
+): Promise<void> {
   // Google's own Map ID for trying things out: with it, and with no key at all, the map still works
   // while developing (watermarked, with a dialog that can be closed). Not used in production.
   const mapId =
@@ -47,7 +54,6 @@ export async function mapRoutes(app: FastifyInstance, pool: Pool, config: Config
     const group = await getMapGroup(pool, idOf(request.params.id));
     if (!group) return reply.redirect('/', 302);
 
-    restartFakeGroup(group.id);
     return sendHtml(
       reply,
       <MapPage
@@ -61,17 +67,19 @@ export async function mapRoutes(app: FastifyInstance, pool: Pool, config: Config
 
   // The latest position of every tracker of the group.
   app.get<{ Params: { id: string } }>('/map/:id/coordinates', async (request, reply) => {
-    const group = await getMapGroup(pool, idOf(request.params.id));
-    if (!group) return reply.code(404).send({ error: 'No such group' });
+    const view = await getMapView(pool, idOf(request.params.id));
+    if (!view) return reply.code(404).send({ error: 'No such group' });
 
-    return reply.header('cache-control', 'no-store').send(fakeCoordinates(group.id));
+    return reply
+      .header('cache-control', 'no-store')
+      .send(coordinates(view, tracking.access(view.trackers)));
   });
 
   // The tracks of some of the trackers; a POST only because the list of names and times is too long
   // for an address.
   app.post<{ Params: { id: string }; Body: unknown }>('/map/:id/tracks', async (request, reply) => {
-    const group = await getMapGroup(pool, idOf(request.params.id));
-    if (!group) return reply.code(404).send({ error: 'No such group' });
+    const view = await getMapView(pool, idOf(request.params.id));
+    if (!view) return reply.code(404).send({ error: 'No such group' });
 
     const items = (request.body as TrackRequest | null)?.items;
     if (
@@ -81,6 +89,10 @@ export async function mapRoutes(app: FastifyInstance, pool: Pool, config: Config
     )
       return reply.code(400).send({ error: 'Bad request' });
 
-    return reply.header('cache-control', 'no-store').send(fakeTracks(group.id, { items }));
+    const names = new Set(items.map((item) => item.trackerName.toLowerCase()));
+    const rows = view.trackers.filter((row) => names.has(row.name.toLowerCase()));
+    return reply
+      .header('cache-control', 'no-store')
+      .send(tracks(rows, tracking.access(rows), { items }));
   });
 }

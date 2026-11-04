@@ -19,9 +19,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // What a person types into "SPOT or inReach page" and what is stored for it (rules of the legacy
-// manageGroup page, docs/legacy-system.md §4.2). The legacy page also fetched the feed once to
-// check it; that needs the tracker polling, which is not ported yet, so the id is only checked for
-// shape.
+// manageGroup page, docs/legacy-system.md §4.2). Each source knows its own ids; choosing between
+// them is done here. The legacy page also fetched the feed once to check it; here the id is only
+// checked for shape.
+import { inReach } from '../tracking/sources/inreach.ts';
+import { spot } from '../tracking/sources/spot.ts';
 
 export interface ParsedTracker {
   type: 'S' | 'G';
@@ -31,11 +33,6 @@ export interface ParsedTracker {
    */
   foreignId: string;
 }
-
-const SPOT =
-  /^\s*?(?:(?:(?:http|https):\/\/)??share\.findmespot\.com\/shared\/faces\/viewspots\.jsp\?glId=)??([^\s\\/?=&#]{20,50})\s*?$/i;
-const INREACH =
-  /^\s*?(?:(?:[^\s#?&]+\.)?garmin\.com\/(?:[^\s#?&]+\/)*)??(?<id>[^\s#?&/]+)(?:\?[^#]*?)?\s*?(?:#\s*?(?<imei>\d*?))?\s*?$/i;
 
 export const MAX_FOREIGN_ID = 445;
 
@@ -49,28 +46,12 @@ export function parseTrackerInput(
 ): ParsedTracker | { error: string } {
   const text = input.trim();
   if (text.length > MAX_FOREIGN_ID) return { error: 'That link is too long.' };
-  const inReach = type ? type === 'G' : /garmin\.com|#/i.test(text);
-  if (!inReach) {
-    const spot = SPOT.exec(text);
-    if (spot) return { type: 'S', foreignId: spot[1]! };
-    if (type)
-      return {
-        error:
-          'That does not look like a SPOT Shared Page link or ID (20 to 50 letters and digits).',
-      };
+  const isInReach = type ? type === 'G' : /garmin\.com|#/i.test(text);
+  if (!isInReach) {
+    const parsed = spot.parseFeedId(text);
+    if ('feedId' in parsed) return { type: 'S', foreignId: parsed.feedId };
+    if (type) return parsed;
   }
-  const m = INREACH.exec(text);
-  if (!m?.groups?.id)
-    return {
-      error:
-        'We cannot recognize that as a SPOT Shared Page link or ID, or as an inReach feed link.',
-    };
-
-  if (!m.groups.imei)
-    return {
-      error: `An inReach feed needs the device's IMEI after a # sign, e.g.
-        ${m.groups.id}#300434031769290.`,
-    };
-
-  return { type: 'G', foreignId: `share.garmin.com/Feed/Share/${m.groups.id}#${m.groups.imei}` };
+  const parsed = inReach.parseFeedId(text);
+  return 'feedId' in parsed ? { type: 'G', foreignId: parsed.feedId } : parsed;
 }

@@ -23,7 +23,7 @@ Without a dump: `npm run user:create -- alice secret Admins`.
 
 - `server/src/` Fastify app: `auth/` (legacy + argon2 password verification, Postgres-backed sessions, `requireLogin` / `requireRole` guards), `routes/identity.tsx` + `routes/account.tsx` (log in with optional authenticator code, register, confirm email, forgot/reset password, My account), `mail/` (SMTP via nodemailer; logs instead when `SMTP_HOST` is empty), `routes/pages.ts` (bare pages `/groups`, `/admin`, `/403`).
 - `server/src/views/` Preact (JSX) pages and components, rendered to HTML on the server; `server/src/repo/` SQL queries; `public/` our own CSS, JS and images (served at `/assets/`). Bootstrap and Font Awesome come from `node_modules` (served at `/vendor/`).
-- `server/src/tracking/` what the map page is sent (`wire.ts`) and, for now, made-up answers for it (`fake.ts`); the map page itself is `routes/map.tsx`, `views/MapPage.tsx` and `public/js/map/` (the legacy script, little changed).
+- `server/src/tracking/` the polling of the SPOT and inReach feeds and what the map page is sent (`wire.ts`, `answers.ts`); the map page itself is `routes/map.tsx`, `views/MapPage.tsx` and `public/js/map/` (the legacy script, little changed).
 - `db/migrations/*.sql` schema, applied by `npm run db:migrate` (tracked in `schema_migrations`).
 - `db/legacy/` migration from the original MSSQL database; `db/legacy/dump/` is gitignored (personal data).
 - `server/test/` vitest: unit tests for password hashing and an end-to-end auth flow against the dev DB.
