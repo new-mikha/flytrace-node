@@ -18,8 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// One source's timeline: its queue, its 2 second loop, its calls in flight. Sources run side by side
-// and know nothing of each other.
+// One source's timeline: its queue, its loop at the source's start gap, its calls in flight. Sources
+// run side by side and know nothing of each other.
 import type { FastifyBaseLogger } from 'fastify';
 import type { TrackerSource } from './sources/types.ts';
 import type { Tracker } from './tracker.ts';

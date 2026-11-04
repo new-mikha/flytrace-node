@@ -38,7 +38,7 @@ export class Tracking {
   /** When each feed was last called, from `feed_polls`: a restart must not hit a feed too soon. */
   private readonly lastPolled = new Map<string, number>();
   private readonly shutdown = new AbortController();
-  private readonly pipelines: Record<SourceType, Pipeline>;
+  private readonly pipelines = new Map<SourceType, Pipeline>();
   private lockClient: pg.Client | undefined;
   private polling = false;
 
@@ -47,11 +47,13 @@ export class Tracking {
     private readonly log: FastifyBaseLogger,
     private readonly databaseUrl: string,
   ) {
-    const pipelineOf = (source: TrackerSource) =>
-      new Pipeline(source, log, this.shutdown.signal, (tracker, now) =>
-        this.remember(source, tracker, now),
+    for (const source of Object.values(sources))
+      this.pipelines.set(
+        source.type,
+        new Pipeline(source, log, this.shutdown.signal, (tracker, now) =>
+          this.remember(source, tracker, now),
+        ),
       );
-    this.pipelines = { S: pipelineOf(sources.S), G: pipelineOf(sources.G) };
   }
 
   /** Called once by the real server. Until then, and in tests, every tracker stays "wait". */
@@ -78,15 +80,13 @@ export class Tracking {
     for (const row of polls.rows)
       this.lastPolled.set(keyOf(row.tracker_type, row.foreign_id), row.last_polled_at.getTime());
 
-    this.pipelines.S.start();
-    this.pipelines.G.start();
+    for (const pipeline of this.pipelines.values()) pipeline.start();
     this.polling = true;
   }
 
   async stop(): Promise<void> {
     this.polling = false;
-    this.pipelines.S.stop();
-    this.pipelines.G.stop();
+    for (const pipeline of this.pipelines.values()) pipeline.stop();
     this.shutdown.abort();
     await this.lockClient?.end();
   }
@@ -96,7 +96,7 @@ export class Tracking {
    * get a new tracker, which answers "wait" for now, and join the queue of their source.
    */
   access(feeds: readonly { type: SourceType; feedId: string }[]): Tracker[] {
-    const fresh: Record<SourceType, Tracker[]> = { S: [], G: [] };
+    const fresh = new Map<SourceType, Tracker[]>();
     const trackers = feeds.map(({ type, feedId }) => {
       const key = keyOf(type, feedId);
       let tracker = this.trackers.get(key);
@@ -107,13 +107,12 @@ export class Tracking {
         const last = this.lastPolled.get(key) ?? 0;
         tracker.dueAt = last === 0 ? 0 : last + sources[type].rules.feedIntervalMs;
         this.trackers.set(key, tracker);
-        fresh[type].push(tracker);
+        fresh.set(type, [...(fresh.get(type) ?? []), tracker]);
       }
       tracker.resetRemovingTimer();
       return tracker;
     });
-    this.pipelines.S.add(fresh.S);
-    this.pipelines.G.add(fresh.G);
+    for (const [type, added] of fresh) this.pipelines.get(type)!.add(added);
     return trackers;
   }
 

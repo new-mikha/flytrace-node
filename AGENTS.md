@@ -190,7 +190,7 @@ rules, §5.2 the deployed numbers, §5.3 one fetch in detail, §7.0 what we chan
 ones, kept on purpose** ("if it works, it works"; errors will show in the log).
 
 Layout: `server/src/tracking/` with `tracking.ts` (the shared map, class `Tracking`), `tracker.ts` (one feed, class `Tracker`), `pipeline.ts` (one per
-source: its queue, its 2 s loop, its in-flight count), `merge.ts` (fold fresh points into a track), `sources/`
+source: its queue, its loop at the source's start gap, its in-flight count), `merge.ts` (fold fresh points into a track), `sources/`
 (`types.ts`, `http.ts` the one request and its failures, `spot.ts`, `inreach.ts`, `index.ts` for the registry),
 `answers.ts` (the two answers of the map page); pages and endpoints in `routes/map.tsx`. `Tracking.start()` is called
 by `index.ts` only, so `buildApp` alone (tests) never polls: every tracker stays `wait`.
