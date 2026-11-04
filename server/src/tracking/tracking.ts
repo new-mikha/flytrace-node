@@ -55,6 +55,12 @@ export class Tracking {
 
   /** Called once by the real server. Until then, and in tests, every tracker stays "wait". */
   async start(): Promise<void> {
+    // A row only matters until its feed's interval is over, so an hour is plenty. Done here, once, on
+    // a small table, so `last_polled_at` needs no index (it would slow the write of every poll):
+    await this.pool.query(
+      `DELETE FROM feed_polls WHERE last_polled_at < now() - interval '1 hour'`,
+    );
+
     // Read only here: from now on `remember` keeps the map up to date itself.
     const polls = await this.pool.query<{
       tracker_type: SourceType;
