@@ -168,9 +168,10 @@ simulated client its own `remoteAddress`.
   process on purpose: snapshots are in memory (see above), and both endpoints reading the same snapshot object is what
   keeps them reconciled, so a separate poller process would need the snapshots serialized across a boundary — the
   storage layer we removed, in another form. Only a genuine need to scale out horizontally justifies splitting the
-  poller off, and that is the moment to design the sharing, not before; on the Pi it does not arise. When the
-  polling is built, guard this in code too: take a Postgres session advisory lock at startup and, if it is already
-  held, log loudly and run without polling rather than competing for the feeds.
+  poller off, and that is the moment to design the sharing, not before; on the Pi it does not arise. Nothing in the
+  code enforces this beyond the port: a second process on the same port dies at `listen`, before polling starts, and
+  that is enough (a Postgres advisory lock was built and removed on 5 Nov 2026 as not worth the code). A second process
+  on another port does poll, so keep test servers short.
 - **There are two tracker types, `'S'` (SPOT) and `'G'` (Garmin inReach). There is no `'T'` for test.** Legacy has a
   third source type in code (`ForeignId.TEST`, a synthetic group built from captured SPOT XML in `App_Data/test/` so
   the map could be watched without network) but it was never a database value: `GroupFacade` maps the column strictly
@@ -295,8 +296,6 @@ wait on feeds.
   and `feed_polls.tracker_type` (legacy: `ForeignAccessCentral.LocationRequestFactories[type]`). **The test of whether
   the abstraction holds: no `if (type === 'S')` anywhere outside `sources/`.** The pipeline sees only `rules`, `poll`
   and `FeedResult`; anything else that needs to branch on source means the interface is missing a member.
-- **Single process**: take the Postgres advisory lock at startup (see Decisions); if it is held, log loudly and never
-  start the pipelines.
 - **Tests (not written yet)**: vitest fake timers drive the pipelines; sources are swapped in the registry (no real
   network in tests).
 - **Not built**: updating `groups.newest_coord_ts` / `newest_lat` / `newest_lon` from the answers (legacy

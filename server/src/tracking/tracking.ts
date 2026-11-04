@@ -18,22 +18,14 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The feeds being watched: the map of `Tracker`s, shared by all sources, and the single-process
-// guard. A feed gets a `Tracker` when a map first asks for it.
+// The feeds being watched: the map of `Tracker`s, shared by all sources. A feed gets a `Tracker` when
+// a map first asks for it.
 import type { FastifyBaseLogger } from 'fastify';
-import pg from 'pg';
 import type { Pool } from '../db.ts';
 import { Pipeline } from './pipeline.ts';
 import { sources } from './sources/index.ts';
 import type { SourceType, TrackerSource } from './sources/types.ts';
 import { Tracker } from './tracker.ts';
-
-/**
- * The name of a Postgres advisory lock: a lock on nothing but this number, which our code agrees to
- * respect. Any fixed number will do. Two processes polling would hit every feed twice and answer
- * differently, see "Exactly one app process" in AGENTS.md.
- */
-const POLLING_LOCK = 7_316_001;
 
 /** By the feed, not by a group's row: a feed in several groups is one tracker, polled once. */
 const keyOf = (type: SourceType, feedId: string) => `${type}:${feedId}`;
@@ -45,15 +37,12 @@ export class Tracking {
   /** Aborted by `stop()`: it ends the calls in flight, so closing the app does not wait for feeds. */
   private readonly shutdown = new AbortController();
   private readonly pipelines = new Map<SourceType, Pipeline>();
-  /** Holds the polling lock simply by staying connected. */
-  private lockClient: pg.Client | undefined;
-  /** True once this process holds the lock and the pipelines run. */
+  /** True once the pipelines run. */
   private polling = false;
 
   constructor(
     private readonly pool: Pool,
     private readonly log: FastifyBaseLogger,
-    private readonly databaseUrl: string,
   ) {
     for (const source of Object.values(sources))
       this.pipelines.set(
@@ -66,26 +55,6 @@ export class Tracking {
 
   /** Called once by the real server. Until then, and in tests, every tracker stays "wait". */
   async start(): Promise<void> {
-    // The lock belongs to a database connection, and Postgres frees it when that connection ends,
-    // even if this process crashes, so nothing stale is left behind. That is why it takes a
-    // connection of its own: the pool's connections are shared and come and go.
-    const client = new pg.Client({ connectionString: this.databaseUrl });
-    await client.connect();
-    // The "try" form answers at once, true or false, where pg_advisory_lock would wait for the lock:
-    const { rows } = await client.query<{ got: boolean }>(
-      'SELECT pg_try_advisory_lock($1) AS got',
-      [POLLING_LOCK],
-    );
-    if (!rows[0]?.got) {
-      await client.end();
-      this.log.error('Another process is polling the trackers: this one will not');
-      return;
-    }
-    // Without a listener a dropped connection would bring the whole app down. The lock goes with the
-    // connection, but polling carries on: that only matters if a second process starts just then.
-    client.on('error', (err) => this.log.error(err, 'The polling lock connection failed'));
-    this.lockClient = client;
-
     // Read only here: from now on `remember` keeps the map up to date itself.
     const polls = await this.pool.query<{
       tracker_type: SourceType;
@@ -99,12 +68,11 @@ export class Tracking {
     this.polling = true;
   }
 
-  async stop(): Promise<void> {
+  stop(): void {
     this.polling = false;
     // First no new calls, then the end of those running:
     for (const pipeline of this.pipelines.values()) pipeline.stop();
     this.shutdown.abort();
-    await this.lockClient?.end();
   }
 
   /**
@@ -119,8 +87,8 @@ export class Tracking {
       let tracker = this.trackers.get(key);
       if (!tracker) {
         tracker = new Tracker(feedId, () => this.trackers.delete(key));
-        // Nobody will ever fill it (tests, or another process holds the lock): a throwaway "wait",
-        // kept out of the map so that it needs no removal:
+        // Nobody will ever fill it (tests): a throwaway "wait", kept out of the map so that it needs
+        // no removal:
         if (!this.polling) return tracker;
 
         // Also covers a tracker removed and asked for again soon after, not only a restart:

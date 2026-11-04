@@ -162,14 +162,14 @@ export async function buildApp(
   await groupRoutes(app, pool);
   await eventRoutes(app, pool);
   await waypointRoutes(app, pool);
-  const tracking = new Tracking(pool, app.log, config.DATABASE_URL);
+  const tracking = new Tracking(pool, app.log);
   app.decorate('tracking', tracking);
   await mapRoutes(app, pool, config, tracking);
   await homeRoutes(app, pool);
   await pageRoutes(app);
 
   app.addHook('onClose', async () => {
-    await tracking.stop();
+    tracking.stop();
     await mail.flush();
     await pool.end();
   });
