@@ -92,7 +92,7 @@ export class Tracking {
       const key = keyOf(type, feedId);
       let tracker = this.trackers.get(key);
       if (!tracker) {
-        tracker = new Tracker(feedId, () => this.trackers.delete(key));
+        tracker = new Tracker(key, feedId, () => this.trackers.delete(key));
         // Nobody will ever fill it (tests): a throwaway "wait", kept out of the map so that it needs
         // no removal:
         if (!this.polling) return tracker;
@@ -115,7 +115,7 @@ export class Tracking {
    * failed write costs little: at worst one early hit on the feed after a restart.
    */
   private remember(source: TrackerSource, tracker: Tracker, now: number): void {
-    this.lastPolled.set(keyOf(source.type, tracker.feedId), now);
+    this.lastPolled.set(tracker.key, now);
     this.pool
       .query(
         `INSERT INTO feed_polls (tracker_type, foreign_id, last_polled_at)

@@ -105,20 +105,23 @@ export class Pipeline {
       );
       tracker.applyResult(result);
       // The status and all the headers go to the log: neither service documents its limits, so the
-      // first real refusal has to be captured whole. Feed ids never do.
+      // first real refusal has to be captured whole.
       const took = `${result.requestCount} request(s), ${Date.now() - startedAt} ms`;
       if (result.error) {
         const { kind, detail, status, headers, retryAfterMs } = result.error;
         this.log.warn(
           { kind, status, headers, retryAfterMs },
-          `${this.source.name} poll failed: ${kind}${detail ? `, ${detail}` : ''}, ${took}`,
+          `${this.source.name} poll of ${tracker.key} failed: ${kind}${detail ? `, ${detail}` : ''}, ${took}`,
         );
       } else {
-        this.log.info(`${this.source.name} poll: ${result.points.length} points, ${took}`);
+        this.log.info(
+          `${this.source.name} poll of ${tracker.key}: ${result.points.length} points, ${took}`,
+        );
       }
     } catch (err) {
       // A shutdown ends the calls; anything else here is a bug of ours, and the feed goes on:
-      if (!this.shutdown.aborted) this.log.error(err, `${this.source.name} poll threw`);
+      if (!this.shutdown.aborted)
+        this.log.error(err, `${this.source.name} poll of ${tracker.key} threw`);
     } finally {
       this.inFlight--;
       tracker.inFlight = false;
@@ -133,7 +136,7 @@ export class Pipeline {
   private onIntervalOver(tracker: Tracker): void {
     tracker.dueAt = Date.now();
     if (tracker.inFlight) {
-      this.log.warn(`${this.source.name}: a call outlasted the feed interval`);
+      this.log.warn(`${this.source.name}: the call of ${tracker.key} outlasted the feed interval`);
       tracker.dueWhenDone = true;
     } else {
       this.enqueue(tracker);

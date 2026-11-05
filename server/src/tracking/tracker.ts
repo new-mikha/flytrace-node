@@ -49,6 +49,8 @@ export class Tracker {
   private removeTimer: NodeJS.Timeout | undefined;
 
   constructor(
+    /** `S:<feedId>` or `G:<feedId>`: its place in the map, and what names it in the log. */
+    readonly key: string,
     readonly feedId: string,
     private readonly onRemove: () => void,
   ) {}

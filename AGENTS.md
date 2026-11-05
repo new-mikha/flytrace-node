@@ -288,7 +288,9 @@ wait on feeds.
   classified only HTTP 404.
 - **Log every error code and every response header, for both sources** (the owner asked for this explicitly). Neither
   service documents a 429 or a `Retry-After`, so the first real one has to be captured in full rather than guessed at.
-  Feed ids and IMEIs are never logged.
+  The polling's log lines name the tracker by its key, `S:<feedId>` or `G:<feedId>` (for inReach that holds the IMEI):
+  the owner's choice (5 Nov 2026), so the log can tell the feeds apart. Audit lines and what the map shows still never
+  hold a feed id.
 - **`parseFeedId` belongs to the source** (SPOT's 20-50 character id, Garmin's MapShare URL plus the IMEI after `#`),
   moved out of `repo/trackerInput.ts`. Choosing *between* sources when the owner picked no radio button stays central:
   that is arbitration, not source knowledge. The radio buttons themselves stay hardcoded in the view.
