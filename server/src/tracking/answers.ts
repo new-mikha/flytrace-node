@@ -25,7 +25,7 @@ import type { Tracker } from './tracker.ts';
 import type { CoordItem, GroupData, TrackRequest, TrackResponseItem } from './wire.ts';
 
 /** The page reloads itself when this changes: raise it when the script and the server must match. */
-const VER = 2;
+const VER = 1;
 
 /** In seconds. Never negative: a device's clock can be ahead of ours. */
 const ageOf = (ts: Date, now: Date) =>
