@@ -35,7 +35,7 @@ export class Tracking {
   /** When each feed was last called, from `feed_polls`: a restart must not hit a feed too soon. */
   private readonly lastPolled = new Map<string, number>();
   /** Aborted by `stop()`: it ends the calls in flight, so closing the app does not wait for feeds. */
-  private readonly shutdown = new AbortController();
+  private readonly shutdownController = new AbortController();
   private readonly pipelines = new Map<SourceType, Pipeline>();
   /** True once the pipelines run. */
   private polling = false;
@@ -47,7 +47,7 @@ export class Tracking {
     for (const source of Object.values(sources))
       this.pipelines.set(
         source.type,
-        new Pipeline(source, log, this.shutdown.signal, (tracker, now) =>
+        new Pipeline(source, log, this.shutdownController.signal, (tracker, now) =>
           this.remember(source, tracker, now),
         ),
       );
@@ -78,7 +78,7 @@ export class Tracking {
     this.polling = false;
     // First no new calls, then the end of those running:
     for (const pipeline of this.pipelines.values()) pipeline.stop();
-    this.shutdown.abort();
+    this.shutdownController.abort();
   }
 
   /**
