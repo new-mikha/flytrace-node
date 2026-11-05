@@ -22,7 +22,7 @@ import type { FastifyInstance } from 'fastify';
 import type { Config } from '../config.ts';
 import type { Pool } from '../db.ts';
 import { getMapGroup, getMapView } from '../repo/mapGroups.ts';
-import { coordinates, tracks } from '../tracking/answers.ts';
+import { coordinates, tracks } from '../tracking/mapResponses.ts';
 import type { Tracking } from '../tracking/tracking.ts';
 import type { TrackRequest } from '../tracking/wire.ts';
 import { MapPage } from '../views/MapPage.tsx';

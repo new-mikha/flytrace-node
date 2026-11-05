@@ -18,7 +18,8 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-// The two answers of the map page, made from the group's rows and what is held for its feeds.
+// The JSON replies to the map page's two requests, GET /map/:id/coordinates and POST /map/:id/tracks,
+// made from the group's rows and what the polling holds for its feeds.
 import type { MapView, MapViewTracker } from '../repo/mapGroups.ts';
 import type { FeedPoint } from './sources/types.ts';
 import type { Tracker } from './tracker.ts';
