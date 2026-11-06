@@ -32,6 +32,7 @@ const NO_GROUP = 2147483000;
 let app: FastifyInstance;
 let pool: Pool;
 let group: number;
+let userId: string;
 
 const postTracks = (id: number | string, payload: unknown) =>
   app.inject({
@@ -49,9 +50,10 @@ beforeAll(async () => {
     `INSERT INTO users (username, password_hash) VALUES ($1, 'x') RETURNING id`,
     [USER],
   );
+  userId = user.rows[0]!.id;
   const created = await pool.query<{ id: number }>(
     `INSERT INTO groups (name, user_id) VALUES ('Map test', $1) RETURNING id`,
-    [user.rows[0]!.id],
+    [userId],
   );
   group = created.rows[0]!.id;
   await pool.query(
@@ -83,6 +85,90 @@ describe('GET /map/:id', () => {
       expect(res.headers.location).toBe('/');
     },
   );
+
+  describe('the task', () => {
+    const taskOf = async (id: number) => {
+      const res = await app.inject({ url: `/map/${id}` });
+      return /var _task = (.*);/.exec(res.body)![1]!;
+    };
+
+    const eventWith = async (waypoints: [string, number, number, number, number][]) => {
+      const event = await pool.query<{ id: number }>(
+        `INSERT INTO events (user_id, name) VALUES ($1, $2) RETURNING id`,
+        [userId, `Event ${Math.random()}`],
+      );
+      const eventId = event.rows[0]!.id;
+      for (const [name, lat, lon, radius, order] of waypoints) {
+        const waypoint = await pool.query<{ id: number }>(
+          `INSERT INTO waypoints (event_id, name, lat, lon, alt) VALUES ($1, $2, $3, $4, 0)
+           RETURNING id`,
+          [eventId, name, lat, lon],
+        );
+        await pool.query('INSERT INTO tasks (waypoint_id, radius, wpt_order) VALUES ($1, $2, $3)', [
+          waypoint.rows[0]!.id,
+          radius,
+          order,
+        ]);
+      }
+      return eventId;
+    };
+
+    const groupOf = async (eventId: number | null) => {
+      const created = await pool.query<{ id: number }>(
+        `INSERT INTO groups (name, user_id, event_id) VALUES ($1, $2, $3) RETURNING id`,
+        [`Task test ${Math.random()}`, userId, eventId],
+      );
+      return created.rows[0]!.id;
+    };
+
+    it('is empty for a group with no event', async () => {
+      expect(await taskOf(group)).toBe('[]');
+    });
+
+    it('is empty for an event with no task', async () => {
+      expect(await taskOf(await groupOf(await eventWith([])))).toBe('[]');
+    });
+
+    it('lists the waypoints in the order of the task, not of the rows', async () => {
+      const eventId = await eventWith([
+        ['Goal', -26.06966, 150.5, 2000, 1],
+        ['Start', -26.5, 151, 400, 0],
+      ]);
+      expect(JSON.parse(await taskOf(await groupOf(eventId)))).toEqual([
+        'Start',
+        -26.5,
+        151,
+        400,
+        'Goal',
+        -26.06966,
+        150.5,
+        2000,
+      ]);
+    });
+
+    it('holds only the task of the event of this group', async () => {
+      await eventWith([['Other', 1, 2, 3, 0]]);
+      expect(await taskOf(await groupOf(await eventWith([['Mine', 4, 5, 6, 0]])))).toContain(
+        'Mine',
+      );
+    });
+
+    it('is safe in the script, whatever the names', async () => {
+      const name = `O'Brien "</script><b>`;
+      const res = await app.inject({
+        url: `/map/${await groupOf(await eventWith([[name, 1, 2, 3, 0]]))}`,
+      });
+
+      expect(res.body).not.toContain('</script><b>');
+      const task = /var _task = (.*);/.exec(res.body)![1]!;
+      expect(JSON.parse(task)[0]).toBe(name);
+    });
+
+    it('keeps a name on one line', async () => {
+      const eventId = await eventWith([[' Two\r\nlines\nhere ', 1, 2, 3, 0]]);
+      expect(JSON.parse(await taskOf(await groupOf(eventId)))[0]).toBe('Two lines here');
+    });
+  });
 
   describe('the Map ID', () => {
     const pageWith = async (more: Partial<Config>) => {

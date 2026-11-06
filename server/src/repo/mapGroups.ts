@@ -24,14 +24,32 @@ import type { SourceType } from '../tracking/sources/types.ts';
 export interface MapGroup {
   id: number;
   name: string;
+  /** The task of the group's event, as `main.js` reads it: name, lat, lon, radius, name, ... */
+  task: (string | number)[];
 }
 
 /** The group whose map is asked for, or null when there is no such group. */
 export async function getMapGroup(pool: Pool, id: number): Promise<MapGroup | null> {
   // An id past the range of `integer` is no group, and must not reach the query as an error:
   if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) return null;
-  const { rows } = await pool.query<MapGroup>('SELECT id, name FROM groups WHERE id = $1', [id]);
-  return rows[0] ?? null;
+  const [group, task] = await Promise.all([
+    pool.query<{ id: number; name: string }>('SELECT id, name FROM groups WHERE id = $1', [id]),
+    pool.query<{ name: string; lat: number; lon: number; radius: number }>(
+      `SELECT w.name, w.lat, w.lon, t.radius
+       FROM groups g
+       JOIN waypoints w ON w.event_id = g.event_id
+       JOIN tasks t ON t.waypoint_id = w.id
+       WHERE g.id = $1
+       ORDER BY t.wpt_order, t.id`,
+      [id],
+    ),
+  ]);
+  const g = group.rows[0];
+  if (!g) return null;
+  return {
+    ...g,
+    task: task.rows.flatMap((w) => [w.name.replace(/\r?\n/g, ' ').trim(), w.lat, w.lon, w.radius]),
+  };
 }
 
 export interface MapViewTracker {

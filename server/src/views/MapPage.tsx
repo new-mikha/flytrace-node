@@ -30,18 +30,19 @@ interface MapPageProps {
   mapsKey?: string | undefined;
   /** Map ID for the advanced markers (`GOOGLE_MAPS_MAP_ID`). */
   mapId?: string | undefined;
+  /** `MapGroup.task`. Fewer than two waypoints are not drawn. */
+  task: (string | number)[];
 }
 
 /** A value for a script in the page: JSON, with `<` escaped so that it cannot close the script. */
 const js = (value: unknown): string => JSON.stringify(value).replace(/</g, '\\u003c');
 
-export function MapPage({ groupId, groupName, mapsKey, mapId }: MapPageProps) {
-  // The variables the script reads. `_task` is the task of the group's event, as a flat list of
-  // name, latitude, longitude and radius; none shown yet.
+export function MapPage({ groupId, groupName, mapsKey, mapId, task }: MapPageProps) {
+  // The variables the script reads.
   const globals = `
 var _groupId = ${js(groupId)};
 var _shouldLog = false;
-var _task = null;
+var _task = ${js(task)};
 var _logoSource = '';
 var _smallLogoSource = '';
 var _ie8_or_less = false;

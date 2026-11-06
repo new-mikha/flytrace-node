@@ -62,6 +62,7 @@ export async function mapRoutes(
         groupName={group.name}
         mapsKey={config.GOOGLE_MAPS_API_KEY}
         mapId={mapId}
+        task={group.task}
       />,
     );
   });
