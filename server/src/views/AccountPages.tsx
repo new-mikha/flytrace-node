@@ -399,8 +399,8 @@ export function PersonalDataPage({ errors, ...c }: Common & { errors: Errors }) 
   return (
     <AccountShell title="Personal data" {...c}>
       <p>
-        Download everything Flytrace holds about your account (profile, events, groups and their
-        trackers) as a JSON file.
+        Download everything Flytrace holds about your account (profile, events with their waypoints
+        and task, groups and their trackers) as a JSON file.
       </p>
       <p>
         <a

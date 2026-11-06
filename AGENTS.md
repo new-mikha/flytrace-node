@@ -117,6 +117,7 @@ simulated client its own `remoteAddress`.
   (people paste passwords there). Mask emails with `maskEmail`. Production logs are JSON; development uses pino-pretty.
 - Log times are in the host's time zone, or in `LOG_TIMEZONE` (.env, e.g. `Europe/Berlin`), which sets `TZ` at startup
   (`index.ts`). Production lines carry ISO times with the offset. Times on pages (`views/format.ts`, `formatTimestamp`) use the same zone, show a readable name for it (`UTC`, `AEDT`, `CET`; `Intl` knows an abbreviation only in some locales, so `zoneName` tries several, and a zone with none keeps `GMT+8`) and add the year when it is not the current one.
+- Logs are kept for 90 days (owner's decision, 7 Nov 2026), and no longer: the privacy policy will promise it, and they hold user names, feed ids and, for failed logins, IP addresses. The app only writes to stdout, so the deployment must enforce this (journald, Docker's log driver or `logrotate`, and nginx's logs too). Any log file we add later (see "Planned") follows the same limit.
 - ERROR is for a person to look at: it is meant to reach an email one day (see "Planned"). As many WARNs as good logging needs, then at most one ERROR about them, never one per failure. Failures outside our control (a feed down, one bad email address) are WARNs. `Pipeline` shows the pattern: the first poll that throws is an ERROR, the rest of that run WARNs.
 - When you start a test server, set `SMTP_HOST=` on its command line so that it does not send real email through
   the owner's SMTP account (it reads the owner's `.env`).

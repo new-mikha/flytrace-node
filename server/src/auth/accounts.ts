@@ -267,7 +267,17 @@ export async function exportPersonalData(pool: Pool, userId: string): Promise<ob
       [userId],
     ),
     pool.query('SELECT * FROM user_profiles WHERE user_id = $1', [userId]),
-    pool.query('SELECT * FROM events WHERE user_id = $1 ORDER BY id', [userId]),
+    pool.query(
+      `SELECT e.*,
+        COALESCE((SELECT json_agg(w ORDER BY w.id) FROM waypoints w
+          WHERE w.event_id = e.id), '[]'::json) AS waypoints,
+        COALESCE((SELECT json_agg(json_build_object('waypoint', w.name, 'radius', t.radius)
+            ORDER BY t.wpt_order, t.id)
+          FROM tasks t JOIN waypoints w ON w.id = t.waypoint_id
+          WHERE w.event_id = e.id), '[]'::json) AS task
+       FROM events e WHERE e.user_id = $1 ORDER BY e.id`,
+      [userId],
+    ),
     pool.query(
       `SELECT g.*, COALESCE((SELECT json_agg(t ORDER BY t.id) FROM group_trackers t
         WHERE t.group_id = g.id), '[]'::json) AS trackers

@@ -30,6 +30,10 @@ Without a dump: `npm run user:create -- alice secret Admins`.
 
 `npm test`, `npm run typecheck`.
 
+## Logs
+
+Logs are kept for 90 days, and no longer. The app writes to stdout only, so whatever runs it in production must enforce that, for the web server's logs too.
+
 ## Legacy system reference
 
 `docs/legacy-system.md` describes the original ASP.NET application in detail (data model, stored procedures, auth,
