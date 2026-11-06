@@ -217,6 +217,7 @@ export function UserHomePage({
               now={now}
               caption={admin ? "Others' groups" : "Others' public groups"}
               empty={admin ? 'Nobody else has groups yet.' : 'Nobody else has public groups yet.'}
+              mapColumn
               definition={admin}
             />
           </section>

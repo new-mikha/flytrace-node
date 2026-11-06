@@ -402,16 +402,27 @@ describe("user home page: others' groups", () => {
     expect(html).toContain('href="/?others=1#others"');
   });
 
-  it('gives admins a Definition link per group in an extra column, and leaves the name pointing to the map', () => {
+  it('gives admins a Definition link per group, before the map link', () => {
     const html = render(admin, { list, showAll: false });
     for (const id of [7, 8, 9, 10]) {
       expect(html).toContain(`href="/groups/${id}">Definition</a>`);
-      expect(html).toContain(`href="/map/${id}"`);
+      expect(html.indexOf(`href="/groups/${id}"`)).toBeLessThan(html.indexOf(`href="/map/${id}"`));
     }
-    expect(html).toContain('>Actions</span>');
     const plain = render(user, { list, showAll: false });
     expect(plain).not.toContain('Definition');
     expect(plain).not.toContain('/groups/7');
+  });
+
+  it.each([
+    ['admins', admin],
+    ['everybody else', user],
+  ])('shows %s the map as a "Public map" link in the last column, not on the name', (_, who) => {
+    const html = render(who, { list, showAll: false });
+    expect(html).toContain('>Actions</span>');
+    for (const id of [7, 8, 9, 10]) {
+      expect(html).toMatch(new RegExp(`href="/map/${id}" target="_blank"[^>]*>Public map`));
+      expect(html.split(`href="/map/${id}"`)).toHaveLength(2);
+    }
   });
 
   it('says so when nobody else has groups', () => {
