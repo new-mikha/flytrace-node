@@ -123,6 +123,6 @@ export class Tracking {
          ON CONFLICT (tracker_type, foreign_id) DO UPDATE SET last_polled_at = EXCLUDED.last_polled_at`,
         [source.type, tracker.feedId, now],
       )
-      .catch((err: unknown) => this.log.error(err, 'Could not save the time of a poll'));
+      .catch((err: unknown) => this.log.warn(err, 'Could not save the time of a poll'));
   }
 }

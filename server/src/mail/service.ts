@@ -27,6 +27,7 @@ import * as templates from './templates.ts';
 
 interface Log {
   info(obj: object, msg: string): void;
+  warn(obj: object, msg: string): void;
   error(obj: object, msg: string): void;
 }
 
@@ -98,7 +99,9 @@ export class MailService {
       );
       return { ok: true };
     } catch (err) {
-      this.log.error(
+      // Not an ERROR: one bad address is no fault of ours, and with the mail server down an email
+      // about it could not be sent anyway.
+      this.log.warn(
         {
           event: 'email.failed',
           err,

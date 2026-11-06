@@ -29,6 +29,8 @@ export class Pipeline {
   private readonly queue: Tracker[] = [];
   /** Calls running now, for all the feeds of this source. */
   private inFlight = 0;
+  /** A poll has thrown since the start: ERROR goes to email one day, so only the first is one. */
+  private threw = false;
   private loop: NodeJS.Timeout | undefined;
 
   constructor(
@@ -122,8 +124,7 @@ export class Pipeline {
       }
     } catch (err) {
       // A shutdown ends the calls; anything else here is a bug of ours, and the feed goes on:
-      if (!this.shutdown.aborted)
-        this.log.error(err, `${this.source.name} poll of ${tracker.key} threw`);
+      if (!this.shutdown.aborted) this.onThrow(err, tracker);
     } finally {
       this.inFlight--;
       tracker.inFlight = false;
@@ -132,6 +133,13 @@ export class Pipeline {
         this.enqueue(tracker);
       }
     }
+  }
+
+  private onThrow(err: unknown, tracker: Tracker): void {
+    const message = `${this.source.name} poll of ${tracker.key} threw`;
+    if (this.threw) this.log.warn(err, message);
+    else this.log.error(err, `${message}; any more this run are WARNs`);
+    this.threw = true;
   }
 
   /** The feed may be hit again. Normally its call ended long ago. */
