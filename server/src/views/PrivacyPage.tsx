@@ -21,13 +21,20 @@
 import type { CurrentUser } from '../auth/service.ts';
 import { Layout } from './Layout.tsx';
 
-const CONTACT = 'info@flytrace.com';
-
 /**
  * What the site really does with people's data, in plain words. Change it with the code: a new
  * cookie, a new outside service or a new kind of stored data belongs here, with a new date.
  */
-export function PrivacyPage({ user, path }: { user: CurrentUser | null; path: string }) {
+export function PrivacyPage({
+  user,
+  path,
+  contact,
+}: {
+  user: CurrentUser | null;
+  path: string;
+  /** `MAIL_CONTACT_ADDRESS`. */
+  contact: string;
+}) {
   return (
     <Layout title="Privacy policy" user={user} path={path} card="medium">
       <h1 class="h4">Privacy policy</h1>
@@ -40,7 +47,7 @@ export function PrivacyPage({ user, path }: { user: CurrentUser | null; path: st
       </p>
       <p>
         The site is run by its owners. For anything about your data, write to{' '}
-        <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
+        <a href={`mailto:${contact}`}>{contact}</a>.
       </p>
 
       <h2 class="h5 mt-4">If you have an account</h2>

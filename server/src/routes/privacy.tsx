@@ -19,11 +19,19 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import type { FastifyInstance } from 'fastify';
+import type { Config } from '../config.ts';
 import { PrivacyPage } from '../views/PrivacyPage.tsx';
 import { sendHtml } from '../views/render.tsx';
 
-export async function privacyRoutes(app: FastifyInstance): Promise<void> {
+export async function privacyRoutes(app: FastifyInstance, config: Config): Promise<void> {
   app.get('/privacy', (request, reply) =>
-    sendHtml(reply, <PrivacyPage user={request.user ?? null} path="/privacy" />),
+    sendHtml(
+      reply,
+      <PrivacyPage
+        user={request.user ?? null}
+        path="/privacy"
+        contact={config.MAIL_CONTACT_ADDRESS}
+      />,
+    ),
   );
 }

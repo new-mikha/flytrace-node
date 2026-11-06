@@ -85,8 +85,11 @@ const schema = z.object({
   SMTP_PASSWORD: optional(z.string()),
   MAIL_FROM_ADDRESS: optional(z.email()),
   MAIL_FROM_NAME: z.string().default('Flytrace'),
-  // Shown in emails as the address to write to with questions.
-  MAIL_CONTACT_ADDRESS: optional(z.email()),
+  // The address to write to with questions: shown in emails and in the privacy policy.
+  MAIL_CONTACT_ADDRESS: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.email().default('info@flytrace.com'),
+  ),
 
   // The map page (Google Maps JavaScript API): a browser key limited to this site's addresses, and the
   // Map ID that the map's advanced markers need. Both are needed in production. While developing the map

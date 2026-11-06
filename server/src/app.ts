@@ -169,7 +169,7 @@ export async function buildApp(
   await waypointRoutes(app, pool);
   await mapRoutes(app, pool, config, tracking);
   await homeRoutes(app, pool);
-  await privacyRoutes(app);
+  await privacyRoutes(app, config);
   await pageRoutes(app);
 
   app.addHook('onClose', async () => {

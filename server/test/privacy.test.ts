@@ -31,7 +31,7 @@ let pool: Pool;
 beforeAll(async () => {
   const config = loadConfig();
   pool = createPool(config.DATABASE_URL);
-  app = await buildApp(config, pool);
+  app = await buildApp({ ...config, MAIL_CONTACT_ADDRESS: 'someone@example.com' }, pool);
 });
 
 afterAll(async () => {
@@ -44,7 +44,7 @@ describe('the privacy policy', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toContain('<title>Privacy policy - Flytrace</title>');
-    expect(res.body).toContain('mailto:info@flytrace.com');
+    expect(res.body).toContain('mailto:someone@example.com');
   });
 
   it('names every cookie the site sets', async () => {
