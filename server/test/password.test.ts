@@ -19,13 +19,52 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import { describe, expect, it } from 'vitest';
-import { hashPassword, verifyLegacyPassword, verifyPassword } from '../src/auth/password.ts';
+import {
+  hashPassword,
+  verifyLegacyPassword,
+  verifyPassword,
+  wrapLegacyHash,
+} from '../src/auth/password.ts';
 
 // Fixture produced by an independent Python implementation of SqlMembershipProvider's
 // format-1 encoding: base64(sha1(base64decode(salt) + password.encode('utf-16-le'))).
 const SALT = 'LwKBbxGOnPud0PqiheeXkA==';
 const HASH = 'sk6CmI9IAI5kYPkGhFQKHTBHBqQ=';
 const LEGACY = `flytrace1|${HASH}|1|${SALT}`;
+
+describe('legacy hashes wrapped in argon2id', () => {
+  it('still take the same password, and ask for a plain hash after it', async () => {
+    const wrapped = await wrapLegacyHash(LEGACY);
+    expect(await verifyPassword(wrapped, 'correct horse')).toEqual({ ok: true, needsRehash: true });
+  });
+
+  it('refuse any other password', async () => {
+    const wrapped = await wrapLegacyHash(LEGACY);
+    expect((await verifyPassword(wrapped, 'Correct horse')).ok).toBe(false);
+    expect((await verifyPassword(wrapped, '')).ok).toBe(false);
+  });
+
+  it('leave no trace of the SHA-1, and keep the salt', async () => {
+    const wrapped = await wrapLegacyHash(LEGACY);
+    expect(wrapped).not.toContain(HASH);
+    expect(wrapped.startsWith(`flytrace2|${SALT}|$argon2id$`)).toBe(true);
+  });
+
+  it('do not take the SHA-1 itself as a password', async () => {
+    const wrapped = await wrapLegacyHash(LEGACY);
+    expect((await verifyPassword(wrapped, HASH)).ok).toBe(false);
+  });
+
+  it('fail quietly when damaged', async () => {
+    expect(await verifyPassword('flytrace2|x', 'a')).toEqual({ ok: false, needsRehash: true });
+  });
+
+  it('are only made from hashed entries', async () => {
+    await expect(wrapLegacyHash('flytrace1|secret|0|')).rejects.toThrow();
+    await expect(wrapLegacyHash(`flytrace1|${HASH}|2|${SALT}`)).rejects.toThrow();
+    await expect(wrapLegacyHash('$argon2id$v=19$x')).rejects.toThrow();
+  });
+});
 
 describe('legacy ASP.NET membership hashes', () => {
   it('accepts the right password', () => {

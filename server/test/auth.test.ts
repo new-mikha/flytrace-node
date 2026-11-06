@@ -22,7 +22,7 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.ts';
-import { hashPassword } from '../src/auth/password.ts';
+import { hashPassword, wrapLegacyHash } from '../src/auth/password.ts';
 import { authenticate } from '../src/auth/service.ts';
 import { loadConfig } from '../src/config.ts';
 import { createPool, type Pool } from '../src/db.ts';
@@ -132,6 +132,31 @@ describe('login', () => {
     expect(rows[0]?.last_login_at).not.toBeNull();
     // still works with the upgraded hash
     expect((await login(USER, 'correct horse')).ok).toBe(true);
+  });
+
+  it('accepts a password whose legacy hash was wrapped, and replaces the hash', async () => {
+    const name = `__test_wrapped_${run}`;
+    await pool.query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [
+      name,
+      await wrapLegacyHash(LEGACY_HASH),
+    ]);
+    const stored = async () =>
+      (
+        await pool.query<{ password_hash: string }>(
+          'SELECT password_hash FROM users WHERE username = $1',
+          [name],
+        )
+      ).rows[0]!.password_hash;
+    try {
+      expect((await login(name, 'wrong')).ok).toBe(false);
+      expect((await stored()).startsWith('flytrace2|')).toBe(true);
+
+      expect((await login(name, 'correct horse')).ok).toBe(true);
+      expect((await stored()).startsWith('$argon2id$')).toBe(true);
+      expect((await login(name, 'correct horse')).ok).toBe(true);
+    } finally {
+      await pool.query('DELETE FROM users WHERE username = $1', [name]);
+    }
   });
 
   it('accepts the email address as the login name, case-insensitively', async () => {

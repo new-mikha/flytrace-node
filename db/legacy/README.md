@@ -35,7 +35,7 @@ The import refuses to run into a database that already has users.
 - Original ids are kept: user GUIDs become `users.id`, integer ids stay as they are (identity sequences are advanced afterwards),
   so old `map.aspx?group=N` links can be redirected 1:1.
 - Passwords are stored as `flytrace1|<hash>|<format>|<salt>` and verified with the ASP.NET `SqlMembershipProvider`
-  algorithm (format 1 = `base64(sha1(salt || utf16le(password)))`). They are re-hashed with argon2id on first login.
+  algorithm (format 1 = `base64(sha1(salt || utf16le(password)))`). The import then wraps each one in argon2id (`flytrace2|<salt>|<argon2id of the SHA-1 bytes>`, `wrapLegacyHash`), so no SHA-1 stays in the database, and the first login replaces it with a plain argon2id hash of the password.
 - `LastLoginDate` equal to `CreateDate` means "never logged in" in the old provider and becomes NULL.
 - `users.email` is unique (login accepts username or email). The old data has exactly one duplicate pair,
   `craneman` and `zawad20`, which is why `zawad20` is excluded; the import fails on the unique index if

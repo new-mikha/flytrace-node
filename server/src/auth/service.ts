@@ -88,8 +88,7 @@ export async function checkPassword(
   if (!user) {
     // Unknown login name: still do a full password verification and discard the result. Without it
     // this path returns in about a millisecond while a wrong password costs an argon2 check (tens
-    // of ms), and that timing gap would reveal which usernames and emails exist. Legacy SHA1
-    // accounts remain fast until their first login upgrades them to argon2id.
+    // of ms), and that timing gap would reveal which usernames and emails exist.
     await verifyPassword(await (dummyHash ??= hashPassword('dummy password')), password);
     return { kind: 'invalid' };
   }

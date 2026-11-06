@@ -46,9 +46,8 @@ export function PrivacyPage({
         anybody's data.
       </p>
       <p>
-        Flytrace is run by its owners in Australia. The data is stored on a server in the EU and is
-        looked after from Australia. For anything about your data, write to{' '}
-        <a href={`mailto:${contact}`}>{contact}</a>.
+        Flytrace is run by its owners, and the data is stored on a server in the EU. For anything
+        about your data, write to <a href={`mailto:${contact}`}>{contact}</a>.
       </p>
 
       <h2 class="h5 mt-4">If you have an account</h2>
@@ -123,8 +122,8 @@ export function PrivacyPage({
         </li>
       </ul>
       <p>
-        Because the site is looked after from Australia and uses Google, your data can leave your
-        country and the EU.
+        The site is also looked after from outside the EU, and it uses Google, so your data can
+        leave your country and the EU.
       </p>
 
       <h2 class="h5 mt-4">Cookies and logs</h2>

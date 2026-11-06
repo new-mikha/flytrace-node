@@ -22,6 +22,8 @@ import argon2 from 'argon2';
 import { createHash, timingSafeEqual } from 'node:crypto';
 
 export const LEGACY_PREFIX = 'flytrace1|';
+/** "flytrace2|<salt>|<argon2id of the SHA-1 bytes>": see `wrapLegacyHash`. */
+export const WRAPPED_PREFIX = 'flytrace2|';
 
 function safeEqual(a: string, b: string): boolean {
   const ba = Buffer.from(a);
@@ -41,10 +43,35 @@ export function verifyLegacyPassword(stored: string, password: string): boolean 
   const [, hash = '', format = '', salt = ''] = parts;
   if (format === '0') return safeEqual(hash, password);
   if (format !== '1') return false;
-  const computed = createHash('sha1')
+  return safeEqual(legacySha1(salt, password).toString('base64'), hash);
+}
+
+function legacySha1(salt: string, password: string): Buffer {
+  return createHash('sha1')
     .update(Buffer.concat([Buffer.from(salt, 'base64'), Buffer.from(password, 'utf16le')]))
-    .digest('base64');
-  return safeEqual(computed, hash);
+    .digest();
+}
+
+/**
+ * Puts argon2id around a legacy SHA-1, for the accounts that have not logged in since the import:
+ * the password is not known, but the hash can be hashed, so that a stolen database no longer gives
+ * fast guesses. The first login then replaces it with a plain argon2id hash of the password.
+ */
+export async function wrapLegacyHash(stored: string): Promise<string> {
+  const [prefix, hash, format, salt] = stored.split('|');
+  if (`${prefix}|` !== LEGACY_PREFIX || format !== '1' || !hash || salt === undefined)
+    throw new Error('Only a hashed legacy password can be wrapped');
+  const wrapped = await argon2.hash(Buffer.from(hash, 'base64'), { type: argon2.argon2id });
+  return `${WRAPPED_PREFIX}${salt}|${wrapped}`;
+}
+
+async function verifyWrappedPassword(stored: string, password: string): Promise<boolean> {
+  const [, salt = '', wrapped = ''] = stored.split('|');
+  try {
+    return await argon2.verify(wrapped, legacySha1(salt, password));
+  } catch {
+    return false;
+  }
 }
 
 export function hashPassword(password: string): Promise<string> {
@@ -59,6 +86,8 @@ export interface VerifyResult {
 export async function verifyPassword(stored: string, password: string): Promise<VerifyResult> {
   if (stored.startsWith(LEGACY_PREFIX))
     return { ok: verifyLegacyPassword(stored, password), needsRehash: true };
+  if (stored.startsWith(WRAPPED_PREFIX))
+    return { ok: await verifyWrappedPassword(stored, password), needsRehash: true };
   try {
     return { ok: await argon2.verify(stored, password), needsRehash: false };
   } catch {

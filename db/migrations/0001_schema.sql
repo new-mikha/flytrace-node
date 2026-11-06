@@ -29,7 +29,8 @@ CREATE TABLE users (
   username                citext NOT NULL UNIQUE,
   email                   citext UNIQUE,             -- also accepted as a login name; NULLs may repeat
   -- Either "flytrace1|<base64 sha1>|<format>|<base64 salt>" (legacy ASP.NET membership)
-  -- or a modern "$argon2id$..." string. Legacy hashes are upgraded on first successful login.
+  -- wrapped by the import as "flytrace2|<salt>|<argon2id of the sha1 bytes>", or a modern
+  -- "$argon2id$..." string. Legacy hashes are upgraded on first successful login.
   password_hash           text NOT NULL,
   is_approved             boolean NOT NULL DEFAULT true,
   is_locked_out           boolean NOT NULL DEFAULT false,

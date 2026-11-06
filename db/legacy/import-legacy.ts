@@ -32,6 +32,7 @@ import { dirname, join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import { from as copyFrom } from 'pg-copy-streams';
+import { wrapLegacyHash } from '../../server/src/auth/password.ts';
 import { legacyExcludedUsers, loadConfig } from '../../server/src/config.ts';
 import { type Client, createPool, withTransaction } from '../../server/src/db.ts';
 
@@ -97,6 +98,24 @@ async function reportRenames(client: Client): Promise<void> {
     );
 }
 
+/** No SHA-1 stays in the real tables (see `wrapLegacyHash`). After verify.sql, which reads them. */
+async function wrapPasswords(client: Client): Promise<void> {
+  const { rows } = await client.query<{ id: string; password_hash: string }>(
+    `SELECT id, password_hash FROM users WHERE password_hash LIKE 'flytrace1|%'`,
+  );
+  // Four at a time, the size of Node's thread pool, which argon2 runs on:
+  for (let i = 0; i < rows.length; i += 4) {
+    const chunk = rows.slice(i, i + 4);
+    const hashes = await Promise.all(chunk.map((r) => wrapLegacyHash(r.password_hash)));
+    await client.query(
+      `UPDATE users u SET password_hash = w.hash
+       FROM unnest($1::uuid[], $2::text[]) AS w(id, hash) WHERE u.id = w.id`,
+      [chunk.map((r) => r.id), hashes],
+    );
+  }
+  console.log(`\nWrapped ${rows.length} legacy passwords in argon2id.`);
+}
+
 async function main(): Promise<void> {
   const dumpArg = process.argv[2];
   if (!dumpArg) {
@@ -146,6 +165,8 @@ async function main(): Promise<void> {
         );
 
       if (rows.some((c) => !c.ok)) throw new Error('Verification failed; transaction rolled back.');
+
+      await wrapPasswords(client);
 
       for (const t of TABLES) await client.query(`DROP TABLE orig_${t}`);
       await client.query('DROP TABLE legacy_exclude');

@@ -124,7 +124,7 @@ simulated client its own `remoteAddress`.
 
 ## Decisions (do not re-propose)
 
-- **Accounts are never removed for being inactive** (7 Nov 2026), whatever their age: they own the groups and the map links, and people come back after years. The privacy policy says so, and names the controller as "its owners" in Australia, on purpose.
+- **Accounts are never removed for being inactive** (7 Nov 2026), whatever their age: they own the groups and the map links, and people come back after years. The privacy policy says so, and names the controller only as "its owners", with no country, on purpose.
 - **No help pages or descriptions** (6 Nov 2026): the legacy help (`help/commonhelp.aspx`, `usermessageshelp.aspx`, `eventshelp.htm`, `spotidhelp.htm`) is not ported, neither as pages nor as help inside the forms or on the map.
 - The authenticator (TOTP) secret stays stored unencrypted in `users.two_factor_secret`.
 - No JSON login API, no "Remember me", no stored procedures or triggers.
@@ -319,6 +319,8 @@ wait on feeds.
 
 ## Planned (not started)
 
+- At deployment, once the production import has been checked: destroy the old dumps (`db/legacy/dump/` and any copy of them), which hold the legacy SHA-1 password hashes (owner's decision, 7 Nov 2026). Confirm with the owner before deleting.
+
 - A production build step (`npm run build`, probably Vite or esbuild), to be done late, once the pages have settled:
   one minified CSS file and one JS file instead of the separate Bootstrap, Font Awesome and our own files; a Font
   Awesome subset with only the icons we use; versioned file names (`app.<hash>.css`) read from a manifest by `Layout`
@@ -339,7 +341,7 @@ wait on feeds.
 - Server-side sessions (not JWT): cookie `flytrace.sid` = signed session id; data in the Postgres `sessions` table. The cookie
   is Secure in production (`COOKIE_SECURE` in .env overrides): `@fastify/session` sends no cookie at all for a Secure cookie
   over plain HTTP, so a production login only works behind HTTPS (the proxy must send `X-Forwarded-Proto`) or with `COOKIE_SECURE=false`.
-- Login accepts username or email (both unique, case-insensitive). Legacy hashes `flytrace1|...` are verified
+- Login accepts username or email (both unique, case-insensitive). The import wraps legacy SHA-1 hashes in argon2id (`flytrace2|<salt>|<argon2id of the SHA-1 bytes>`, `wrapLegacyHash`), since the passwords are not known; `flytrace1|...` (still in a dev database imported earlier, and in tests) and `flytrace2|...` are verified
   and upgraded to argon2id on first login. Roles come from `user_roles`, loaded from the DB on every request.
 - Registration rejects a username equal to another user's email (usernames cannot contain `@`, and a new email
   must not equal any username). Emailed links (confirm email, reset password, change email) are one-time tokens
