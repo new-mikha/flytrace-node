@@ -58,6 +58,8 @@ migration during the dev phase: do not add `0002_...`); once deployed, add new n
 editing it, tell the owner how to rebuild the dev DB: `npm run db:reset`, then `npm run db:import-legacy -- ...`
 (the imported dump already contains an admin, so `user:create` is not needed). Do not reset it yourself.
 
+`DATABASE_URL` points at `127.0.0.1`, not `localhost`: on the owner's Mac, opening a new connection to `localhost` stalled for exactly 5 seconds about once in 30 runs of the tests, in the name lookup (caught on 6 Nov 2026 with a tracer in the test process; 72 clean runs with the address). A test that fails with "timed out in 5000ms" on a machine with `localhost` there is most likely that.
+
 Tests run against the dev database and share one rate limiter per client IP, so tests that log in or post give each
 simulated client its own `remoteAddress`.
 
