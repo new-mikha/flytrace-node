@@ -22,6 +22,7 @@
 // confirm email, forgot / reset password. The logged-in "My account" pages are in account.tsx.
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { audit, maskEmail } from '../audit.ts';
+import { captchaRefusal, captchaSiteKey, passesCaptcha } from '../auth/captcha.ts';
 import {
   changeEmail,
   confirmEmail,
@@ -36,7 +37,7 @@ import {
   usernameSchema,
 } from '../auth/accounts.ts';
 import { checkPassword, completeLogin } from '../auth/service.ts';
-import { consumeToken, peekToken } from '../auth/tokens.ts';
+import { consumeToken, peekToken, sentRecently } from '../auth/tokens.ts';
 import { useRecoveryCode, verifyUserCode } from '../auth/totp.ts';
 import type { Config } from '../config.ts';
 import type { Pool } from '../db.ts';
@@ -103,6 +104,7 @@ export async function identityRoutes(
     user: request.user,
     path: request.url.split('?')[0]!,
     flash: takeFlash(request),
+    captchaKey: captchaSiteKey(config),
   });
 
   /** Logs the user in: a fresh session id (against session fixation), then the stored user id. */
@@ -277,7 +279,7 @@ export async function identityRoutes(
   );
 
   app.post('/register', { config: emailRateLimit }, async (request, reply) => {
-    const f = formFields(request, 'username', 'email', 'password', 'confirmPassword');
+    const f = formFields(request, 'username', 'email', 'password', 'confirmPassword', 'captcha');
     const username = f.username.trim();
     const email = f.email.trim();
     const errors: Record<string, string | undefined> = {
@@ -292,6 +294,17 @@ export async function identityRoutes(
         status,
       );
     if (Object.values(errors).some(Boolean)) return show(422);
+    if (!(await passesCaptcha(request, config, f.captcha, 'register')))
+      return sendHtml(
+        reply,
+        <RegisterPage
+          {...common(request)}
+          flash={{ kind: 'danger', text: captchaRefusal(config) }}
+          values={{ username, email }}
+          errors={errors}
+        />,
+        422,
+      );
 
     const result = await registerUser(pool, { username, email, password: f.password });
     if (!result.ok) {
@@ -402,16 +415,26 @@ export async function identityRoutes(
   );
 
   app.post('/resend-confirmation', { config: emailRateLimit }, async (request, reply) => {
-    const { login } = formFields(request, 'login');
+    const { login, captcha } = formFields(request, 'login', 'captcha');
     if (!login.trim())
       return sendHtml(
         reply,
         <ResendConfirmationPage {...common(request)} error="Enter your username or email." />,
         422,
       );
+    if (!(await passesCaptcha(request, config, captcha, 'resend_confirmation')))
+      return sendHtml(
+        reply,
+        <ResendConfirmationPage {...common(request)} error={captchaRefusal(config)} />,
+        422,
+      );
 
     const found = login.length <= 256 ? await findByLogin(pool, login.trim()) : null;
-    if (found?.email && !found.emailConfirmed) {
+    if (
+      found?.email &&
+      !found.emailConfirmed &&
+      !(await sentRecently(pool, found.id, 'confirm_email'))
+    ) {
       const recipient = { id: found.id, username: found.username, email: found.email };
       mail.queue(() => mail.sendConfirmEmail(recipient));
     }
@@ -434,16 +457,22 @@ export async function identityRoutes(
   );
 
   app.post('/forgot-password', { config: emailRateLimit }, async (request, reply) => {
-    const { login } = formFields(request, 'login');
+    const { login, captcha } = formFields(request, 'login', 'captcha');
     if (!login.trim())
       return sendHtml(
         reply,
         <ForgotPasswordPage {...common(request)} error="Enter your username or email." />,
         422,
       );
+    if (!(await passesCaptcha(request, config, captcha, 'forgot_password')))
+      return sendHtml(
+        reply,
+        <ForgotPasswordPage {...common(request)} error={captchaRefusal(config)} />,
+        422,
+      );
 
     const found = login.length <= 256 ? await findByLogin(pool, login.trim()) : null;
-    if (found?.email) {
+    if (found?.email && !(await sentRecently(pool, found.id, 'reset_password'))) {
       const recipient = { id: found.id, username: found.username, email: found.email };
       audit(request, 'password.reset_requested', 'Password reset requested', {
         user: found.username,

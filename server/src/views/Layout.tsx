@@ -78,6 +78,8 @@ export function Layout({ title, user, path, card, scripts, children }: LayoutPro
             </main>
             <footer class="ft-footer">
               <a href="/privacy">Privacy policy</a>
+              {/* `app.ts` puts the address in, as it does the theme: */}
+              <a href="mailto:ft-contact">Email us</a>
               <a href="https://github.com/new-mikha/flytrace-node">Source</a>
             </footer>
             <div class="ft-shadow ft-shadow-bottom" aria-hidden="true">

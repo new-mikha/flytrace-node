@@ -135,6 +135,14 @@ const register = (b: Browser, name: string, extra: Record<string, string> = {}) 
     ...extra,
   });
 const userName = (name: string) => `__idt_${name}_${run}`;
+
+/** As if the last email to this account went out long ago: see `sentRecently`. */
+const allowNextEmail = (name: string) =>
+  pool.query(
+    `UPDATE user_tokens SET created_at = now() - interval '6 minutes'
+     WHERE user_id = (SELECT id FROM users WHERE username = $1)`,
+    [userName(name)],
+  );
 const userEmail = (name: string) => `idt_${name}_${run}@example.test`;
 
 describe('registration', () => {
@@ -257,11 +265,30 @@ describe('mandatory email confirmation', () => {
     expect(await b.whoami()).toBe(userName('strict'));
   });
 
+  it('sends one link in five minutes, with the same answer', async () => {
+    const b = new Browser(strictApp);
+    await register(b, 'flood');
+    await strictApp.mail.flush();
+    const before = sent.length;
+
+    const again = await b.post('/resend-confirmation', { login: userName('flood') });
+    expect(again.statusCode).toBe(200);
+    expect(again.body).toContain('Check your email');
+    await strictApp.mail.flush();
+    expect(sent.length).toBe(before);
+
+    await allowNextEmail('flood');
+    await b.post('/resend-confirmation', { login: userName('flood') });
+    await strictApp.mail.flush();
+    expect(sent.length).toBe(before + 1);
+  });
+
   it('resends the link, with the same answer for unknown accounts', async () => {
     const b = new Browser(strictApp);
     await register(b, 'resend');
     await strictApp.mail.flush();
     const before = sent.length;
+    await allowNextEmail('resend');
     const known = await b.post('/resend-confirmation', { login: userName('resend') });
     const unknown = await b.post('/resend-confirmation', { login: userName('nobody') });
     expect(known.statusCode).toBe(200);
@@ -276,6 +303,26 @@ describe('mandatory email confirmation', () => {
 });
 
 describe('forgot and reset password', () => {
+  it('sends one link in five minutes, with the same answer', async () => {
+    const b = new Browser(app);
+    await register(b, 'floodreset');
+    await app.mail.flush();
+    const before = sent.length;
+
+    const first = await b.post('/forgot-password', { login: userName('floodreset') });
+    const second = await b.post('/forgot-password', { login: userName('floodreset') });
+    expect(second.statusCode).toBe(200);
+    expect(first.body).toContain('Check your email');
+    expect(second.body).toContain('Check your email');
+    await app.mail.flush();
+    expect(sent.length).toBe(before + 1);
+
+    await allowNextEmail('floodreset');
+    await b.post('/forgot-password', { login: userName('floodreset') });
+    await app.mail.flush();
+    expect(sent.length).toBe(before + 2);
+  });
+
   it('emails a one-time link and sets the new password', async () => {
     const victim = new Browser(app);
     await register(victim, 'reset');

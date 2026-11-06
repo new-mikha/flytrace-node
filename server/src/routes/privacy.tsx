@@ -31,6 +31,7 @@ export async function privacyRoutes(app: FastifyInstance, config: Config): Promi
         user={request.user ?? null}
         path="/privacy"
         contact={config.MAIL_CONTACT_ADDRESS}
+        captcha={config.RECAPTCHA_ENABLED}
       />,
     ),
   );

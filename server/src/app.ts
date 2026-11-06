@@ -107,10 +107,9 @@ export async function buildApp(
       typeof payload === 'string' &&
       String(reply.getHeader('content-type') ?? '').startsWith('text/html')
     )
-      return payload.replace(
-        '<html lang="en">',
-        `<html lang="en" data-bs-theme="${themeOf(request.cookies)}">`,
-      );
+      return payload
+        .replace('<html lang="en">', `<html lang="en" data-bs-theme="${themeOf(request.cookies)}">`)
+        .replace('mailto:ft-contact', () => `mailto:${config.MAIL_CONTACT_ADDRESS}`);
 
     return payload;
   });

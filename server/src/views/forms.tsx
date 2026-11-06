@@ -32,6 +32,21 @@ const FLASH_ICON = {
   danger: 'fa-triangle-exclamation',
 } as const;
 
+/** Goes on a form that `captcha.js` looks after. */
+export const captchaForm = (siteKey: string | undefined, action: string) =>
+  siteKey ? { 'data-captcha': action, 'data-captcha-key': siteKey } : {};
+
+/** The field for the token, and the notice Google asks for when its badge is hidden. */
+export function CaptchaField({ siteKey }: { siteKey?: string | undefined }) {
+  if (!siteKey) return null;
+  return (
+    <>
+      <input type="hidden" name="captcha" value="" />
+      <p class="small text-body-secondary mt-2 mb-0">This site is protected by reCAPTCHA.</p>
+    </>
+  );
+}
+
 export function Alert({ flash }: { flash: Flash | null | undefined }) {
   if (!flash) return null;
   return (

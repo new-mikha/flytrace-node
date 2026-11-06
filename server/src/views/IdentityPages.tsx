@@ -23,6 +23,8 @@ import { MIN_PASSWORD_LENGTH } from '../auth/accounts.ts';
 import type { CurrentUser } from '../auth/service.ts';
 import {
   Alert,
+  CaptchaField,
+  captchaForm,
   Card,
   ConfirmPasswordHints,
   EmailHints,
@@ -38,8 +40,12 @@ interface Common {
   user: CurrentUser | null;
   path: string;
   flash?: Flash | null;
+  /** Set when the captcha is on. */
+  captchaKey?: string | undefined;
 }
 type Errors = Record<string, string | undefined>;
+
+const captchaScript = (key: string | undefined) => (key ? ['captcha.js'] : []);
 
 function Shell({
   title,
@@ -188,10 +194,16 @@ export function RegisterPage({
   ...c
 }: Common & { values: RegisterValues; errors: Errors }) {
   return (
-    <Shell title="Register" icon="fa-solid fa-user-plus" scripts={['live-hints.js']} {...c}>
+    <Shell
+      title="Register"
+      icon="fa-solid fa-user-plus"
+      scripts={['live-hints.js', ...captchaScript(c.captchaKey)]}
+      {...c}
+    >
       <form
         method="post"
         action="/register"
+        {...captchaForm(c.captchaKey, 'register')}
         data-live-validate
         data-min-password={MIN_PASSWORD_LENGTH}
         novalidate
@@ -242,6 +254,7 @@ export function RegisterPage({
           hints={<ConfirmPasswordHints />}
         />
         <Submit icon="fa-solid fa-user-plus">Register</Submit>
+        <CaptchaField siteKey={c.captchaKey} />
       </form>
       <hr />
       <p class="mb-0">
@@ -347,9 +360,18 @@ export function MessagePage({
 
 export function ForgotPasswordPage({ error, ...c }: Common & { error?: string }) {
   return (
-    <Shell title="Forgot your password?" icon="fa-solid fa-key" {...c}>
+    <Shell
+      title="Forgot your password?"
+      icon="fa-solid fa-key"
+      scripts={captchaScript(c.captchaKey)}
+      {...c}
+    >
       <p>Enter your username or email and we will email you a link to choose a new password.</p>
-      <form method="post" action="/forgot-password">
+      <form
+        method="post"
+        action="/forgot-password"
+        {...captchaForm(c.captchaKey, 'forgot_password')}
+      >
         <Field
           name="login"
           label="Username or email"
@@ -358,6 +380,7 @@ export function ForgotPasswordPage({ error, ...c }: Common & { error?: string })
           error={error}
         />
         <Submit icon="fa-regular fa-paper-plane">Send the link</Submit>
+        <CaptchaField siteKey={c.captchaKey} />
       </form>
       <hr />
       <p class="mb-0">
@@ -433,9 +456,18 @@ export function ResetPasswordPage({
 
 export function ResendConfirmationPage({ error, ...c }: Common & { error?: string }) {
   return (
-    <Shell title="Resend confirmation email" icon="fa-regular fa-envelope" {...c}>
+    <Shell
+      title="Resend confirmation email"
+      icon="fa-regular fa-envelope"
+      scripts={captchaScript(c.captchaKey)}
+      {...c}
+    >
       <p>Enter your username or email and we will send the confirmation link again.</p>
-      <form method="post" action="/resend-confirmation">
+      <form
+        method="post"
+        action="/resend-confirmation"
+        {...captchaForm(c.captchaKey, 'resend_confirmation')}
+      >
         <Field
           name="login"
           label="Username or email"
@@ -444,6 +476,7 @@ export function ResendConfirmationPage({ error, ...c }: Common & { error?: strin
           error={error}
         />
         <Submit icon="fa-regular fa-paper-plane">Send</Submit>
+        <CaptchaField siteKey={c.captchaKey} />
       </form>
     </Shell>
   );

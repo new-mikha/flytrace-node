@@ -29,11 +29,14 @@ export function PrivacyPage({
   user,
   path,
   contact,
+  captcha,
 }: {
   user: CurrentUser | null;
   path: string;
   /** `MAIL_CONTACT_ADDRESS`. */
   contact: string;
+  /** `RECAPTCHA_ENABLED`: what the page says about it follows the switch. */
+  captcha: boolean;
 }) {
   return (
     <Layout title="Privacy policy" user={user} path={path} card="medium">
@@ -103,7 +106,10 @@ export function PrivacyPage({
           Showing trackers on a map: the legitimate interest of pilots, their teams and their
           followers in following a flight, and in finding a pilot who needs help.
         </li>
-        <li>Logs: our legitimate interest in keeping the site running and secure.</li>
+        <li>
+          Logs{captcha ? ' and reCAPTCHA' : ''}: our legitimate interest in keeping the site running
+          and secure.
+        </li>
       </ul>
 
       <h2 class="h5 mt-4">Who else sees the data</h2>
@@ -113,6 +119,14 @@ export function PrivacyPage({
           USA, so Google receives your IP address and the area of the map you look at. See{' '}
           <a href="https://policies.google.com/privacy">Google's privacy policy</a>.
         </li>
+        {captcha && (
+          <li>
+            <strong>Google reCAPTCHA.</strong> The forms for registering and for asking for a
+            password or confirmation link check that you are a person. Once you start on one of
+            them, it loads reCAPTCHA from Google, which collects details of your browser and of how
+            you use the page, and sets a cookie of its own. We are responsible for this use of it.
+          </li>
+        )}
         <li>
           <strong>Administrators, and a few people they trust,</strong> can see accounts or groups,
           to run the site and to help when something goes wrong.
@@ -127,7 +141,10 @@ export function PrivacyPage({
       </p>
 
       <h2 class="h5 mt-4">Cookies and logs</h2>
-      <p>All the cookies are our own. None is used for advertising or to follow you elsewhere:</p>
+      <p>
+        {captcha ? 'Apart from reCAPTCHA, all the cookies' : 'All the cookies'} are our own. None is
+        used for advertising or to follow you elsewhere:
+      </p>
       <ul>
         <li>
           <code>flytrace.sid</code>: keeps you logged in, and carries you through the login and its
@@ -139,8 +156,14 @@ export function PrivacyPage({
         <li>
           <code>flytrace_coord_format</code> and <code>numAllTracksAlertShown</code>: the
           coordinates format you chose on the map, and that a warning there was already shown, for
-          four months.
+          four months;
         </li>
+        {captcha && (
+          <li>
+            <code>_GRECAPTCHA</code>: set by Google on the forms above, for its check that you are a
+            person.
+          </li>
+        )}
       </ul>
       <p>
         The browser also keeps the scroll position and the position of the map for a moment, in the

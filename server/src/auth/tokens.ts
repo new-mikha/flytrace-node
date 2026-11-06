@@ -63,6 +63,23 @@ export async function createToken(
   return token;
 }
 
+/**
+ * Was such an email sent to this account a moment ago? Anybody can ask for one by typing a name, so
+ * this keeps a stranger from flooding somebody's inbox, from however many addresses.
+ */
+export async function sentRecently(
+  pool: Pool,
+  userId: string,
+  purpose: TokenPurpose,
+): Promise<boolean> {
+  const { rowCount } = await pool.query(
+    `SELECT 1 FROM user_tokens
+     WHERE user_id = $1 AND purpose = $2 AND created_at > now() - interval '5 minutes'`,
+    [userId, purpose],
+  );
+  return (rowCount ?? 0) > 0;
+}
+
 /** Is the token valid (right purpose, unused, not expired)? Does not use it up. */
 export async function peekToken(
   pool: Pool,

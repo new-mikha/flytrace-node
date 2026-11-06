@@ -69,6 +69,14 @@ const schema = z.object({
   // false only to try the site over HTTP on a home network.
   COOKIE_SECURE: optionalFlag,
 
+  // Google reCAPTCHA v3 on the forms that send email (registering, password link, confirmation
+  // link). Off by default. The privacy policy follows this switch.
+  RECAPTCHA_ENABLED: flag(false),
+  RECAPTCHA_SITE_KEY: optional(z.string()),
+  RECAPTCHA_SECRET_KEY: optional(z.string()),
+  // From 0 (a bot) to 1 (a person); below this the form is refused.
+  RECAPTCHA_MIN_SCORE: z.coerce.number().min(0).max(1).default(0.5),
+
   // Public address of the site, used for the links in emails (no trailing slash needed).
   PUBLIC_BASE_URL: optional(z.url()),
   // true: a user must confirm the email address before logging in.
@@ -110,6 +118,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (config.REQUIRE_CONFIRMED_EMAIL && config.NODE_ENV === 'production' && !config.SMTP_HOST)
     throw new Error(
       'Invalid environment:\nREQUIRE_CONFIRMED_EMAIL=true needs SMTP_HOST, otherwise no one can confirm',
+    );
+  if (config.RECAPTCHA_ENABLED && !(config.RECAPTCHA_SITE_KEY && config.RECAPTCHA_SECRET_KEY))
+    throw new Error(
+      'Invalid environment:\nRECAPTCHA_ENABLED=true needs RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY',
     );
 
   return config;
