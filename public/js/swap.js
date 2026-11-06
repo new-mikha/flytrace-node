@@ -60,6 +60,12 @@
         credentials: 'same-origin',
         headers: { Accept: 'text/html' },
       });
+      if (response.status >= 500) {
+        // Nothing to swap in, and the address of a form is no page to go to:
+        for (const part of waiting) part?.classList.remove('ft-pending');
+        say('Something went wrong on the server. Please try again.');
+        return false;
+      }
       const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
       if (!ids.every((id) => doc.getElementById(id))) {
         // not this page any more (the login, no permission): go there

@@ -32,6 +32,7 @@ import { MailService } from './mail/service.ts';
 import { packageDir, projectRoot } from './paths.ts';
 import { accountRoutes } from './routes/account.tsx';
 import { adminRoutes } from './routes/admin.tsx';
+import { registerErrorPages } from './routes/errors.tsx';
 import { eventRoutes } from './routes/events.tsx';
 import { waypointRoutes } from './routes/waypoints.tsx';
 import { groupRoutes } from './routes/groups.tsx';
@@ -152,6 +153,7 @@ export async function buildApp(
   });
   await app.register(fastifyRateLimit, { global: false });
   await registerSession(app, config, pool);
+  registerErrorPages(app);
   const mail = new MailService(config, pool, mailer ?? createMailer(config, app.log), app.log);
   app.decorate('mail', mail);
   await identityRoutes(app, pool, config, mail);

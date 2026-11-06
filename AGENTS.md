@@ -39,7 +39,7 @@ TypeScript (ESM, strict), Fastify 5, plain `pg` SQL (no ORM), vitest, Postgres 1
 - `docker compose up -d`: start Postgres. `.env` is copied from `.env.example`.
 - `npm run db:reset`: dev only, drops and recreates the DB (refuses unless the name contains `_dev`), then migrates.
 - `npm run db:import-legacy -- db/legacy/dump/<timestamp>`: staging, transform and verify in one transaction.
-- `npm run user:create -- <name> <password> [role]`: dev user. `npm run dev`, `npm test`, `npm run typecheck`. `npm run test:e2e` runs the browser tests in `server/e2e/` (the bulk buttons, the waypoint upload, the waypoints manager and its add form) (`*.e2e.ts`, `vitest.e2e.config.ts`): a real server on a free port and a real Chrome through `playwright-core` (installed Google Chrome; `PLAYWRIGHT_CHROMIUM_PATH` for another binary). They are not part of `npm test`, and need no server of yours running.
+- `npm run user:create -- <name> <password> [role]`: dev user. `npm run dev`, `npm test`, `npm run typecheck`. `npm run test:e2e` runs the browser tests in `server/e2e/` (the bulk buttons, the waypoint upload, the waypoints manager and its add form, a crash during an in-place send) (`*.e2e.ts`, `vitest.e2e.config.ts`): a real server on a free port and a real Chrome through `playwright-core` (installed Google Chrome; `PLAYWRIGHT_CHROMIUM_PATH` for another binary). They are not part of `npm test`, and need no server of yours running.
 - `npm run build` compiles into `dist/` and copies the migrations and the import SQL next to it. `scripts/deploy.sh user@host` builds and
   copies `dist/`, `public/`, `package.json` and `package-lock.json` to the server (home Raspberry Pi); the server keeps its `.env`,
   `node_modules` and database. There, `node dist/db/migrate.js` applies migrations and `node dist/server/src/index.js` starts the app.
@@ -101,6 +101,7 @@ simulated client its own `remoteAddress`.
   (Log out, Delete, one-click confirmations) are left alone. Buttons carry no tick icon (it reads as "done"). New forms get this for free: make fields `required`/`pattern` as the server needs, and mark edit forms `changed`.
 - Forms sent in place, like an UpdatePanel (`public/js/swap.js`): a form with `data-swap="id id ..."` is posted with `fetch` and only the listed parts of the page are replaced by those of the answer (the server still redirects and renders the whole page, so it all works without JavaScript; refused changes come back as a page with errors, a 422, and are swapped the same way; an answer that lacks a listed part, e.g. the login, is navigated to). Keep those ids. Used by the group editor: settings (`ft-head ft-flash settings`), task / event (`ft-flash task`) and, through `window.ftSwap.send`, the tracker forms (`group-editor.js`). The new forms get their Save button disabled again (`ftGuard`). Not for forms that leave the page (delete or create a group).
 - Keep the scroll position (`public/js/keep-scroll.js`, loaded by the group editor so far; the plan is every page once it has proved itself): a posted form comes back as a fresh page, so the script stores `scrollY` in `sessionStorage` on submit and puts the next load of the same address back there (not when the address has a `#hash`; forms sent in place never reach it). The message at the top is shown again as a toast (`.ft-toast`) when it is out of sight.
+- Wrong addresses and crashes (`routes/errors.tsx`, `views/ErrorPage.tsx`): a person (`Accept` with `text/html`) gets a small card with the way home, anything else a line of JSON. Only 5xx are logged as ERROR, with the details; neither answer shows them. `swap.js` says so in place on a 5xx instead of going to the address of the form.
 - Page changes cross-fade through CSS view transitions (`@view-transition`, duration in `flytrace.css`).
 - Check layout changes at phone (about 380 px), tablet and desktop widths, and clean up any temporary test page.
 
@@ -121,6 +122,7 @@ simulated client its own `remoteAddress`.
 
 ## Decisions (do not re-propose)
 
+- **No help pages or descriptions** (6 Nov 2026): the legacy help (`help/commonhelp.aspx`, `usermessageshelp.aspx`, `eventshelp.htm`, `spotidhelp.htm`) is not ported, neither as pages nor as help inside the forms or on the map.
 - The authenticator (TOTP) secret stays stored unencrypted in `users.two_factor_secret`.
 - No JSON login API, no "Remember me", no stored procedures or triggers.
 - Legacy rows whose names are the literal text `${output}` (broken client tool, many users) are kept as they are.
