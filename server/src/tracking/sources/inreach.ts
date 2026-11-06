@@ -120,15 +120,31 @@ export function parseInReachFeed(kml: string, imei: string): FeedPoint[] | FeedE
   return points.length > 0 ? points.sort((a, b) => b.ts.getTime() - a.ts.getTime()) : noData();
 }
 
-/** Garmin has been seen moving a known point in time: such points stay as they were held. */
-function withoutMovedPoints(fresh: FeedPoint[], held: HeldTrack): FeedPoint[] {
-  const heldTimes = new Map(
-    held.filter((point) => point.id).map((point) => [point.id, point.ts.getTime()]),
-  );
-  return fresh.filter((point) => {
+/**
+ * Garmin has been seen moving a known point in time: such points stay as they were held. An `Id` used
+ * twice in the held track means ids cannot be trusted, so then nothing is dropped, as in legacy.
+ */
+function withoutMovedPoints(
+  fresh: FeedPoint[],
+  held: HeldTrack,
+): { points: FeedPoint[]; warnings: string[] } {
+  const heldTimes = new Map<string, number>();
+  for (const { id, ts } of held) {
+    if (!id) continue;
+    if (heldTimes.has(id))
+      return {
+        points: fresh,
+        warnings: ['the same Id is on two points, moved points not checked'],
+      };
+    heldTimes.set(id, ts.getTime());
+  }
+
+  const points = fresh.filter((point) => {
     const heldTime = point.id ? heldTimes.get(point.id) : undefined;
     return heldTime === undefined || heldTime === point.ts.getTime();
   });
+  const moved = fresh.length - points.length;
+  return { points, warnings: moved > 0 ? [`${moved} known point(s) moved in time, ignored`] : [] };
 }
 
 function feedUrl(feedId: string, since?: Date): { url: string } | { error: FeedError } {
@@ -185,7 +201,7 @@ async function poll(
     if (newest.id && newest.id === newestHeld.id)
       return { points: [], error: null, requestCount: 1 };
 
-    return { points: withoutMovedPoints(fresh, held), error: null, requestCount: 1 };
+    return { ...withoutMovedPoints(fresh, held), error: null, requestCount: 1 };
   }
 
   const latest = await fetchPoints(feedId, signal);

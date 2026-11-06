@@ -281,8 +281,9 @@ wait on feeds.
 
 **The rest of the interface**:
 
-- **`FeedResult` is `{ points: FeedPoint[]; error: FeedError | null; requestCount: number }`**, points newest-first,
-  and **both may be set at once** (legacy: a snapshot carries a stale position and a fresh error, which the client
+- **`FeedResult` is `{ points: FeedPoint[]; error: FeedError | null; requestCount: number; warnings?: string[] }`**,
+  points newest-first, `warnings` for the log only (an inReach point that moved in time; repeated times are common and
+  not reported), and **`points` and `error` may be set at once** (legacy: a snapshot carries a stale position and a fresh error, which the client
   renders). `FeedError` is a closed union (`bad-feed-id`, `no-data`, `throttled`, `unauthorized`, `timeout`,
   `source-error`, `network`) with `userMessage` plus `status`, `headers` and `retryAfterMs` when present. Legacy
   classified only HTTP 404.

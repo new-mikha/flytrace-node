@@ -107,6 +107,8 @@ export class Pipeline {
       // The status and all the headers go to the log: neither service documents its limits, so the
       // first real refusal has to be captured whole.
       const took = `${result.requestCount} request(s), ${Date.now() - startedAt} ms`;
+      for (const warning of result.warnings ?? [])
+        this.log.warn(`${this.source.name} poll of ${tracker.key}: ${warning}`);
       if (result.error) {
         const { kind, detail, status, headers, retryAfterMs } = result.error;
         this.log.warn(

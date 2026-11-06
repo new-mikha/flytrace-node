@@ -60,6 +60,8 @@ export interface FeedResult {
   points: FeedPoint[];
   error: FeedError | null;
   requestCount: number;
+  /** The call went on, but the feed did something odd: for the log only. No feed ids here. */
+  warnings?: string[];
 }
 
 export interface TrackerSource {
