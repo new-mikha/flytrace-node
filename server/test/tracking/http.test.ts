@@ -56,6 +56,11 @@ describe('fetchFeed', () => {
     expect((init.headers as Record<string, string>).accept).toContain('application/xml');
   });
 
+  it('takes an empty answer for a feed that does not exist, as Garmin says it', async () => {
+    stubFetch(() => new Response(''));
+    expect(await get()).toMatchObject({ error: { kind: 'bad-feed-id' } });
+  });
+
   it('takes a 404 for a feed that does not exist', async () => {
     stubFetch(() => new Response('', { status: 404, headers: { 'x-a': 'b' } }));
     expect(await get()).toMatchObject({

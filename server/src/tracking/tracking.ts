@@ -28,7 +28,7 @@ import type { SourceType, TrackerSource } from './sources/types.ts';
 import { Tracker } from './tracker.ts';
 
 /** By the feed, not by a group's row: a feed in several groups is one tracker, polled once. */
-const keyOf = (type: SourceType, feedId: string) => `${type}:${feedId}`;
+export const keyOf = (type: SourceType, feedId: string) => `${type}:${feedId}`;
 
 export class Tracking {
   private readonly trackers = new Map<string, Tracker>();

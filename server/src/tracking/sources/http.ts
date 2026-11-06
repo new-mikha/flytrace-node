@@ -89,7 +89,9 @@ export async function fetchFeed(
       await response.body?.cancel();
       return { error: httpError(response, sourceName) };
     }
-    return { text: await response.text() };
+    const text = await response.text();
+    // Garmin's answer for a feed that does not exist is a 200 with nothing in it:
+    return text ? { text } : { error: badFeedId(sourceName) };
   } catch (err) {
     // The name tells which signal fired: a timeout gives TimeoutError, the shutdown AbortError.
     const e = err as Error & { cause?: { code?: string } };

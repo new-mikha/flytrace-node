@@ -479,7 +479,7 @@ function AddTracker({ group, add }: { group: EditableGroup; add?: GroupDraft['ad
         value={add?.link ?? ''}
         maxlength={445}
         error={add?.linkError}
-        help="A SPOT shared page link or its ID, or an inReach KML feed link or its ID followed by # and the device's IMEI."
+        help="A SPOT shared page link or its ID, or an inReach KML feed link or its ID. A feed with several devices also needs the device's IMEI after a # sign."
       />
       <fieldset class="mb-3">
         <legend class="form-label fs-6">Tracker type</legend>

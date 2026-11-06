@@ -202,6 +202,15 @@ export async function addTracker(
   }
 }
 
+/** Whether any group has this feed: such a feed needs no check against its service. */
+export async function isKnownFeed(pool: Pool, parsed: ParsedTracker): Promise<boolean> {
+  const { rowCount } = await pool.query(
+    'SELECT 1 FROM group_trackers WHERE tracker_type = $1 AND foreign_id = $2 LIMIT 1',
+    [parsed.type, parsed.foreignId],
+  );
+  return rowCount !== 0;
+}
+
 /** False when the group already has a pilot with that name. */
 export async function renameTracker(
   pool: Pool,

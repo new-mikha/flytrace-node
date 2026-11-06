@@ -44,6 +44,7 @@ function setUp(rules: Partial<TrackerSource['rules']> = {}) {
     },
     poll,
     parseFeedId: () => ({ error: 'unused' }),
+    checkFeed: () => Promise.resolve({ error: 'unused' }),
   };
   const { lines, log } = fakeLog();
   const shutdown = new AbortController();

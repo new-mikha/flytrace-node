@@ -356,6 +356,12 @@ describe('inReach.poll with a track held', () => {
     expect(result).toMatchObject({ points: [], error: { status: 503 }, requestCount: 1 });
   });
 
+  it('reports an empty answer as a bad feed', async () => {
+    stubFetch(() => new Response(''));
+    const result = await inReach.poll(FEED, held, open(), () => {});
+    expect(result).toMatchObject({ points: [], error: { kind: 'bad-feed-id' } });
+  });
+
   it('reports a window with no points as no data', async () => {
     stubFetch(() => new Response('<kml />'));
     const result = await inReach.poll(FEED, held, open(), () => {});
@@ -400,10 +406,10 @@ describe('inReach.parseFeedId', () => {
     expect(inReach.parseFeedId(text)).toEqual(WANTED);
   });
 
-  it('needs the IMEI', () => {
-    const answer = inReach.parseFeedId('share.garmin.com/pilot');
-    expect(answer).toHaveProperty('error');
-    expect((answer as { error: string }).error).toContain('IMEI');
+  it('leaves the IMEI to the check of the feed', () => {
+    expect(inReach.parseFeedId('share.garmin.com/pilot')).toEqual({
+      feedId: 'share.garmin.com/Feed/Share/pilot#',
+    });
   });
 
   it('refuses another site', () => {

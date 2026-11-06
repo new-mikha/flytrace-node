@@ -21,12 +21,14 @@
 // The group editor against the dev database (needs `npm run db:migrate`): owner changes, read-only
 // viewers, tracker input rules.
 import type { FastifyInstance } from 'fastify';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.ts';
 import { hashPassword } from '../src/auth/password.ts';
 import { loadConfig } from '../src/config.ts';
 import { createPool, type Pool } from '../src/db.ts';
+import { isKnownFeed } from '../src/repo/groupEditor.ts';
 import { parseTrackerInput } from '../src/repo/trackerInput.ts';
+import { inReachFeed, spotError, spotPage, stubFetch } from './tracking/helpers.ts';
 
 const run = Math.random().toString(36).slice(2, 8);
 const OWNER = `__test_gowner_${run}`;
@@ -70,6 +72,18 @@ async function loginAs(username: string) {
     },
   };
 }
+
+// Adding a tracker asks its service: never the real one here. A feed of two devices takes either IMEI.
+const TWO_DEVICES = inReachFeed([
+  { time: '2026-01-10T12:00:00Z', imei: '300434031769290' },
+  { time: '2026-01-10T11:00:00Z', imei: '300434031769291' },
+]);
+const SERVICES = (url: string) =>
+  new Response(url.includes('garmin') ? TWO_DEVICES : spotPage(1, '2026-01-10T12:00:00Z', 1));
+
+beforeEach(() => {
+  stubFetch(SERVICES);
+});
 
 beforeAll(async () => {
   const config = { ...loadConfig(), SMTP_HOST: undefined };
@@ -127,19 +141,22 @@ describe('parseTrackerInput', () => {
       ),
     ).toEqual({ type: 'S', foreignId: SPOT_ID });
   });
-  it('recognizes inReach feeds, which need the IMEI after #', () => {
+  it('recognizes inReach feeds, with or without the IMEI after #', () => {
     expect(
       parseTrackerInput('https://aus.inreach.garmin.com/Feed/Share/Phillm#300434031769290'),
     ).toEqual({ type: 'G', foreignId: 'share.garmin.com/Feed/Share/Phillm#300434031769290' });
     expect(parseTrackerInput('Phillm#300434031769290')).toMatchObject({ type: 'G' });
-    expect(parseTrackerInput('Phillm')).toHaveProperty('error');
-    expect(parseTrackerInput('garmin.com/Feed/Share/Phillm')).toHaveProperty('error');
+    expect(parseTrackerInput('Phillm')).toEqual({
+      type: 'G',
+      foreignId: 'share.garmin.com/Feed/Share/Phillm#',
+    });
+    expect(parseTrackerInput('garmin.com/Feed/Share/Phillm')).toMatchObject({ type: 'G' });
   });
   it('follows the chosen type', () => {
     expect(parseTrackerInput(SPOT_ID, 'S')).toMatchObject({ type: 'S' });
     expect(parseTrackerInput('short', 'S')).toHaveProperty('error');
     expect(parseTrackerInput(`${SPOT_ID}#300434031769290`, 'G')).toMatchObject({ type: 'G' });
-    expect(parseTrackerInput(SPOT_ID, 'G')).toHaveProperty('error'); // no IMEI
+    expect(parseTrackerInput(SPOT_ID, 'G')).toMatchObject({ type: 'G' });
   });
   it('refuses nonsense and overlong text', () => {
     expect(parseTrackerInput('a b c')).toHaveProperty('error');
@@ -199,12 +216,76 @@ describe('creating and editing', () => {
     expect((await groupRow(id)).name).toBe('Fly-in');
   });
 
+  describe('asking the service about a new tracker', () => {
+    const NEW_SPOT = 'feed-of-this-test-only-1';
+    const addTo = (owner: Awaited<ReturnType<typeof loginAs>>, id: number, link: string) =>
+      owner.post(`/groups/${id}/trackers`, { trackerName: 'Ann', link });
+
+    it('stores the IMEI read from a feed with one device', async () => {
+      stubFetch(
+        () =>
+          new Response(inReachFeed([{ time: '2026-01-10T12:00:00Z', imei: '300111222333444' }])),
+      );
+      const owner = await loginAs(OWNER);
+      const id = await newGroup(owner);
+
+      expect((await addTo(owner, id, 'https://share.garmin.com/Solo')).statusCode).toBe(302);
+      const [row] = await trackerRows(id);
+      expect(row).toMatchObject({
+        tracker_type: 'G',
+        foreign_id: 'share.garmin.com/Feed/Share/Solo#300111222333444',
+      });
+    });
+
+    it('refuses a feed the service does not know, with the reason in the form', async () => {
+      stubFetch(() => new Response(spotError('Feed Not Found')));
+      const owner = await loginAs(OWNER);
+      const id = await newGroup(owner);
+
+      const res = await addTo(owner, id, NEW_SPOT);
+      expect(res.statusCode).toBe(422);
+      expect(res.body).toContain('We cannot recognize the SPOT Shared Page ID');
+      expect(res.body).toContain(`value="${NEW_SPOT}"`); // for correcting it
+      expect(await trackerRows(id)).toEqual([]);
+    });
+
+    it('adds a SPOT tracker while SPOT is down', async () => {
+      stubFetch(() => new Response('', { status: 503 }));
+      const owner = await loginAs(OWNER);
+      const id = await newGroup(owner);
+
+      expect((await addTo(owner, id, NEW_SPOT)).statusCode).toBe(302);
+      expect(await trackerRows(id)).toHaveLength(1);
+    });
+
+    it('does not ask about a feed that any group already has', async () => {
+      const owner = await loginAs(OWNER);
+      const first = await newGroup(owner);
+      await addTo(owner, first, 'feed-of-this-test-only-2');
+      const { urls } = stubFetch(() => new Response(spotError('Feed Not Found')));
+
+      const second = await newGroup(owner);
+      expect((await addTo(owner, second, 'feed-of-this-test-only-2')).statusCode).toBe(302);
+      expect(urls).toEqual([]);
+    });
+
+    it('tells a feed of the other kind from a known one', async () => {
+      const owner = await loginAs(OWNER);
+      const id = await newGroup(owner);
+      const foreignId = 'feed-of-this-test-only-3';
+      await addTo(owner, id, foreignId);
+
+      expect(await isKnownFeed(pool, { type: 'S', foreignId })).toBe(true);
+      expect(await isKnownFeed(pool, { type: 'G', foreignId })).toBe(false);
+    });
+  });
+
   it('adds, renames, turns on and off, and deletes trackers', async () => {
     const owner = await loginAs(OWNER);
     const id = await newGroup(owner);
     const bad = await owner.post(`/groups/${id}/trackers`, { trackerName: 'Ann', link: 'Phillm' });
     expect(bad.statusCode).toBe(422);
-    expect(bad.body).toContain('IMEI');
+    expect(bad.body).toContain('more than one IMEI'); // the feed has two devices
     expect(
       (await owner.post(`/groups/${id}/trackers`, { trackerName: '', link: SPOT_ID })).statusCode,
     ).toBe(422);
@@ -212,7 +293,7 @@ describe('creating and editing', () => {
       trackerName: 'Ann',
       link: SPOT_ID,
       type: 'G',
-    });
+    }); // taken for an inReach feed, and refused as it has two devices
     expect(wrong.statusCode).toBe(422);
     expect(wrong.body).toContain('checked'); // the chosen type is kept
     expect(

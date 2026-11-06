@@ -36,9 +36,13 @@ import {
   renameTracker,
   setTrackersOn,
   updateGroup,
+  isKnownFeed,
 } from '../repo/groupEditor.ts';
 import { getSettings } from '../repo/settings.ts';
-import { parseTrackerInput } from '../repo/trackerInput.ts';
+import { type ParsedTracker, parseTrackerInput } from '../repo/trackerInput.ts';
+import { sources } from '../tracking/sources/index.ts';
+import type { FeedCheck } from '../tracking/sources/types.ts';
+import { keyOf } from '../tracking/tracking.ts';
 import {
   confirmDeleteGroup,
   ConfirmDeletePage,
@@ -51,6 +55,24 @@ import { formFields, setFlash, takeFlash } from './util.ts';
 
 const VIEWER_ROLES = ['Admins', 'SpotIdReaders'];
 const ALTITUDE_LABEL = { none: 'not shown', ft: 'feet', m: 'kilometers' } as const;
+
+/** Asks the service, in the time of one of its calls. A person waits for this, as in legacy. */
+export async function checkFeed(
+  request: Pick<FastifyRequest, 'log'>,
+  parsed: ParsedTracker,
+): Promise<FeedCheck> {
+  const source = sources[parsed.type];
+  const signal = AbortSignal.timeout(source.rules.callTimeoutMs);
+  const result = await source.checkFeed(parsed.foreignId, signal);
+  if (result.failure) {
+    const { kind, status, headers, retryAfterMs } = result.failure;
+    request.log.warn(
+      { kind, status, headers, retryAfterMs },
+      `${source.name} check of ${keyOf(parsed.type, parsed.foreignId)} failed: ${kind}`,
+    );
+  }
+  return result;
+}
 
 export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<void> {
   const guard = { preHandler: requireLogin };
@@ -310,7 +332,14 @@ export async function groupRoutes(app: FastifyInstance, pool: Pool): Promise<voi
     const parsed = parseTrackerInput(f.link, f.type === 'S' || f.type === 'G' ? f.type : undefined);
     if ('error' in parsed)
       return show(request, reply, group, { add: { ...add, linkError: parsed.error } });
-    const dup = await addTracker(pool, group.id, name, parsed, f.link);
+    const checked: FeedCheck = (await isKnownFeed(pool, parsed))
+      ? { feedId: parsed.foreignId }
+      : await checkFeed(request, parsed);
+    if ('error' in checked)
+      return show(request, reply, group, { add: { ...add, linkError: checked.error } });
+
+    const feed = { ...parsed, foreignId: checked.feedId };
+    const dup = await addTracker(pool, group.id, name, feed, f.link);
     if (dup === 'name')
       return show(request, reply, group, {
         add: { ...add, nameError: 'This group already has a pilot with such name.' },

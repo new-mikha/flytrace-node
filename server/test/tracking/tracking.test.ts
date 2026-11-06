@@ -38,6 +38,7 @@ function fakeSource(type: SourceType, feedIntervalMs: number): TrackerSource {
     rules: { startGapMs: 2000, maxInFlight: 10, feedIntervalMs, callTimeoutMs: 20_000 },
     poll: vi.fn(() => Promise.resolve(DONE)),
     parseFeedId: () => ({ error: 'unused' }),
+    checkFeed: () => Promise.resolve({ error: 'unused' }),
   };
 }
 

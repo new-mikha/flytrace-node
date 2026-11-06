@@ -20,8 +20,7 @@
 
 // What a person types into "SPOT or inReach page" and what is stored for it (rules of the legacy
 // manageGroup page, docs/legacy-system.md §4.2). Each source knows its own ids; choosing between
-// them is done here. The legacy page also fetched the feed once to check it; here the id is only
-// checked for shape.
+// them is done here. This only looks at the shape: `checkFeed` of the source asks the service.
 import { inReach } from '../tracking/sources/inreach.ts';
 import { spot } from '../tracking/sources/spot.ts';
 
@@ -29,7 +28,7 @@ export interface ParsedTracker {
   type: 'S' | 'G';
   /**
    * SPOT: the shared page id (glId). inReach: `share.garmin.com/Feed/Share/<feed>#<imei>`, no
-   * scheme, always with the IMEI.
+   * scheme. The IMEI may still be missing here; it never is once the feed has been checked.
    */
   foreignId: string;
 }

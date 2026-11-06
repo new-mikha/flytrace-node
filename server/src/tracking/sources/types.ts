@@ -88,4 +88,13 @@ export interface TrackerSource {
     onLatest: (points: FeedPoint[]) => void,
   ): Promise<FeedResult>;
   parseFeedId(text: string): { feedId: string } | { error: string };
+  /** Asks the service about a feed new to us, once, when a tracker is added to a group. */
+  checkFeed(feedId: string, signal: AbortSignal): Promise<FeedCheck>;
 }
+
+/**
+ * `feedId` is what to store, which the service may have completed. `error` is for the person adding
+ * the tracker. `failure` is for the log: the service itself had a problem, which says nothing of
+ * the feed.
+ */
+export type FeedCheck = ({ feedId: string } | { error: string }) & { failure?: FeedError };

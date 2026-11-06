@@ -22,7 +22,14 @@
 import { XMLParser } from 'fast-xml-parser';
 import { TRACK_HOURS } from '../merge.ts';
 import { fetchFeed, findAll, noData, sourceError } from './http.ts';
-import type { FeedError, FeedPoint, FeedResult, HeldTrack, TrackerSource } from './types.ts';
+import type {
+  FeedCheck,
+  FeedError,
+  FeedPoint,
+  FeedResult,
+  HeldTrack,
+  TrackerSource,
+} from './types.ts';
 
 /** How far back `d1` goes: 48 h and two days more, for Garmin's way with times. */
 const WINDOW_DAYS = TRACK_HOURS / 24 + 2;
@@ -219,12 +226,75 @@ async function poll(
   return { points: fresh, error: null, requestCount: 2 };
 }
 
+/** The devices of a feed document with the time of the newest point of each, or why there are none. */
+function devicesOf(kml: string): Map<string, number> | FeedError {
+  let document: unknown;
+  try {
+    document = parser.parse(kml, true);
+  } catch (err) {
+    return sourceError((err as Error).message);
+  }
+  const devices = new Map<string, number>();
+  for (const placemark of findAll(document, 'Placemark') as Placemark[]) {
+    const imei = extendedData(placemark).get('IMEI');
+    const time = new Date(placemark.TimeStamp?.when ?? NaN).getTime();
+    if (imei && !Number.isNaN(time)) devices.set(imei, Math.max(time, devices.get(imei) ?? 0));
+  }
+  return devices;
+}
+
+const NOT_RECOGNIZED = `We cannot recognize the inReach link you supplied. First, double check what
+  you have entered: it should look similar to https://share.garmin.com/Feed/Share/your-feed-name.
+  Then, Garmin explains how to prepare a KML feed:
+  https://support.garmin.com/en-AU/?faq=tdlDCyo1fJ5UxjUbA9rMY8`;
+
+/**
+ * The plain feed holds the latest point of every device, so this also finds the IMEI, which most
+ * people leave out: with one device it is simply that one's. Unlike SPOT, a feed that cannot be
+ * read is refused, because the IMEI may be missing from what gets stored.
+ */
+async function checkFeed(feedId: string, signal: AbortSignal): Promise<FeedCheck> {
+  const [address = ''] = feedId.split('#');
+  const imei = imeiOf(feedId);
+  const target = feedUrl(address);
+  if ('error' in target) return { error: NOT_RECOGNIZED };
+
+  const answer = await fetchFeed(target.url, signal, 'inReach');
+  const devices = 'error' in answer ? answer.error : devicesOf(answer.text);
+  if (!(devices instanceof Map)) {
+    if (devices.kind === 'bad-feed-id') return { error: NOT_RECOGNIZED };
+    return {
+      error: 'We could not get an answer from Garmin to check this feed. Please try again.',
+      failure: devices,
+    };
+  }
+  if (devices.size === 0) return { error: NOT_RECOGNIZED };
+
+  if (devices.size === 1) {
+    const [only = ''] = devices.keys();
+    if (!imei || imei === only) return { feedId: `${address}#${only}` };
+    return {
+      error: `The link is correct, however the supplied IMEI does not match the one from the feed: ${only}.`,
+    };
+  }
+  if (devices.has(imei)) return { feedId };
+
+  const newestFirst = [...devices].sort((a, b) => b[1] - a[1]).map(([device]) => device);
+  const list = newestFirst.join(', ');
+  return {
+    error: imei
+      ? `The link is correct, however the supplied IMEI is not present in the feed. If you would like to go with this link, add one of the following after the # sign: ${list}.`
+      : `The link is correct, however there is more than one IMEI in the feed. Please add one of them after a # sign to the link: ${list}.`,
+  };
+}
+
 export const inReach: TrackerSource = {
   type: 'G',
   name: 'inReach',
   // A first fetch is two requests of 10 s at most, inside the 30 s:
   rules: { startGapMs: 2000, maxInFlight: 10, feedIntervalMs: 30_000, callTimeoutMs: 25_000 },
   poll,
+  checkFeed,
   parseFeedId(text) {
     const match = FEED_ID.exec(text);
     if (!match?.groups?.id)
@@ -233,12 +303,7 @@ export const inReach: TrackerSource = {
           'We cannot recognize that as a SPOT Shared Page link or ID, or as an inReach feed link.',
       };
 
-    if (!match.groups.imei)
-      return {
-        error: `An inReach feed needs the device's IMEI after a # sign, e.g.
-        ${match.groups.id}#300434031769290.`,
-      };
-
-    return { feedId: `share.garmin.com/Feed/Share/${match.groups.id}#${match.groups.imei}` };
+    // Without the IMEI for now: `checkFeed` finds it.
+    return { feedId: `share.garmin.com/Feed/Share/${match.groups.id}#${match.groups.imei ?? ''}` };
   },
 };

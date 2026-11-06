@@ -23,7 +23,14 @@
 import { XMLParser } from 'fast-xml-parser';
 import { mergeTrack, TRACK_HOURS } from '../merge.ts';
 import { badFeedId, fetchFeed, findAll, noData, sourceError } from './http.ts';
-import type { FeedError, FeedPoint, FeedResult, HeldTrack, TrackerSource } from './types.ts';
+import type {
+  FeedCheck,
+  FeedError,
+  FeedPoint,
+  FeedResult,
+  HeldTrack,
+  TrackerSource,
+} from './types.ts';
 
 const FEED_URL = 'https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed';
 const PAGE_SIZE = 50;
@@ -161,11 +168,25 @@ async function poll(
   }
 }
 
+/** Only a definite "no such feed" refuses it: SPOT being down or the feed being empty says nothing. */
+async function checkFeed(feedId: string, signal: AbortSignal): Promise<FeedCheck> {
+  const answer = await fetchFeed(pageUrl(feedId, 0), signal, 'SPOT');
+  const page = 'error' in answer ? answer.error : parseSpotPage(answer.text, feedId);
+  if (Array.isArray(page) || page.kind === 'no-data') return { feedId };
+  if (page.kind !== 'bad-feed-id') return { feedId, failure: page };
+  return {
+    error: `We cannot recognize the SPOT Shared Page ID you've passed. Our best guess for the Shared
+      Page was https://share.findmespot.com/shared/faces/viewspots.jsp?glId=${feedId}, but it didn't
+      work.`,
+  };
+}
+
 export const spot: TrackerSource = {
   type: 'S',
   name: 'SPOT',
   rules: { startGapMs: 2000, maxInFlight: 10, feedIntervalMs: 150_000, callTimeoutMs: 60_000 },
   poll,
+  checkFeed,
   parseFeedId(text) {
     const match = FEED_ID.exec(text);
     return match
