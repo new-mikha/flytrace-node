@@ -47,7 +47,7 @@ export interface FeedError {
   kind: FeedErrorKind;
   /** Shown on the map, so it never holds the feed id. */
   userMessage: string;
-  /** More about it for the log; no feed ids here either. */
+  /** More about it for the log, whose line names the tracker by its key. */
   detail?: string;
   status?: number;
   headers?: Record<string, string>;
@@ -60,7 +60,7 @@ export interface FeedResult {
   points: FeedPoint[];
   error: FeedError | null;
   requestCount: number;
-  /** The call went on, but the feed did something odd: for the log only. No feed ids here. */
+  /** The call went on, but the feed did something odd: for the log only. Each line gets the tracker's key there. */
   warnings?: string[];
 }
 
