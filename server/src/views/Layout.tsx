@@ -76,6 +76,10 @@ export function Layout({ title, user, path, card, scripts, children }: LayoutPro
             >
               {children}
             </main>
+            <footer class="ft-footer">
+              <a href="/privacy">Privacy policy</a>
+              <a href="https://github.com/new-mikha/flytrace-node">Source</a>
+            </footer>
             <div class="ft-shadow ft-shadow-bottom" aria-hidden="true">
               <div class="ft-shadow-strip"></div>
             </div>

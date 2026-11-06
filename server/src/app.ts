@@ -40,6 +40,7 @@ import { homeRoutes } from './routes/home.tsx';
 import { identityRoutes } from './routes/identity.tsx';
 import { mapRoutes } from './routes/map.tsx';
 import { pageRoutes } from './routes/pages.ts';
+import { privacyRoutes } from './routes/privacy.tsx';
 import { settingsRoutes } from './routes/settings.tsx';
 import { themeOf, themeRoutes } from './routes/theme.ts';
 import { Tracking } from './tracking/tracking.ts';
@@ -168,6 +169,7 @@ export async function buildApp(
   await waypointRoutes(app, pool);
   await mapRoutes(app, pool, config, tracking);
   await homeRoutes(app, pool);
+  await privacyRoutes(app);
   await pageRoutes(app);
 
   app.addHook('onClose', async () => {
