@@ -345,6 +345,22 @@ describe('what a call hands over', () => {
     expect(a.track?.map((p) => p.id)).toEqual(['1']);
   });
 
+  it('notes the end of a call, whatever came of it', async () => {
+    const { poll, pipeline } = setUp();
+    const call = deferred<FeedResult>();
+    poll.mockImplementationOnce(() => call.promise);
+    const a = tracker('a');
+    pipeline.add([a]);
+
+    await pass(2000);
+    expect(a.refreshedAt).toBeNull();
+
+    await pass(5000);
+    call.resolve({ ...DONE, error: { kind: 'timeout', userMessage: 'No answer' } });
+    await pass(0);
+    expect(a.refreshedAt).toBe(NOW + 7000);
+  });
+
   it('stores the error of a call in the tracker', async () => {
     const { poll, pipeline } = setUp();
     const error = { kind: 'timeout', userMessage: 'No answer' } as const;

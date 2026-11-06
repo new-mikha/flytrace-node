@@ -109,6 +109,7 @@ export class Pipeline {
         tracker.applyLatest(points),
       );
       tracker.applyResult(result);
+      tracker.refreshedAt = Date.now();
       // The status and all the headers go to the log: neither service documents its limits, so the
       // first real refusal has to be captured whole.
       const took = `${result.requestCount} request(s), ${Date.now() - startedAt} ms`;

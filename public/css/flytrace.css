@@ -333,6 +333,9 @@ a.disabled { pointer-events: none; opacity: 0.65; }
 [data-bs-theme="dark"] .ft-sort-bar { background: #111827; }
 .ft-sort-bar select { min-width: 0; }
 
+/* A cell whose lines stay whole while the table is a table (xl and up); on cards they wrap as they must. */
+@media (min-width: 1200px) { .ft-nowrap-xl { white-space: nowrap; } }
+
 /* Cards: below xl (1200 px: phones, tablets, anything where the table would need to scroll sideways) each row of a `.ft-cards` table becomes a card that fits the screen width, so nothing
    scrolls sideways. From top to bottom: the name and the line under it (`.ft-card-full`, no labels), the figures in three equal
    columns with their label above (`.ft-card-stat`), the `data-label`led full-width line (`.ft-card-task`, `.ft-card-hide` leaves it
@@ -385,6 +388,7 @@ a.disabled { pointer-events: none; opacity: 0.65; }
   .ft-cards tr { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 1.75rem; }
   .ft-cards .ft-card-full { flex: 1 1 calc(100% - 13.75rem); } /* the name (12rem) and the time fill the first line exactly */
   .ft-cards .ft-name-cell { flex: 0 0 12rem; } /* same width on every card, so the columns line up (a long name wraps) */
+  .ft-cards .ft-name-wide { flex: 1 1 100%; } /* a long name (a feed id) takes the whole first line */
   .ft-cards .ft-card-stat { flex: 0 0 auto; }
   .ft-cards td.ft-card-stat[data-label]::before { display: inline; content: attr(data-label) ": "; } /* "Pilots: 3" on one line */
   .ft-cards .ft-card-link { order: 3; margin: 0 0 0 auto; }

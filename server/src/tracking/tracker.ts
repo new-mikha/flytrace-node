@@ -46,6 +46,13 @@ export class Tracker {
   /** Newest first; null until a whole first fetch is done, so the client never gets half of it. */
   track: FeedPoint[] | null = null;
 
+  /** For the admin's list only (times in ms): nothing decides by them. */
+  readonly createdAt = Date.now();
+  /** The last request for this feed from a map. */
+  accessedAt = Date.now();
+  /** The end of the last call, whatever came of it. */
+  refreshedAt: number | null = null;
+
   private removeTimer: NodeJS.Timeout | undefined;
 
   constructor(
@@ -57,6 +64,7 @@ export class Tracker {
 
   /** Every request for this feed puts its end off: nobody watching means no more polling. */
   resetRemovingTimer(): void {
+    this.accessedAt = Date.now();
     clearTimeout(this.removeTimer);
     this.removeTimer = setTimeout(() => {
       this.removed = true;

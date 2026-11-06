@@ -191,6 +191,26 @@ describe('the lifetime of a tracker', () => {
     expect(pollsOf('G').mock.calls.length).toBe(polls);
   });
 
+  it('lists the trackers held, and no longer the ones that ended', async () => {
+    const { tracking } = await started();
+    expect(tracking.list()).toEqual([]);
+
+    const [a] = tracking.access([garmin('a')]);
+    await pass(10 * MINUTE);
+    const [b] = tracking.access([spot('b')]);
+    expect(tracking.list()).toEqual([a, b]);
+
+    await pass(10 * MINUTE); // a was last asked for 20 minutes ago, b 10
+    expect(tracking.list()).toEqual([b]);
+  });
+
+  it('keeps no throwaway tracker of the time before start in the list', () => {
+    const { pool } = stubPool();
+    tracking = new Tracking(pool, fakeLog().log);
+    tracking.access([spot('a')]);
+    expect(tracking.list()).toEqual([]);
+  });
+
   it('starts again from "wait" when somebody asks later', async () => {
     const { tracking } = await started();
     const [first] = tracking.access([garmin('a')]);

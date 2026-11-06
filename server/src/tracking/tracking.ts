@@ -111,6 +111,14 @@ export class Tracking {
   }
 
   /**
+   * Every tracker held now, for the admin's list. Nothing else goes through the whole map: each
+   * tracker is driven by its own timers.
+   */
+  list(): Tracker[] {
+    return [...this.trackers.values()];
+  }
+
+  /**
    * Notes that a call of this feed is starting. The call does not wait for the database, and a
    * failed write costs little: at worst one early hit on the feed after a restart.
    */

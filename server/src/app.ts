@@ -158,14 +158,14 @@ export async function buildApp(
   app.decorate('mail', mail);
   await identityRoutes(app, pool, config, mail);
   await accountRoutes(app, pool, config, mail);
-  await adminRoutes(app, pool, mail);
+  const tracking = new Tracking(pool, app.log);
+  app.decorate('tracking', tracking);
+  await adminRoutes(app, pool, mail, tracking);
   await settingsRoutes(app, pool);
   await themeRoutes(app);
   await groupRoutes(app, pool);
   await eventRoutes(app, pool);
   await waypointRoutes(app, pool);
-  const tracking = new Tracking(pool, app.log);
-  app.decorate('tracking', tracking);
   await mapRoutes(app, pool, config, tracking);
   await homeRoutes(app, pool);
   await pageRoutes(app);

@@ -51,6 +51,16 @@ describe('the lifetime of a Tracker', () => {
     expect(onRemove).toHaveBeenCalledOnce();
   });
 
+  it('notes when it was made and when it was last asked for', () => {
+    vi.setSystemTime(T);
+    const tracker = new Tracker('S:a', 'a', () => {});
+    expect([tracker.createdAt, tracker.accessedAt]).toEqual([T, T]);
+
+    vi.setSystemTime(T + 5 * MINUTE);
+    tracker.resetRemovingTimer();
+    expect([tracker.createdAt, tracker.accessedAt]).toEqual([T, T + 5 * MINUTE]);
+  });
+
   it('does not keep the process alive', () => {
     const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
     new Tracker('S:a', 'a', () => {}).resetRemovingTimer();

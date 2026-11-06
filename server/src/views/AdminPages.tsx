@@ -269,6 +269,9 @@ export function AdminUsersPage({
           <i class="fa-solid fa-users ft-heading-icon" aria-hidden="true"></i> Users
         </h5>
         <Alert flash={flash} />
+        <p class="mb-2">
+          <a href="/admin/trackers">Trackers in memory</a>
+        </p>
         <form method="get" action="/admin" class="ft-search" role="search">
           {!isDefaultSort(sort) && (
             <>

@@ -42,7 +42,10 @@ import {
   setLocked,
   USERS_PAGE_SIZE,
 } from '../repo/adminUsers.ts';
+import { trackerRows } from '../repo/adminTrackers.ts';
+import type { Tracking } from '../tracking/tracking.ts';
 import { AdminUsersPage } from '../views/AdminPages.tsx';
+import { AdminTrackersPage } from '../views/AdminTrackerPages.tsx';
 import {
   type AdminErrors,
   AdminUserIndexPage,
@@ -60,6 +63,7 @@ export async function adminRoutes(
   app: FastifyInstance,
   pool: Pool,
   mail: MailService,
+  tracking: Tracking,
 ): Promise<void> {
   const guard = { preHandler: requireRole('Admins') };
   const common = (request: FastifyRequest) => ({
@@ -70,6 +74,19 @@ export async function adminRoutes(
   const recipientOf = (t: ManagedUser) =>
     t.email ? { id: t.id, username: t.username, email: t.email } : null;
   const about = (t: ManagedUser) => ({ target: t.username, targetId: t.id });
+
+  // What the polling holds right now (legacy `currentTrackers.aspx`):
+  app.get('/admin/trackers', guard, (request, reply) =>
+    sendHtml(
+      reply,
+      <AdminTrackersPage
+        user={request.user!}
+        path="/admin/trackers"
+        trackers={trackerRows(tracking.list())}
+        now={new Date()}
+      />,
+    ),
+  );
 
   app.get<{ Querystring: { q?: string; page?: string; sort?: string; dir?: string } }>(
     '/admin',
