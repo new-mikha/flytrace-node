@@ -36,7 +36,7 @@ export class Pipeline {
   constructor(
     private readonly source: TrackerSource,
     private readonly log: FastifyBaseLogger,
-    private readonly shutdown: AbortSignal,
+    private readonly shutdownSignal: AbortSignal,
     /** Called as a call starts, with the time to remember for the feed. */
     private readonly onCallStart: (tracker: Tracker, now: number) => void,
   ) {
@@ -100,7 +100,10 @@ export class Pipeline {
     this.after(rules.feedIntervalMs, () => this.onIntervalOver(tracker));
 
     // Covers the whole call, all its requests; each request has a shorter limit of its own:
-    const signal = AbortSignal.any([AbortSignal.timeout(rules.callTimeoutMs), this.shutdown]);
+    const signal: AbortSignal = AbortSignal.any([
+      AbortSignal.timeout(rules.callTimeoutMs),
+      this.shutdownSignal,
+    ]);
     try {
       const result = await this.source.poll(tracker.feedId, tracker.track, signal, (points) =>
         tracker.applyLatest(points),
@@ -124,7 +127,7 @@ export class Pipeline {
       }
     } catch (err) {
       // A shutdown ends the calls; anything else here is a bug of ours, and the feed goes on:
-      if (!this.shutdown.aborted) this.onThrow(err, tracker);
+      if (!this.shutdownSignal.aborted) this.onThrow(err, tracker);
     } finally {
       this.inFlight--;
       tracker.inFlight = false;
