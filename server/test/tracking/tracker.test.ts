@@ -51,6 +51,13 @@ describe('the lifetime of a Tracker', () => {
     expect(onRemove).toHaveBeenCalledOnce();
   });
 
+  it('does not keep the process alive', () => {
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    new Tracker('S:a', 'a', () => {}).resetRemovingTimer();
+    expect((setTimeoutSpy.mock.results[0]!.value as NodeJS.Timeout).hasRef()).toBe(false);
+    setTimeoutSpy.mockRestore();
+  });
+
   it('is put off by every access', () => {
     const tracker = new Tracker('S:a', 'a', () => {});
     tracker.resetRemovingTimer();
@@ -90,6 +97,15 @@ describe('Tracker.applyLatest', () => {
   it('keeps what it has when there are no points', () => {
     const tracker = new Tracker('S:a', 'a', () => {});
     tracker.applyResult({ points: [point('1', T)], error: null, requestCount: 1 });
+    tracker.applyLatest([]);
+    expect(tracker.latest?.id).toBe('1');
+  });
+});
+
+describe('Tracker.applyLatest with no track', () => {
+  it('keeps the position it got when there are no points', () => {
+    const tracker = new Tracker('S:a', 'a', () => {});
+    tracker.applyLatest([point('1', T)]);
     tracker.applyLatest([]);
     expect(tracker.latest?.id).toBe('1');
   });

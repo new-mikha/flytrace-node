@@ -469,6 +469,14 @@ describe('the log', () => {
   });
 });
 
+describe('the loop', () => {
+  it('does not keep the process alive', () => {
+    const setIntervalSpy = vi.spyOn(globalThis, 'setInterval');
+    setUp();
+    expect((setIntervalSpy.mock.results[0]!.value as NodeJS.Timeout).hasRef()).toBe(false);
+  });
+});
+
 describe('stop', () => {
   it('starts no more calls', async () => {
     const { poll, pipeline } = setUp();

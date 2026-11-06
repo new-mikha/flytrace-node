@@ -296,7 +296,10 @@ describe('stop', () => {
     const { tracking } = await started();
     tracking.stop();
 
-    tracking.access([garmin('new')]);
+    const [first] = tracking.access([garmin('new')]);
+    const [second] = tracking.access([garmin('new')]);
+    expect(first).not.toBe(second);
+
     await pass(MINUTE);
     expect(pollsOf('G')).not.toHaveBeenCalled();
   });

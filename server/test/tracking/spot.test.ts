@@ -109,10 +109,38 @@ describe('parseSpotPage', () => {
     expect(p!.userMessage).toBe('hi');
   });
 
-  it('reports no messages as no data', () => {
-    expect(parseSpotPage(spotError('No Messages to display'), FEED)).toMatchObject({
-      kind: 'no-data',
+  it.each([
+    ['latitude', /<latitude>.*?<\/latitude>/],
+    ['longitude', /<longitude>.*?<\/longitude>/],
+    ['type', /<messageType>.*?<\/messageType>/],
+    ['time', /<dateTime>.*?<\/dateTime>/],
+  ])('skips a message without a %s', (_, tag) => {
+    expect(parseSpotPage(message(FIELDS.replace(tag, '')), FEED)).toMatchObject({
+      kind: 'source-error',
     });
+  });
+
+  it('skips a message with a time it cannot read', () => {
+    const fields = FIELDS.replace('2018-04-10T06:31:11+0000', 'nonsense');
+    expect(parseSpotPage(message(fields), FEED)).toMatchObject({ kind: 'source-error' });
+  });
+
+  it('puts the newest first, whatever the order of the page', () => {
+    const older = FIELDS.replace('06:31:11', '05:31:11');
+    const xml = message(`${older}</message><message>${FIELDS}`);
+    expect(parse(xml).map((p) => p.ts.getUTCHours())).toEqual([6, 5]);
+  });
+
+  it('leaves it to merge.ts what to keep', () => {
+    const old = FIELDS.replace('2018-04-10', '2018-04-01');
+    const xml = message(`${FIELDS}</message><message>${FIELDS}</message><message>${old}`);
+    expect(parse(xml)).toHaveLength(3);
+  });
+
+  it('reports no messages as no data, with nothing to add', () => {
+    const answer = parseSpotPage(spotError('No Messages to display'), FEED);
+    expect(answer).toMatchObject({ kind: 'no-data' });
+    expect(answer).not.toHaveProperty('detail');
   });
 
   it.each(['Feed Not Found', 'Feed Currently Not Active', 'Feed Password required'])(
@@ -193,6 +221,15 @@ describe('spot.poll on a first fetch', () => {
 
     expect(urls).toHaveLength(1);
     expect(result.points).toHaveLength(24);
+  });
+
+  it('stops at exactly 48 h', async () => {
+    const page2 = new Date(Date.parse(NEWEST) - 48 * HOUR + 49 * 60_000).toISOString();
+    const { urls } = stubFetch(
+      (_, call) => new Response(spotPage(50, call === 0 ? NEWEST : page2, 1)),
+    );
+    await poll();
+    expect(urls).toHaveLength(2);
   });
 
   it('stops once the pages span 48 h', async () => {
@@ -294,6 +331,12 @@ describe('spot.parseFeedId', () => {
     expect(
       spot.parseFeedId(`https://share.findmespot.com/shared/faces/viewspots.jsp?glId=${ID}`),
     ).toEqual({ feedId: ID });
+  });
+
+  it('takes ids of 20 to 50 characters', () => {
+    expect(spot.parseFeedId('x'.repeat(20))).toHaveProperty('feedId');
+    expect(spot.parseFeedId('x'.repeat(50))).toHaveProperty('feedId');
+    expect(spot.parseFeedId('x'.repeat(19))).toHaveProperty('error');
   });
 
   it('refuses what is too short, too long or not an id', () => {

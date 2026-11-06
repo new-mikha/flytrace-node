@@ -101,7 +101,13 @@ describe('fetchFeed', () => {
     expect(await get()).toMatchObject({ error: { retryAfterMs: 0 } });
   });
 
-  it('ignores a Retry-After it cannot read, and a missing one', async () => {
+  it('has no wait when there is no Retry-After', async () => {
+    stubFetch(() => new Response('', { status: 503 }));
+    const answer = await get();
+    expect('error' in answer && answer.error.retryAfterMs).toBeUndefined();
+  });
+
+  it('ignores a Retry-After it cannot read', async () => {
     const headers = { 'retry-after': 'soon' };
     stubFetch(() => new Response('', { status: 503, headers }));
     const answer = await get();

@@ -300,7 +300,7 @@ wait on feeds.
   the abstraction holds: no `if (type === 'S')` anywhere outside `sources/`.** The pipeline sees only `rules`, `poll`
   and `FeedResult`; anything else that needs to branch on source means the interface is missing a member.
 - **Tests** (`server/test/tracking/`, shared bits in `helpers.ts`): vitest fake timers drive the pipelines, so the 20 minutes take no time; `fetch` is stubbed (`vi.stubGlobal`) and sources are swapped in the registry, so there is no real
-  network. `AbortSignal.timeout` is not faked by vitest: spy on it and return a controller's signal.
+  network. `tracking-db.test.ts` runs the `feed_polls` SQL on the dev database, the one place the pool is real. `AbortSignal.timeout` is not faked by vitest: spy on it and return a controller's signal.
 - **Not built**: updating `groups.newest_coord_ts` / `newest_lat` / `newest_lon` from the answers (legacy
   `UpdateStatFields`, which the public maps on the home page sort by), and the live check of a new tracker's feed.
 - **The parser fixtures come from legacy** (`server/test/fixtures/feeds/`: `LocationLib.Test/BasicRequest.xml`,

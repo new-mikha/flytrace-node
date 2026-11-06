@@ -138,6 +138,16 @@ describe('parseInReachFeed', () => {
     expect(parseInReachFeed(kml, '')).toMatchObject({ kind: 'no-data' });
   });
 
+  it.each(['x,1,300', '2,y,300', '2'])('skips the coordinates "%s"', (coordinates) => {
+    const kml = inReachFeed([{ time: '2026-01-10T12:00:00Z' }]).replace('2,1,300', coordinates);
+    expect(parseInReachFeed(kml, '')).toMatchObject({ kind: 'no-data' });
+  });
+
+  it('keeps an Id as text', () => {
+    const kml = inReachFeed([{ id: '0012', time: '2026-01-10T12:00:00Z' }]);
+    expect((parseInReachFeed(kml, '') as FeedPoint[])[0]!.id).toBe('0012');
+  });
+
   it('reports broken XML', () => {
     expect(parseInReachFeed('<kml><oops></kml>', '')).toMatchObject({ kind: 'source-error' });
   });
@@ -216,6 +226,28 @@ describe('inReach.poll on a first fetch', () => {
     expect(result.points).toHaveLength(2);
   });
 
+  it('counts exactly 48 h as reaching back', async () => {
+    const feed = inReachFeed([
+      { id: '1', time: '2026-01-08T12:00:00Z' },
+      { id: '2', time: NEWEST },
+    ]);
+    const { urls } = stubFetch(() => new Response(feed));
+    await inReach.poll(FEED, null, open(), () => {});
+    expect(urls).toHaveLength(1);
+  });
+
+  it('picks the device of the feed id out of a feed with several', async () => {
+    const feed = inReachFeed([
+      { id: 'other', time: '2026-01-10T11:00:00Z', imei: '456' },
+      { id: 'ours', time: NEWEST, imei: '123' },
+    ]);
+    stubFetch(() => new Response(feed));
+    const result = await inReach.poll(FEED, null, open(), () => {});
+
+    expect(result.error).toBeNull();
+    expect(result.points.map((p) => p.id)).toEqual(['ours']);
+  });
+
   it('still asks for the window when the first gives points close together', async () => {
     const feed = inReachFeed([
       { id: '1', time: '2026-01-09T12:00:01Z' },
@@ -268,7 +300,7 @@ describe('inReach.poll with a track held', () => {
     const result = await inReach.poll(FEED, held, open(), () => {});
 
     expect(urls).toHaveLength(1);
-    expect(result.error).toBeNull();
+    expect(result).toMatchObject({ error: null, requestCount: 1 });
     expect(result.warnings).toEqual([]);
     expect(result.points.map((p) => p.id)).toEqual(['5', '4', '3', '2', '1']);
   });

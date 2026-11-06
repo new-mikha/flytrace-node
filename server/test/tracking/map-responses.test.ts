@@ -138,6 +138,11 @@ describe('coordinates', () => {
       expect(firstOf(view({ startTs }), holding([point('1', ago(200))])).hidden).toBe(true);
     });
 
+    it('shows a current point of that very time', () => {
+      const item = firstOf(view({ startTs }), holding([point('1', ago(100))]));
+      expect(item).not.toHaveProperty('hidden');
+    });
+
     it('shows a newer one', () => {
       const item = firstOf(view({ startTs }), holding([point('1', ago(50))]));
       expect(item).not.toHaveProperty('hidden');

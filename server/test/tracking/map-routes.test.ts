@@ -23,7 +23,7 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../../src/app.ts';
-import { loadConfig } from '../../src/config.ts';
+import { loadConfig, type Config } from '../../src/config.ts';
 import { createPool, type Pool } from '../../src/db.ts';
 
 const USER = `__test_map_${Math.random().toString(36).slice(2, 8)}`;
@@ -74,10 +74,41 @@ describe('GET /map/:id', () => {
     expect(res.body).toContain('Map test');
   });
 
-  it.each([String(NO_GROUP), 'abc', '0', '99999999999'])('goes home for %s', async (id) => {
-    const res = await app.inject({ url: `/map/${id}` });
-    expect(res.statusCode).toBe(302);
-    expect(res.headers.location).toBe('/');
+  // The last two pass as digits, but are past what the column holds:
+  it.each([String(NO_GROUP), 'abc', '0', '99999999999', '9999999999', '2147483648'])(
+    'goes home for %s',
+    async (id) => {
+      const res = await app.inject({ url: `/map/${id}` });
+      expect(res.statusCode).toBe(302);
+      expect(res.headers.location).toBe('/');
+    },
+  );
+
+  describe('the Map ID', () => {
+    const pageWith = async (more: Partial<Config>) => {
+      const config = loadConfig();
+      // Its own pool: closing an app ends the pool it was given.
+      const other = await buildApp({ ...config, ...more }, createPool(config.DATABASE_URL));
+      const res = await other.inject({ url: `/map/${group}` });
+      await other.close();
+      return res.body;
+    };
+
+    it("falls back on Google's demo id outside production", async () => {
+      const body = await pageWith({ GOOGLE_MAPS_MAP_ID: undefined, NODE_ENV: 'development' });
+      expect(body).toContain('DEMO_MAP_ID');
+    });
+
+    it('never does in production', async () => {
+      const body = await pageWith({ GOOGLE_MAPS_MAP_ID: undefined, NODE_ENV: 'production' });
+      expect(body).not.toContain('DEMO_MAP_ID');
+    });
+
+    it('is the configured one when there is one', async () => {
+      const body = await pageWith({ GOOGLE_MAPS_MAP_ID: 'test-map-id', NODE_ENV: 'development' });
+      expect(body).toContain('test-map-id');
+      expect(body).not.toContain('DEMO_MAP_ID');
+    });
   });
 });
 
@@ -96,10 +127,13 @@ describe('GET /map/:id/coordinates', () => {
     });
   });
 
-  it.each([String(NO_GROUP), 'abc'])('refuses the group %s', async (id) => {
-    const res = await app.inject({ url: `/map/${id}/coordinates` });
-    expect(res.statusCode).toBe(404);
-  });
+  it.each([String(NO_GROUP), 'abc', '9999999999', '2147483648'])(
+    'refuses the group %s',
+    async (id) => {
+      const res = await app.inject({ url: `/map/${id}/coordinates` });
+      expect(res.statusCode).toBe(404);
+    },
+  );
 });
 
 describe('POST /map/:id/tracks', () => {
