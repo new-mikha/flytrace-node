@@ -69,6 +69,11 @@ export interface MapView {
   trackers: MapViewTracker[];
 }
 
+/** One more opening of the group's map: the "Views" on the home page. */
+export async function recordMapView(pool: Pool, id: number): Promise<void> {
+  await pool.query('UPDATE groups SET views_num = views_num + 1 WHERE id = $1', [id]);
+}
+
 export interface NewestPosition {
   ts: Date;
   lat: number;

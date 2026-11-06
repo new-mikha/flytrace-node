@@ -225,6 +225,38 @@ describe('GET /map/:id/coordinates', () => {
   );
 });
 
+describe('the views of a group', () => {
+  const views = async () => {
+    const { rows } = await pool.query<{ views_num: number }>(
+      'SELECT views_num FROM groups WHERE id = $1',
+      [group],
+    );
+    return rows[0]!.views_num;
+  };
+
+  it('go up by one each time the map is opened', async () => {
+    const before = await views();
+    await app.inject({ url: `/map/${group}` });
+    await vi.waitFor(async () => expect(await views()).toBe(before + 1));
+
+    await app.inject({ url: `/map/${group}` });
+    await vi.waitFor(async () => expect(await views()).toBe(before + 2));
+  });
+
+  it('are not touched by what the open map asks for', async () => {
+    const opened = await views();
+    await app.inject({ url: `/map/${group}` });
+    await vi.waitFor(async () => expect(await views()).toBe(opened + 1));
+    const before = opened + 1;
+
+    await app.inject({ url: `/map/${group}/coordinates` });
+    await postTracks(group, { items: [{ trackerName: 'Anna' }] });
+    // The coordinates note their own statistics, on the same row: once that is in, so would this be.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(await views()).toBe(before);
+  });
+});
+
 describe('the statistics of a group', () => {
   const stats = async () => {
     const { rows } = await pool.query<{

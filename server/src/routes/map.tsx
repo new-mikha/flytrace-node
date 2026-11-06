@@ -21,7 +21,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { Config } from '../config.ts';
 import type { Pool } from '../db.ts';
-import { getMapGroup, getMapView, recordMapUpdate } from '../repo/mapGroups.ts';
+import { getMapGroup, getMapView, recordMapUpdate, recordMapView } from '../repo/mapGroups.ts';
 import { coordinates, tracks, newestPosition } from '../tracking/mapResponses.ts';
 import type { Tracking } from '../tracking/tracking.ts';
 import type { TrackRequest } from '../tracking/wire.ts';
@@ -55,6 +55,10 @@ export async function mapRoutes(
     const group = await getMapGroup(pool, idOf(request.params.id));
     if (!group) return reply.redirect('/', 302);
 
+    // Nobody waits for this either:
+    recordMapView(pool, group.id).catch((err: unknown) =>
+      request.log.warn(err, 'Could not count a view of a map'),
+    );
     return sendHtml(
       reply,
       <MapPage
