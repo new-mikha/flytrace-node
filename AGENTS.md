@@ -124,6 +124,7 @@ simulated client its own `remoteAddress`.
 
 ## Decisions (do not re-propose)
 
+- **Accounts are never removed for being inactive** (7 Nov 2026), whatever their age: they own the groups and the map links, and people come back after years. The privacy policy says so, and names the controller as "its owners" in Australia, on purpose.
 - **No help pages or descriptions** (6 Nov 2026): the legacy help (`help/commonhelp.aspx`, `usermessageshelp.aspx`, `eventshelp.htm`, `spotidhelp.htm`) is not ported, neither as pages nor as help inside the forms or on the map.
 - The authenticator (TOTP) secret stays stored unencrypted in `users.two_factor_secret`.
 - No JSON login API, no "Remember me", no stored procedures or triggers.
