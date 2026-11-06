@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<response>
+  <feedMessageResponse>
+    <messages>
+      
+      <!-- This is an empty one at the beginning -->
+      <message clientUnixTime="0">
+        <latitude>25</latitude>
+        <id>wrong data</id>
+      </message>
+      
+      <!-- This one is from the real SPOT feed: -->
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523341871</unixTime>
+        <messageType>OK</messageType>
+        <latitude>1</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T06:31:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <messageContent>Need beer and retrieve</messageContent>
+        <altitude>0</altitude>
+      </message>
+      <!-- Others have different order and contents of the messages: -->
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523341271</unixTime>
+        <messageType>OK</messageType>
+        <latitude>1</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T06:21:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <messageContent>Need beer and retrieve</messageContent>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523340671</unixTime>
+        <messageType>OK</messageType>
+        <messageContent>Need beer and retrieve</messageContent>
+        <latitude>1</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T06:11:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <altitude>0</altitude>
+      </message>
+      <message clientUnixTime="0">
+        <longitude>20</longitude>
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523340071</unixTime>
+        <messageType>OK</messageType>
+        <messageContent>Need beer and retrieve</messageContent>
+        <latitude>1</latitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T06:01:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <altitude>0</altitude>
+      </message>
+      <message clientUnixTime="0">
+        <latitude>1</latitude>
+        <longitude>20</longitude>
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523339471</unixTime>
+        <messageType>OK</messageType>
+        <messageContent>Need beer and retrieve</messageContent>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T05:51:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+      </message>
+      <message clientUnixTime="0">
+        <messageContent>Need beer and retrieve</messageContent>
+        <latitude>1</latitude>
+        <longitude>20</longitude>
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523338871</unixTime>
+        <messageType>OK</messageType>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T05:41:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <altitude>0</altitude>
+      </message>
+      <message clientUnixTime="0">
+        <latitude>1</latitude>
+        <longitude>20</longitude>
+        <unixTime>1523338271</unixTime>
+        <messageContent>Need beer and retrieve</messageContent>
+        <messageType>OK</messageType>
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T05:31:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <altitude>0</altitude>
+      </message>
+      <message clientUnixTime="0">
+        <unixTime>1523337671</unixTime>
+        <latitude>1</latitude>
+        <longitude>20</longitude>
+        <messageContent>Need beer and retrieve</messageContent>
+        <messageType>OK</messageType>
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T05:21:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <altitude>0</altitude>
+      </message>
+      <message clientUnixTime="0">
+        <latitude>2</latitude>
+        <longitude>20</longitude>
+        <unixTime>1523337071</unixTime>
+        <dateTime>2018-04-10T05:11:11+0000</dateTime>
+        <messageType>OK</messageType>
+      </message>
+      <message clientUnixTime="0">
+        <latitude>2</latitude>
+        <longitude>20</longitude>
+        <dateTime>2018-04-10T05:01:11+0000</dateTime>
+        <messageType>OK</messageType>
+      </message>
+      <!-- This is an empty one in the middle -->
+      <message clientUnixTime="0">
+        <id>wrong data</id>
+      </message>
+      <message clientUnixTime="0">
+        <latitude>2</latitude>
+        <longitude>20</longitude>
+        <unixTime>1523335871</unixTime>
+        <messageType>OK</messageType>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523335271</unixTime>
+        <messageType>TRACK</messageType>
+        <latitude>1</latitude>
+        <longitude>21</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T04:41:11+0000</dateTime>
+        <messageDetail></messageDetail>
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <messageContent>Need beer and retrieve</messageContent>
+        <altitude>0</altitude>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523334671</unixTime>
+        <messageType>TRACK</messageType>
+        <latitude>2</latitude>
+        <longitude>21</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T04:31:11+0000</dateTime>
+        <messageDetail></messageDetail>
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <messageContent>    </messageContent>
+        <altitude>0</altitude>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523334071</unixTime>
+        <messageType>TRACK</messageType>
+        <latitude>2</latitude>
+        <longitude>21</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T04:21:11+0000</dateTime>
+        <messageDetail></messageDetail>
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <messageContent></messageContent>
+        <altitude>0</altitude>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523333471</unixTime>
+        <messageType>TRACK</messageType>
+        <latitude>2</latitude>
+        <longitude>21</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T04:11:11+0000</dateTime>
+        <messageDetail></messageDetail>
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <altitude>0</altitude>
+        <messageContent></messageContent>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523332871</unixTime>
+        <messageType>TRACK</messageType>
+        <latitude>2</latitude>
+        <longitude>21</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T04:01:11+0000</dateTime>
+        <messageDetail></messageDetail>
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <altitude>0</altitude>
+        <messageContent></messageContent>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523332271</unixTime>
+        <messageType>OK</messageType>
+        <latitude>11</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T03:51:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <messageContent>Need beer and retrieve</messageContent>
+        <altitude>123</altitude>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523331671</unixTime>
+        <messageType>OK</messageType>
+        <latitude>11</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T03:41:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <altitude>123</altitude>
+        <messageContent>Need beer and retrieve</messageContent>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523331071</unixTime>
+        <messageType>OK</messageType>
+        <latitude>11</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T03:31:11+0000</dateTime>
+        <altitude>123</altitude>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+        <messageContent>Need beer and retrieve</messageContent>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523330471</unixTime>
+        <messageType>OK</messageType>
+        <latitude>11</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T03:21:11+0000</dateTime>
+        <messageContent>Need beer and retrieve</messageContent>
+        <altitude>123</altitude>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523329871</unixTime>
+        <messageType>OK</messageType>
+        <latitude>11</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T03:11:11+0000</dateTime>
+        <altitude>123</altitude>
+        <messageContent>Need beer and retrieve</messageContent>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523329271</unixTime>
+        <messageType>OK</messageType>
+        <latitude>11</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <dateTime>2018-04-10T03:01:11+0000</dateTime>
+        <messageContent>Need beer and retrieve</messageContent>
+        <altitude>123</altitude>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+      </message>
+      <message clientUnixTime="0">
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523328671</unixTime>
+        <messageType>OK</messageType>
+        <latitude>11</latitude>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <altitude>123</altitude>
+        <dateTime>2018-04-10T02:51:11+0000</dateTime>
+        <messageContent>Need beer and retrieve</messageContent>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+      </message>
+      <message clientUnixTime="0">
+        <messageContent>Need beer and retrieve</messageContent>
+        <latitude>11</latitude>
+        <id>111111111</id>
+        <messengerId>0-11111</messengerId>
+        <messengerName>Pilot</messengerName>
+        <unixTime>1523328071</unixTime>
+        <messageType>OK</messageType>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <showCustomMsg>N</showCustomMsg>
+        <altitude>123</altitude>
+        <dateTime>2018-04-10T02:41:11+0000</dateTime>
+        <messageDetail />
+        <batteryState>GOOD</batteryState>
+        <hidden>0</hidden>
+      </message>
+      <message clientUnixTime="0">
+        <latitude>12</latitude>
+        <unixTime>1523327471</unixTime>
+        <messageType>OK</messageType>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+        <altitude>123</altitude>
+      </message>
+      
+      <!-- This is an empty one to ensure that altitude is reset -->
+      <message clientUnixTime="0">
+        <altitude>25</altitude>
+        <id>wrong data</id>
+      </message>
+
+      <!-- This is one does not have an altitude - it should be zero as result, not 25 from the previous wrong one -->
+      <message clientUnixTime="0">
+        <latitude>2</latitude>
+        <unixTime>1523327471</unixTime>
+        <messageType>OK</messageType>
+        <longitude>20</longitude>
+        <modelId>SPOT2</modelId>
+      </message>
+
+
+
+      <!-- And this is an empty one in at the end - should always be at the end -->
+      <message clientUnixTime="0">
+        <id>wrong data</id>
+      </message>
+    </messages>
+  </feedMessageResponse>
+</response>

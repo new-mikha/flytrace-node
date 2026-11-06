@@ -186,8 +186,7 @@ simulated client its own `remoteAddress`.
 
 ## Tracker sources and polling
 
-Agreed on 4 Nov 2026; the first cut is built (`server/src/tracking/`), with no tests yet (the owner wants to see it
-working first). Change it by this design rather than inventing a new shape. The legacy mechanics are in `docs/legacy-coordinates-api.md` (§4 snapshots, §5 fetching
+Agreed on 4 Nov 2026; it is built (`server/src/tracking/`), with its tests in `server/test/tracking/`. Change it by this design rather than inventing a new shape. The legacy mechanics are in `docs/legacy-coordinates-api.md` (§4 snapshots, §5 fetching
 rules, §5.2 the deployed numbers, §5.3 one fetch in detail, §7.0 what we changed). **The timing rules are the legacy
 ones, kept on purpose** ("if it works, it works"; errors will show in the log).
 
@@ -300,16 +299,13 @@ wait on feeds.
   and `feed_polls.tracker_type` (legacy: `ForeignAccessCentral.LocationRequestFactories[type]`). **The test of whether
   the abstraction holds: no `if (type === 'S')` anywhere outside `sources/`.** The pipeline sees only `rules`, `poll`
   and `FeedResult`; anything else that needs to branch on source means the interface is missing a member.
-- **Tests (not written yet)**: vitest fake timers drive the pipelines; sources are swapped in the registry (no real
-  network in tests).
+- **Tests** (`server/test/tracking/`, shared bits in `helpers.ts`): vitest fake timers drive the pipelines, so the 20 minutes take no time; `fetch` is stubbed (`vi.stubGlobal`) and sources are swapped in the registry, so there is no real
+  network. `AbortSignal.timeout` is not faked by vitest: spy on it and return a controller's signal.
 - **Not built**: updating `groups.newest_coord_ts` / `newest_lat` / `newest_lon` from the answers (legacy
   `UpdateStatFields`, which the public maps on the home page sort by), and the live check of a new tracker's feed.
-- **Port the parser fixtures from legacy rather than inventing them**: `LocationLib.Test/BasicRequest.xml`,
-  `Combinations.xml` and `InReach/*.kml` (nine files, covering long and short feeds, two points at the same time, and
-  multi-IMEI feeds) with `SpotFeedRequestTests.cs`, `InReachFeedRequestTests.cs`, `InReachLocationRequestTests.cs`.
-  These are the only feed-level samples that exist — `legacy-xml-samples/` holds responses from *our* endpoints, not
-  from theirs. Anonymise the IMEIs and feed ids before copying them in, as was done for the tracker names in
-  `legacy-xml-samples-anon/`, and keep positions and timestamps real so the tests stay meaningful.
+- **The parser fixtures come from legacy** (`server/test/fixtures/feeds/`: `LocationLib.Test/BasicRequest.xml`,
+  `Combinations.xml` and `InReach/*.kml`), the only feed-level samples that exist: `legacy-xml-samples/` holds responses from *our* endpoints, not
+  from theirs. They are slimmed and anonymised, with positions and timestamps real so the tests stay meaningful. Do the same to any new one.
 
 ## Planned (not started)
 

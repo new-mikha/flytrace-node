@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><Folder>
+<Placemark><TimeStamp><when>2019-06-02T02:41:45Z</when></TimeStamp><ExtendedData><Data name="Id"><value>987654321</value></Data><Data name="IMEI"><value>987654321</value></Data><Data name="In Emergency"><value>False</value></Data></ExtendedData><Point><coordinates>145.0438,-37.821068,53.12</coordinates></Point></Placemark>
+<Placemark><name>Pilot</name><LineString /></Placemark>
+</Folder></Document></kml>

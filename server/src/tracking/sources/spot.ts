@@ -94,7 +94,7 @@ function errorOf(text: string, feedId: string): FeedError {
   return { ...noData(), detail: text.replaceAll(feedId, '<feed>') };
 }
 
-/** One page of the feed: its points newest first, within 48 h of the newest, or why there are none. */
+/** One page of the feed: all its points newest first, or why there are none. `merge.ts` decides what is kept. */
 export function parseSpotPage(xml: string, feedId: string): FeedPoint[] | FeedError {
   let document: unknown;
   try {
@@ -107,11 +107,10 @@ export function parseSpotPage(xml: string, feedId: string): FeedPoint[] | FeedEr
   if (error) return errorOf(String(error.text ?? ''), feedId);
 
   const messages = findAll(document, 'message') as Message[];
-  // Merging into nothing just sorts, drops repeated times and trims:
-  const points = mergeTrack(
-    [],
-    messages.map(pointOf).filter((point) => point !== null),
-  );
+  const points = messages
+    .map(pointOf)
+    .filter((point) => point !== null)
+    .sort((a, b) => b.ts.getTime() - a.ts.getTime());
   if (points.length > 0) return points;
   // Messages but no usable point: their format must have changed.
   return messages.length > 0
@@ -122,9 +121,6 @@ export function parseSpotPage(xml: string, feedId: string): FeedPoint[] | FeedEr
 /** `start` counts messages from 1: the second page is `?start=51`. */
 const pageUrl = (feedId: string, page: number) =>
   `${FEED_URL}/${feedId}/message.xml${page === 0 ? '' : `?start=${page * PAGE_SIZE + 1}`}`;
-
-const spanHours = (points: FeedPoint[]) =>
-  (points[0]!.ts.getTime() - points.at(-1)!.ts.getTime()) / 3600_000;
 
 /**
  * A feed's first fetch reads back through the pages, one right after the other, as long as they come
@@ -151,12 +147,15 @@ async function poll(
     }
     points = mergeTrack(points, fresh);
     // The marker need not wait for the rest of the chain:
-    if (page === 0) onLatest(fresh);
+    if (page === 0) onLatest(points);
+
+    // Measured to the page, not to `points`: those are trimmed, so they never span the 48 h.
+    const spanMs = points[0]!.ts.getTime() - fresh.at(-1)!.ts.getTime();
 
     const isLast =
       held !== null ||
       fresh.length < PAGE_SIZE ||
-      spanHours(points) >= TRACK_HOURS ||
+      spanMs >= TRACK_HOURS * 3600_000 ||
       requestCount >= MAX_PAGES;
     if (isLast) return { points, error: null, requestCount };
   }
