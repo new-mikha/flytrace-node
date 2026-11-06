@@ -22,7 +22,6 @@
 // confirm email, forgot / reset password. The logged-in "My account" pages are in account.tsx.
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { audit, maskEmail } from '../audit.ts';
-import { captchaRefusal, captchaSiteKey, passesCaptcha } from '../auth/captcha.ts';
 import {
   changeEmail,
   confirmEmail,
@@ -104,7 +103,6 @@ export async function identityRoutes(
     user: request.user,
     path: request.url.split('?')[0]!,
     flash: takeFlash(request),
-    captchaKey: captchaSiteKey(config),
   });
 
   /** Logs the user in: a fresh session id (against session fixation), then the stored user id. */
@@ -279,7 +277,7 @@ export async function identityRoutes(
   );
 
   app.post('/register', { config: emailRateLimit }, async (request, reply) => {
-    const f = formFields(request, 'username', 'email', 'password', 'confirmPassword', 'captcha');
+    const f = formFields(request, 'username', 'email', 'password', 'confirmPassword');
     const username = f.username.trim();
     const email = f.email.trim();
     const errors: Record<string, string | undefined> = {
@@ -294,17 +292,6 @@ export async function identityRoutes(
         status,
       );
     if (Object.values(errors).some(Boolean)) return show(422);
-    if (!(await passesCaptcha(request, config, f.captcha, 'register')))
-      return sendHtml(
-        reply,
-        <RegisterPage
-          {...common(request)}
-          flash={{ kind: 'danger', text: captchaRefusal(config) }}
-          values={{ username, email }}
-          errors={errors}
-        />,
-        422,
-      );
 
     const result = await registerUser(pool, { username, email, password: f.password });
     if (!result.ok) {
@@ -415,17 +402,11 @@ export async function identityRoutes(
   );
 
   app.post('/resend-confirmation', { config: emailRateLimit }, async (request, reply) => {
-    const { login, captcha } = formFields(request, 'login', 'captcha');
+    const { login } = formFields(request, 'login');
     if (!login.trim())
       return sendHtml(
         reply,
         <ResendConfirmationPage {...common(request)} error="Enter your username or email." />,
-        422,
-      );
-    if (!(await passesCaptcha(request, config, captcha, 'resend_confirmation')))
-      return sendHtml(
-        reply,
-        <ResendConfirmationPage {...common(request)} error={captchaRefusal(config)} />,
         422,
       );
 
@@ -457,17 +438,11 @@ export async function identityRoutes(
   );
 
   app.post('/forgot-password', { config: emailRateLimit }, async (request, reply) => {
-    const { login, captcha } = formFields(request, 'login', 'captcha');
+    const { login } = formFields(request, 'login');
     if (!login.trim())
       return sendHtml(
         reply,
         <ForgotPasswordPage {...common(request)} error="Enter your username or email." />,
-        422,
-      );
-    if (!(await passesCaptcha(request, config, captcha, 'forgot_password')))
-      return sendHtml(
-        reply,
-        <ForgotPasswordPage {...common(request)} error={captchaRefusal(config)} />,
         422,
       );
 

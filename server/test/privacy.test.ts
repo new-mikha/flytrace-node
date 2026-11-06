@@ -55,34 +55,6 @@ describe('the privacy policy', () => {
   });
 });
 
-describe('the policy and the captcha', () => {
-  it('says nothing of reCAPTCHA while it is off', async () => {
-    const { body } = await app.inject({ url: '/privacy' });
-    expect(body).not.toContain('reCAPTCHA');
-    expect(body).toContain('All the cookies');
-  });
-
-  it('tells of it, and of its cookie, when it is on', async () => {
-    const config = {
-      ...loadConfig(),
-      RECAPTCHA_ENABLED: true,
-      RECAPTCHA_SITE_KEY: 'site',
-      RECAPTCHA_SECRET_KEY: 'private-key',
-    };
-    const own = createPool(config.DATABASE_URL);
-    const on = await buildApp(config, own);
-    try {
-      const { body } = await on.inject({ url: '/privacy' });
-      expect(body).toContain('Google reCAPTCHA');
-      expect(body).toContain('_GRECAPTCHA');
-      expect(body).toContain('Apart from reCAPTCHA, all the cookies');
-      expect(body).not.toContain('private-key');
-    } finally {
-      await on.close();
-    }
-  });
-});
-
 describe('the footer', () => {
   it.each(['/', '/login', '/privacy', '/no-such-page'])('is on %s', async (url) => {
     const res = await app.inject({ url, headers: { accept: 'text/html' } });
