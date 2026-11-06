@@ -21,8 +21,8 @@
 import type { FastifyInstance } from 'fastify';
 import type { Config } from '../config.ts';
 import type { Pool } from '../db.ts';
-import { getMapGroup, getMapView } from '../repo/mapGroups.ts';
-import { coordinates, tracks } from '../tracking/mapResponses.ts';
+import { getMapGroup, getMapView, recordMapUpdate } from '../repo/mapGroups.ts';
+import { coordinates, tracks, newestPosition } from '../tracking/mapResponses.ts';
 import type { Tracking } from '../tracking/tracking.ts';
 import type { TrackRequest } from '../tracking/wire.ts';
 import { MapPage } from '../views/MapPage.tsx';
@@ -71,12 +71,16 @@ export async function mapRoutes(
   // they are watched for as long as a map keeps asking. `no-store`, or a browser answering from its
   // cache would freeze the ages shown on the page.
   app.get<{ Params: { id: string } }>('/map/:id/coordinates', async (request, reply) => {
-    const view = await getMapView(pool, idOf(request.params.id));
+    const id = idOf(request.params.id);
+    const view = await getMapView(pool, id);
     if (!view) return reply.code(404).send({ error: 'No such group' });
 
-    return reply
-      .header('cache-control', 'no-store')
-      .send(coordinates(view, tracking.access(view.trackers)));
+    const answer = coordinates(view, tracking.access(view.trackers));
+    // Nobody waits for this, and a failure only costs a line on the home page that is out of date:
+    recordMapUpdate(pool, id, newestPosition(answer)).catch((err: unknown) =>
+      request.log.warn(err, 'Could not save the statistics of a map'),
+    );
+    return reply.header('cache-control', 'no-store').send(answer);
   });
 
   // The tracks of some of the trackers; a POST only because the list of names and times is too long

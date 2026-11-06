@@ -21,7 +21,7 @@
 // The JSON replies to the map page: the legacy rules of what is shown, and what is left out.
 import { describe, expect, it } from 'vitest';
 import type { MapView, MapViewTracker } from '../../src/repo/mapGroups.ts';
-import { coordinates, tracks } from '../../src/tracking/mapResponses.ts';
+import { coordinates, newestPosition, tracks } from '../../src/tracking/mapResponses.ts';
 import type { FeedError, FeedPoint } from '../../src/tracking/sources/types.ts';
 import { Tracker } from '../../src/tracking/tracker.ts';
 import { point } from './helpers.ts';
@@ -177,6 +177,47 @@ describe('coordinates', () => {
   it('leaves the group values out when empty, but never the version', () => {
     const answer = coordinates(view({ trackers: [] }), [], NOW);
     expect(Object.keys(answer).sort()).toEqual(['trackers', 'ver']);
+  });
+});
+
+describe('newestPosition', () => {
+  const answerWith = (...items: Tracker[]) => {
+    const trackers = items.map((_, i) => row(`P${i}`, i !== 1));
+    return coordinates(view({ trackers }), items, NOW);
+  };
+
+  it('is nothing while no tracker has a position', () => {
+    const error = { kind: 'no-data', userMessage: 'None' } as const;
+    expect(newestPosition(answerWith(waiting(), holding([], error)))).toBeNull();
+  });
+
+  it('is the newest of the group, wherever it comes', () => {
+    const answer = answerWith(
+      holding([point('1', ago(300), { lat: 10, lon: 20 })]),
+      waiting(),
+      holding([point('2', ago(100), { lat: 11, lon: 21 })]),
+      holding([point('3', ago(200), { lat: 12, lon: 22 })]),
+    );
+    expect(newestPosition(answer)).toEqual({ ts: new Date(ago(100)), lat: 11, lon: 21 });
+  });
+
+  it('counts a tracker turned off', () => {
+    const answer = answerWith(
+      holding([point('1', ago(300), { lat: 10 })]),
+      holding([point('2', ago(100), { lat: 11 })]),
+    );
+    expect(newestPosition(answer)?.lat).toBe(11);
+  });
+
+  it('counts a point hidden by "hide points older than"', () => {
+    const startTs = new Date(ago(10));
+    const answer = coordinates(view({ startTs }), [holding([point('1', ago(100))])], NOW);
+    expect(newestPosition(answer)?.ts).toEqual(new Date(ago(100)));
+  });
+
+  it('gives back the zeros the answer leaves out', () => {
+    const answer = answerWith(holding([point('1', ago(10), { lat: 0, lon: 0 })]));
+    expect(newestPosition(answer)).toMatchObject({ lat: 0, lon: 0 });
   });
 });
 

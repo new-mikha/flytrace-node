@@ -20,7 +20,7 @@
 
 // The JSON replies to the map page's two requests, GET /map/:id/coordinates and POST /map/:id/tracks,
 // made from the group's rows and what the polling holds for its feeds.
-import type { MapView, MapViewTracker } from '../repo/mapGroups.ts';
+import type { MapView, MapViewTracker, NewestPosition } from '../repo/mapGroups.ts';
 import type { FeedPoint } from './sources/types.ts';
 import type { Tracker } from './tracker.ts';
 import type { CoordItem, GroupData, TrackRequest, TrackResponseItem } from './wire.ts';
@@ -76,6 +76,14 @@ export function coordinates(view: MapView, trackers: Tracker[], now = new Date()
     startTs: view.startTs ?? undefined,
     ver: VER,
   });
+}
+
+/** The newest position in an answer, of any tracker: turned off or hidden ones count, as in legacy. */
+export function newestPosition(answer: GroupData): NewestPosition | null {
+  let newest: NewestPosition | null = null;
+  for (const { ts, lat = 0, lon = 0 } of answer.trackers)
+    if (ts && (!newest || ts > newest.ts)) newest = { ts, lat, lon };
+  return newest;
 }
 
 /** Only the newest point carries a type: the script reads it from no other. */

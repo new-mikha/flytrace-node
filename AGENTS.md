@@ -301,8 +301,8 @@ wait on feeds.
   and `FeedResult`; anything else that needs to branch on source means the interface is missing a member.
 - **Tests** (`server/test/tracking/`, shared bits in `helpers.ts`): vitest fake timers drive the pipelines, so the 20 minutes take no time; `fetch` is stubbed (`vi.stubGlobal`) and sources are swapped in the registry, so there is no real
   network. `tracking-db.test.ts` runs the `feed_polls` SQL on the dev database, the one place the pool is real. `AbortSignal.timeout` is not faked by vitest: spy on it and return a controller's signal.
-- **Not built**: updating `groups.newest_coord_ts` / `newest_lat` / `newest_lon` from the answers (legacy
-  `UpdateStatFields`, which the public maps on the home page sort by), and the live check of a new tracker's feed.
+- **Every coordinates answer is noted** (`recordMapUpdate`, legacy `UpdateStatFields`, not waited for; a failure is a WARN): `page_updates_num` + 1, and `newest_coord_ts`, `newest_lat`, `newest_lon` from the newest position in the answer (turned off and hidden trackers count), which the public maps on the home page go by. An answer with no position, as after a restart, leaves them.
+- **Not built**: the live check of a new tracker's feed.
 - **The parser fixtures come from legacy** (`server/test/fixtures/feeds/`: `LocationLib.Test/BasicRequest.xml`,
   `Combinations.xml` and `InReach/*.kml`), the only feed-level samples that exist: `legacy-xml-samples/` holds responses from *our* endpoints, not
   from theirs. They are slimmed and anonymised, with positions and timestamps real so the tests stay meaningful. Do the same to any new one.

@@ -21,13 +21,16 @@
 // The map's two requests over HTTP, against the dev database. `buildApp` alone never polls, so every
 // tracker answers "wait": what a feed returns is tested in the other files of this folder.
 import type { FastifyInstance } from 'fastify';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../../src/app.ts';
 import { loadConfig, type Config } from '../../src/config.ts';
 import { createPool, type Pool } from '../../src/db.ts';
+import { sources } from '../../src/tracking/sources/index.ts';
+import type { TrackerSource } from '../../src/tracking/sources/types.ts';
 
 const USER = `__test_map_${Math.random().toString(36).slice(2, 8)}`;
 const NO_GROUP = 2147483000;
+const FEEDS = ['test-feed-of-twenty-chars-1', 'share.garmin.com/Feed/Share/test#1'];
 
 let app: FastifyInstance;
 let pool: Pool;
@@ -58,9 +61,9 @@ beforeAll(async () => {
   group = created.rows[0]!.id;
   await pool.query(
     `INSERT INTO group_trackers (group_id, name, tracker_type, foreign_id, is_on) VALUES
-       ($1, 'Anna', 'S', 'test-feed-of-twenty-chars-1', true),
-       ($1, 'Boris', 'G', 'share.garmin.com/Feed/Share/test#1', false)`,
-    [group],
+       ($1, 'Anna', 'S', $2, true),
+       ($1, 'Boris', 'G', $3, false)`,
+    [group, ...FEEDS],
   );
 });
 
@@ -220,6 +223,75 @@ describe('GET /map/:id/coordinates', () => {
       expect(res.statusCode).toBe(404);
     },
   );
+});
+
+describe('the statistics of a group', () => {
+  const stats = async () => {
+    const { rows } = await pool.query<{
+      updates: string;
+      ts: Date | null;
+      lat: number | null;
+      lon: number | null;
+    }>(
+      `SELECT page_updates_num AS updates, newest_coord_ts AS ts, newest_lat AS lat, newest_lon AS lon
+       FROM groups WHERE id = $1`,
+      [group],
+    );
+    return rows[0]!;
+  };
+
+  const feedOf = (source: TrackerSource, time: string, lat: number): TrackerSource => ({
+    ...source,
+    rules: { ...source.rules, startGapMs: 1 },
+    poll: () =>
+      Promise.resolve({
+        points: [{ id: '1', lat, lon: lat + 1, ts: new Date(time), type: 'TRACK' }],
+        error: null,
+        requestCount: 1,
+      }),
+  });
+
+  it('counts an answer and keeps the position while there is none', async () => {
+    await pool.query(
+      `UPDATE groups SET newest_coord_ts = '2020-01-01Z', newest_lat = 5, newest_lon = 6 WHERE id = $1`,
+      [group],
+    );
+    const before = Number((await stats()).updates);
+    await app.inject({ url: `/map/${group}/coordinates` });
+
+    await vi.waitFor(async () => expect(Number((await stats()).updates)).toBe(before + 1));
+    expect(await stats()).toMatchObject({ ts: new Date('2020-01-01Z'), lat: 5, lon: 6 });
+  });
+
+  it('takes the newest position of the answer, and the home page goes by it', async () => {
+    const real = { ...sources };
+    sources.S = feedOf(real.S, '2026-01-10T10:00:00Z', 10);
+    sources.G = feedOf(real.G, '2026-01-10T11:00:00Z', 20);
+    const config = loadConfig();
+    const polling = await buildApp(config, createPool(config.DATABASE_URL));
+    await polling.tracking.start();
+    try {
+      await vi.waitFor(async () => {
+        await polling.inject({ url: `/map/${group}/coordinates` });
+        expect(await stats()).toMatchObject({
+          ts: new Date('2026-01-10T11:00:00Z'),
+          lat: 20,
+          lon: 21,
+        });
+      });
+    } finally {
+      await polling.close();
+      Object.assign(sources, real);
+      await pool.query('DELETE FROM feed_polls WHERE foreign_id = ANY($1)', [FEEDS]);
+    }
+  });
+
+  it('is not touched by the tracks', async () => {
+    const before = (await stats()).updates;
+    await postTracks(group, { items: [{ trackerName: 'Anna' }] });
+    await app.inject({ url: `/map/${group}` });
+    expect((await stats()).updates).toBe(before);
+  });
 });
 
 describe('POST /map/:id/tracks', () => {

@@ -69,6 +69,33 @@ export interface MapView {
   trackers: MapViewTracker[];
 }
 
+export interface NewestPosition {
+  ts: Date;
+  lat: number;
+  lon: number;
+}
+
+/**
+ * Notes one answer to a map: the "Updates" of the group, and with `newest` the position the home page
+ * goes by. No position, as after a restart, leaves the last one known. A position older than that one
+ * replaces it: a tracker may have left the group, so this is the newest of the group as it is now.
+ */
+export async function recordMapUpdate(
+  pool: Pool,
+  id: number,
+  newest: NewestPosition | null,
+): Promise<void> {
+  await pool.query(
+    `UPDATE groups SET
+       page_updates_num = page_updates_num + 1,
+       newest_coord_ts = COALESCE($2, newest_coord_ts),
+       newest_lat = COALESCE($3, newest_lat),
+       newest_lon = COALESCE($4, newest_lon)
+     WHERE id = $1`,
+    [id, newest?.ts ?? null, newest?.lat ?? null, newest?.lon ?? null],
+  );
+}
+
 export async function getMapView(pool: Pool, id: number): Promise<MapView | null> {
   if (!Number.isSafeInteger(id) || id < 1 || id > 2147483647) return null;
   const [group, trackers] = await Promise.all([
