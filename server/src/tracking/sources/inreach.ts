@@ -104,11 +104,9 @@ export function parseInReachFeed(kml: string, imei: string): FeedPoint[] | FeedE
     }
     if (pointImei && imei && pointImei !== imei) continue;
 
-    const when = placemark.TimeStamp?.when;
-    if (!when) continue;
     // Garmin can give different points one time. Oldest come first, so each later one moves on a
     // second, which stays the same from one request to the next:
-    let time = new Date(when).getTime();
+    let time = new Date(placemark.TimeStamp?.when ?? NaN).getTime();
     if (Number.isNaN(time)) continue;
     while (times.has(time)) time += 1000;
 

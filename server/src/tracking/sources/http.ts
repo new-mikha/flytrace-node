@@ -104,8 +104,8 @@ export async function fetchFeed(
 
 /** All the values under `key`, however deep: the feeds' wrappers have changed over the years. */
 export function findAll(node: unknown, key: string, found: unknown[] = []): unknown[] {
-  if (Array.isArray(node)) for (const item of node) findAll(item, key, found);
-  else if (node && typeof node === 'object')
+  // A list too: its entries are its items, under names like '0' that are never the key.
+  if (node && typeof node === 'object')
     for (const [name, value] of Object.entries(node))
       if (name === key) found.push(...(Array.isArray(value) ? value : [value]));
       else findAll(value, key, found);
