@@ -18,10 +18,9 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
-import { readdir, unlink } from 'node:fs/promises';
+import { mkdir, readdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pino, type DestinationStream, type Level, type Logger } from 'pino';
-import pinoRoll from 'pino-roll';
 
 /**
  * Production log times: ISO 8601 in the process's time zone with its offset (pino's default is
@@ -73,7 +72,8 @@ export async function pruneLogFiles(dir: string, now = new Date()): Promise<stri
   oldest.setDate(oldest.getDate() - (KEEP_DAYS - 1));
   const limit = dayOf(oldest);
   const names = (await readdir(dir)).filter((name) => {
-    const day = /^(?:info|warn|error)\.(\d{4}-\d\d-\d\d)\.\d+\.log$/.exec(name)?.[1];
+    // (the `.1` was in the names of the first version)
+    const day = /^(?:info|warn|error)\.(\d{4}-\d\d-\d\d)(?:\.1)?\.log$/.exec(name)?.[1];
     return day !== undefined && day < limit;
   });
   await Promise.all(names.map((name) => unlink(join(dir, name))));
@@ -81,34 +81,64 @@ export async function pruneLogFiles(dir: string, now = new Date()): Promise<stri
 }
 
 /**
+ * A stream writing to `<dir>/<name>.<date>.log`, the date being that of the line in the log time
+ * zone. A file is opened when its first line comes, so a quiet day (most days of `error`) leaves
+ * none, and the file of the day before is closed then.
+ */
+type FileStream = ReturnType<typeof pino.destination>;
+
+function dailyFile(dir: string, name: string) {
+  let file: FileStream | null = null;
+  let until = 0; // the next midnight
+  const closing: Promise<void>[] = [];
+  const end = (stream: FileStream) =>
+    new Promise<void>((resolve) => {
+      stream.once('close', () => resolve());
+      stream.end();
+    });
+
+  return {
+    write(line: string) {
+      const now = new Date();
+      if (!file || now.getTime() >= until) {
+        if (file) closing.push(end(file));
+        const next = new Date(now);
+        next.setHours(24, 0, 0, 0);
+        until = next.getTime();
+        file = pino.destination({
+          dest: join(dir, `${name}.${dayOf(now)}.log`),
+          mkdir: true,
+          append: true,
+          sync: false,
+        });
+        // A full disk must not crash the app (an 'error' event with no listener would): stdout
+        // still has every line.
+        file.on('error', (err: Error) =>
+          process.stderr.write(`Log file ${name}: ${err.message}\n`),
+        );
+      }
+      file.write(line);
+    },
+    /** Writes out what is still buffered. */
+    close: () => Promise.all([...closing, ...(file ? [end(file)] : [])]).then(() => undefined),
+  };
+}
+
+/**
  * A logger writing to `stdout` and to the files in `dir`, one JSON line each:
- * `info.<date>.1.log` gets every line, `warn.<date>.1.log` WARN and up, `error.<date>.1.log` ERROR
- * and up. A new file each day at midnight in the log time zone (pino-roll); the files older than
- * `KEEP_DAYS` days are deleted at startup and a minute after each midnight (pino-roll's own limit
- * goes by a count of files, which came out a day or two over). `close` writes out what is still
- * buffered.
+ * `info.<date>.log` gets every line, `warn.<date>.log` WARN and up, `error.<date>.log` ERROR and
+ * up (`dailyFile`). The files older than `KEEP_DAYS` days are deleted at startup and a minute
+ * after each midnight. `close` writes out what is still buffered.
  */
 export async function fileLogger(
   dir: string,
   stdout: DestinationStream,
 ): Promise<{ logger: Logger; close: () => Promise<void> }> {
-  const files = await Promise.all(
-    Object.entries(FILES).map(async ([name, level]) => {
-      const stream = await pinoRoll({
-        file: `${dir}/${name}`,
-        extension: '.log',
-        frequency: 'daily',
-        dateFormat: 'yyyy-MM-dd',
-        mkdir: true,
-      });
-      // A full disk must not crash the app (an 'error' event with no listener would): stdout
-      // still has every line.
-      stream.on('error', (err: Error) =>
-        process.stderr.write(`Log file ${name}: ${err.message}\n`),
-      );
-      return { level, stream };
-    }),
-  );
+  await mkdir(dir, { recursive: true });
+  const files = Object.entries(FILES).map(([name, level]) => ({
+    level,
+    stream: dailyFile(dir, name),
+  }));
 
   const logger = pino(
     { level: 'info', timestamp: localIsoTime },
@@ -132,17 +162,9 @@ export async function fileLogger(
   await prune();
   pruneAfterMidnight();
 
-  const close = () => {
+  const close = async () => {
     clearTimeout(pruneTimer);
-    return Promise.all(
-      files.map(
-        ({ stream }) =>
-          new Promise<void>((resolve) => {
-            stream.once('close', () => resolve());
-            stream.end();
-          }),
-      ),
-    ).then(() => undefined);
+    await Promise.all(files.map(({ stream }) => stream.close()));
   };
 
   return { logger, close };

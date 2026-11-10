@@ -73,18 +73,18 @@ describe('the log files', () => {
 
     const today = day(new Date());
     expect((await readdir(dir)).sort()).toEqual([
-      `error.${today}.1.log`,
-      `info.${today}.1.log`,
-      `warn.${today}.1.log`,
+      `error.${today}.log`,
+      `info.${today}.log`,
+      `warn.${today}.log`,
     ]);
-    expect(await messages(`info.${today}.1.log`)).toEqual([
+    expect(await messages(`info.${today}.log`)).toEqual([
       'an info line',
       'a warning',
       'an error',
       'a crash',
     ]);
-    expect(await messages(`warn.${today}.1.log`)).toEqual(['a warning', 'an error', 'a crash']);
-    expect(await messages(`error.${today}.1.log`)).toEqual(['an error', 'a crash']);
+    expect(await messages(`warn.${today}.log`)).toEqual(['a warning', 'an error', 'a crash']);
+    expect(await messages(`error.${today}.log`)).toEqual(['an error', 'a crash']);
     expect(out.lines).toHaveLength(4);
   });
 
@@ -93,7 +93,7 @@ describe('the log files', () => {
     logger.info('timed');
     await close();
 
-    const [line] = (await readFile(join(dir, `info.${day(new Date())}.1.log`), 'utf8')).split('\n');
+    const [line] = (await readFile(join(dir, `info.${day(new Date())}.log`), 'utf8')).split('\n');
     expect(JSON.parse(line!).time).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}[+-]\d\d:\d\d$/);
   });
 
@@ -103,26 +103,32 @@ describe('the log files', () => {
       logger.info(text);
       await close();
     }
-    expect(await messages(`info.${day(new Date())}.1.log`)).toEqual(['before', 'after']);
+    expect(await messages(`info.${day(new Date())}.log`)).toEqual(['before', 'after']);
   });
 
-  it('starts a new file at midnight', async () => {
-    vi.useFakeTimers({
-      now: new Date(2026, 10, 10, 23, 59),
-      toFake: ['setTimeout', 'clearTimeout', 'Date'],
-    });
+  it('makes a file only when a line comes for it', async () => {
+    const { logger, close } = await fileLogger(dir, stdout().stream);
+    logger.info('nothing wrong');
+    await close();
+    expect(await readdir(dir)).toEqual([`info.${day(new Date())}.log`]);
+  });
+
+  it('goes on in a new file after midnight', async () => {
+    vi.useFakeTimers({ now: new Date(2026, 10, 10, 23, 59), toFake: ['Date'] });
     const { logger, close } = await fileLogger(dir, stdout().stream);
     logger.info('late');
-    // The file is opened and written in real time, which the fake clock does not move:
-    while (!(await readFile(join(dir, 'info.2026-11-10.1.log'), 'utf8').catch(() => '')))
-      await new Promise((resolve) => setImmediate(resolve));
-    await vi.advanceTimersByTimeAsync(2 * 60_000);
+    logger.warn('late warning');
+    vi.setSystemTime(new Date(2026, 10, 11, 0, 1));
     logger.info('early');
-    vi.useRealTimers();
     await close();
 
-    expect(await messages('info.2026-11-10.1.log')).toEqual(['late']);
-    expect(await messages('info.2026-11-11.1.log')).toEqual(['early']);
+    expect((await readdir(dir)).sort()).toEqual([
+      'info.2026-11-10.log',
+      'info.2026-11-11.log',
+      'warn.2026-11-10.log',
+    ]);
+    expect(await messages('info.2026-11-10.log')).toEqual(['late', 'late warning']);
+    expect(await messages('info.2026-11-11.log')).toEqual(['early']);
   });
 });
 
@@ -133,9 +139,11 @@ describe('the files kept', () => {
       const old = new Date(now);
       old.setDate(now.getDate() - i);
       for (const name of ['info', 'warn', 'error'])
-        await writeFile(join(dir, `${name}.${day(old)}.1.log`), '');
+        await writeFile(join(dir, `${name}.${day(old)}.log`), '');
     }
     await writeFile(join(dir, 'notes.txt'), '');
+    // a name of the first version, which had a `.1` in them:
+    await writeFile(join(dir, 'info.2026-01-01.1.log'), '');
   }
 
   const days = async (name: string) =>
@@ -147,7 +155,7 @@ describe('the files kept', () => {
   it('are those of the last 90 days, today included, going by the names', async () => {
     const now = new Date(2026, 10, 10, 0, 1);
     await oldFiles(now);
-    await writeFile(join(dir, `info.${day(now)}.1.log`), '');
+    await writeFile(join(dir, `info.${day(now)}.log`), '');
 
     await pruneLogFiles(dir, now);
 

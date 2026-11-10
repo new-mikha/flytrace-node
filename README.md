@@ -33,8 +33,8 @@ Without a dump: `npm run user:create -- alice secret Admins`.
 ## Logs
 
 Logs are kept for 90 days, and no longer. The app writes to stdout, and with `LOG_DIR` set (.env, e.g. `logs`, relative to
-the project folder) also to daily files there: `info.<date>.1.log` (everything), `warn.<date>.1.log` (WARN and up) and
-`error.<date>.1.log` (ERROR and up), JSON lines. The app deletes its own files after 90 days; whatever keeps stdout in production
+the project folder) also to daily files there: `info.<date>.log` (everything), `warn.<date>.log` (WARN and up) and
+`error.<date>.log` (ERROR and up), JSON lines; a day with no line for a file leaves none. The app deletes its own files after 90 days; whatever keeps stdout in production
 (journald, Docker) and the web server's logs must be limited to 90 days as well.
 
 ## Legacy system reference

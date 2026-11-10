@@ -41,7 +41,6 @@
     "pg": "^8.23.1",
     "pg-copy-streams": "^7.0.0",
     "pino": "^10.4.0",
-    "pino-roll": "^4.0.0",
     "preact": "^11.0.1",
     "preact-render-to-string": "^6.8.1",
     "qrcode": "^1.5.4",
