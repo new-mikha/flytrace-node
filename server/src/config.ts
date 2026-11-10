@@ -61,6 +61,9 @@ const schema = z.object({
   LOG_TIMEZONE: optional(
     z.string().refine(isTimeZone, 'must be a time zone name such as Europe/Berlin or UTC'),
   ),
+  // Folder for the log files (info, warn and error, a new file each day, 90 days kept), relative to
+  // the project folder or absolute. Unset: stdout only.
+  LOG_DIR: optional(z.string()),
   // Comma-separated usernames to skip when importing the legacy dump.
   LEGACY_EXCLUDE_USERS: z.string().default(''),
 

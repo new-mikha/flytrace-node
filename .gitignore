@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# Log files (LOG_DIR): user names, feed ids, IP addresses.
+logs/
 .env
 # Production data: emails and password hashes. Never commit.
 db/legacy/dump/

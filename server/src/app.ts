@@ -22,11 +22,13 @@ import fastifyFormbody from '@fastify/formbody';
 import fastifyMultipart from '@fastify/multipart';
 import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
-import Fastify, { type FastifyInstance, LogController } from 'fastify';
-import { join } from 'node:path';
+import Fastify, { type FastifyBaseLogger, type FastifyInstance, LogController } from 'fastify';
+import { join, resolve } from 'node:path';
+import { pino, type DestinationStream } from 'pino';
 import { registerSession } from './auth/session.ts';
 import type { Config } from './config.ts';
 import type { Pool } from './db.ts';
+import { fileLogger, localIsoTime, PRETTY_OPTIONS } from './logging.ts';
 import { createMailer, type Mailer } from './mail/mailer.ts';
 import { MailService } from './mail/service.ts';
 import { packageDir, projectRoot } from './paths.ts';
@@ -45,23 +47,12 @@ import { settingsRoutes } from './routes/settings.tsx';
 import { themeOf, themeRoutes } from './routes/theme.ts';
 import { Tracking } from './tracking/tracking.ts';
 
-/**
- * Production log times: ISO 8601 in the process's time zone with its offset (pino's default is
- * epoch milliseconds).
- */
-function localIsoTime(): string {
-  const d = new Date();
-  const p = (n: number, width = 2) => String(n).padStart(width, '0');
-  const offset = -d.getTimezoneOffset();
-  const sign = offset < 0 ? '-' : '+';
-  const date = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-  const time = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}.${p(
-    d.getMilliseconds(),
-    3,
-  )}`;
-  return `,"time":"${date}T${time}${sign}${p(Math.floor(Math.abs(offset) / 60))}:${p(
-    Math.abs(offset) % 60,
-  )}"`;
+/** Where the lines for stdout go next to the files: JSON in production, readable otherwise. */
+async function stdoutStream(config: Config): Promise<DestinationStream> {
+  if (config.NODE_ENV === 'production') return pino.destination(1);
+  // pino-pretty is a development package, so it is loaded only here:
+  const { default: pretty } = await import('pino-pretty');
+  return pretty(PRETTY_OPTIONS);
 }
 
 /**
@@ -74,27 +65,25 @@ export async function buildApp(
   mailer?: Mailer,
   logStream?: NodeJS.WritableStream,
 ): Promise<FastifyInstance> {
+  // Log files only when LOG_DIR is set, and never in tests:
+  const files =
+    config.LOG_DIR && !logStream && config.NODE_ENV !== 'test'
+      ? await fileLogger(resolve(projectRoot(), config.LOG_DIR), await stdoutStream(config))
+      : null;
   const app = Fastify({
-    // JSON lines in production (for log tools), readable lines in development, nothing in tests.
-    logger: logStream
-      ? { level: 'info', stream: logStream }
-      : config.NODE_ENV === 'test'
-        ? false
-        : config.NODE_ENV === 'production'
-          ? { level: 'info', timestamp: localIsoTime }
-          : {
-              transport: {
-                target: 'pino-pretty',
-                options: {
-                  // SYS: = the process's time zone (LOG_TIMEZONE, else the host's), not UTC
-                  translateTime: 'SYS:HH:MM:ss',
-                  // messages are written to be read on their own; the fields stay in the JSON logs
-                  // of production
-                  ignore: 'pid,hostname,reqId,event,user,userId,to,subject,action,ip',
-                  messageFormat: '{msg}{if user} [{user}]{end}',
-                },
-              },
-            },
+    ...(files
+      ? { loggerInstance: files.logger as FastifyBaseLogger }
+      : {
+          // JSON lines in production (for log tools), readable lines in development, nothing in
+          // tests.
+          logger: logStream
+            ? { level: 'info', stream: logStream }
+            : config.NODE_ENV === 'test'
+              ? false
+              : config.NODE_ENV === 'production'
+                ? { level: 'info', timestamp: localIsoTime }
+                : { transport: { target: 'pino-pretty', options: PRETTY_OPTIONS } },
+        }),
     // Fastify's own two lines per request are replaced by the one line per page request below.
     logController: new LogController({ disableRequestLogging: true }),
     trustProxy: config.NODE_ENV === 'production', // behind nginx in production
@@ -175,6 +164,7 @@ export async function buildApp(
     tracking.stop();
     await mail.flush();
     await pool.end();
+    await files?.close();
   });
   return app;
 }

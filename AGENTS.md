@@ -117,7 +117,8 @@ simulated client its own `remoteAddress`.
   (people paste passwords there). Mask emails with `maskEmail`. Production logs are JSON; development uses pino-pretty.
 - Log times are in the host's time zone, or in `LOG_TIMEZONE` (.env, e.g. `Europe/Berlin`), which sets `TZ` at startup
   (`index.ts`). Production lines carry ISO times with the offset. Times on pages (`views/format.ts`, `formatTimestamp`) use the same zone, show a readable name for it (`UTC`, `AEDT`, `CET`; `Intl` knows an abbreviation only in some locales, so `zoneName` tries several, and a zone with none keeps `GMT+8`) and add the year when it is not the current one.
-- Logs are kept for 90 days (owner's decision, 7 Nov 2026), and no longer: the privacy policy will promise it, and they hold user names, feed ids and, for failed logins, IP addresses. The app only writes to stdout, so the deployment must enforce this (journald, Docker's log driver or `logrotate`, and nginx's logs too). Any log file we add later (see "Planned") follows the same limit.
+- Logs are kept for 90 days (owner's decision, 7 Nov 2026), and no longer: the privacy policy will promise it, and they hold user names, feed ids and, for failed logins, IP addresses. The app's own files keep to it by themselves; stdout (journald, Docker's log driver) and nginx's logs must be limited by the deployment.
+- Log files (`server/src/logging.ts`, only when `LOG_DIR` is set in .env, never in tests): next to stdout, one JSON line each in `info.<date>.1.log` (every line), `warn.<date>.1.log` (WARN and up) and `error.<date>.1.log` (ERROR and up). `pino-roll` starts new files at midnight in the log time zone; the app itself deletes those older than 90 days (today included) by the date in their names, at startup and a minute after each midnight (pino-roll's own limit counts files and kept a day or two too many). A crash before the logger is up, or an unhandled one, goes to stderr only. Any log file added later follows the same limit.
 - ERROR is for a person to look at: it is meant to reach an email one day (see "Planned"). As many WARNs as good logging needs, then at most one ERROR about them, never one per failure. Failures outside our control (a feed down, one bad email address) are WARNs. `Pipeline` shows the pattern: the first poll that throws is an ERROR, the rest of that run WARNs.
 - When you start a test server, set `SMTP_HOST=` on its command line so that it does not send real email through
   the owner's SMTP account (it reads the owner's `.env`).
@@ -329,8 +330,7 @@ wait on feeds.
   `node_modules`. Compression (gzip or brotli) and the cache headers go in nginx or `@fastify/static`. Do not start
   this unless asked.
 
-- Log files and email for WARN and up (talked through on 6 Nov 2026; not to be started unless asked):
-  - Rolling files per level, `info.log`, `warn.log` and `error.log` (`pino-roll`, only when a `LOG_DIR` is set), next to stdout.
+- Email for WARN and up (talked through on 6 Nov 2026; not to be started unless asked; the log files are built):
   - In `Pipeline`, per source: consecutive failures with one ERROR at a threshold ("inReach: 10 failures in a row, last: timeout") and one line on the first success. `no-data` and `bad-feed-id` do not count: the service answered. Per source because the failures of one feed say nothing, and legacy's `ConsequentErrorsCounter` (thresholds 5, 5 and 1 for timeouts) was shared by both sources by mistake.
   - One ERROR per source at most every hour or so for a 429, 401 / 403 or a `Retry-After`, with the status and all the headers.
   - Email: a small buffer sent every 30 minutes on its own timer, as legacy's `SmtpAppender` (512 events, 30 minutes) but with no event stuck in it. Repeated lines become counts, and the email's own failures stay out of it. It cannot tell of a crash or a dead SMTP: that needs an outside uptime check.
