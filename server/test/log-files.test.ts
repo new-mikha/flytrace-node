@@ -97,13 +97,32 @@ describe('the log files', () => {
     expect(JSON.parse(line!).time).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}[+-]\d\d:\d\d$/);
   });
 
-  it('adds to the file of the day after a restart', async () => {
-    for (const text of ['before', 'after']) {
+  it('numbers the files of earlier runs of the day, the oldest .1', async () => {
+    for (const text of ['first', 'second', 'third']) {
       const { logger, close } = await fileLogger(dir, stdout().stream);
       logger.info(text);
       await close();
     }
-    expect(await messages(`info.${day(new Date())}.log`)).toEqual(['before', 'after']);
+    const today = day(new Date());
+    expect(await messages(`info.${today}.1.log`)).toEqual(['first']);
+    expect(await messages(`info.${today}.2.log`)).toEqual(['second']);
+    expect(await messages(`info.${today}.log`)).toEqual(['third']);
+  });
+
+  it('renames only the files a run writes to', async () => {
+    const first = await fileLogger(dir, stdout().stream);
+    first.logger.warn('a warning');
+    await first.close();
+    const second = await fileLogger(dir, stdout().stream);
+    second.logger.info('fine');
+    await second.close();
+
+    const today = day(new Date());
+    expect((await readdir(dir)).sort()).toEqual([
+      `info.${today}.1.log`,
+      `info.${today}.log`,
+      `warn.${today}.log`,
+    ]);
   });
 
   it('makes a file only when a line comes for it', async () => {
@@ -142,7 +161,7 @@ describe('the files kept', () => {
         await writeFile(join(dir, `${name}.${day(old)}.log`), '');
     }
     await writeFile(join(dir, 'notes.txt'), '');
-    // a name of the first version, which had a `.1` in them:
+    // a file of an earlier run of an old day:
     await writeFile(join(dir, 'info.2026-01-01.1.log'), '');
   }
 
@@ -156,13 +175,16 @@ describe('the files kept', () => {
     const now = new Date(2026, 10, 10, 0, 1);
     await oldFiles(now);
     await writeFile(join(dir, `info.${day(now)}.log`), '');
+    // an earlier run of the oldest day kept:
+    await writeFile(join(dir, 'info.2026-08-13.1.log'), '');
 
     await pruneLogFiles(dir, now);
 
     const info = await days('info');
-    expect(info).toHaveLength(KEEP_DAYS);
-    expect([info[0], info.at(-1)]).toEqual(['2026-08-13', '2026-11-10']);
-    expect(await days('error')).toEqual(info.slice(0, -1));
+    expect(info).toHaveLength(KEEP_DAYS + 1);
+    expect(info.slice(0, 2)).toEqual(['2026-08-13', '2026-08-13']);
+    expect(info.at(-1)).toBe('2026-11-10');
+    expect(await days('error')).toEqual(info.slice(1, -1));
     expect(await readdir(dir)).toContain('notes.txt');
   });
 

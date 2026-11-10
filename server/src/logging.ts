@@ -18,6 +18,7 @@
 //  along with Flytrace.  If not, see <http://www.gnu.org/licenses/>.
 ///////////////////////////////////////////////////////////////////////////////
 
+import { existsSync, renameSync } from 'node:fs';
 import { mkdir, readdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pino, type DestinationStream, type Level, type Logger } from 'pino';
@@ -72,21 +73,36 @@ export async function pruneLogFiles(dir: string, now = new Date()): Promise<stri
   oldest.setDate(oldest.getDate() - (KEEP_DAYS - 1));
   const limit = dayOf(oldest);
   const names = (await readdir(dir)).filter((name) => {
-    // (the `.1` was in the names of the first version)
-    const day = /^(?:info|warn|error)\.(\d{4}-\d\d-\d\d)(?:\.1)?\.log$/.exec(name)?.[1];
+    const day = /^(?:info|warn|error)\.(\d{4}-\d\d-\d\d)(?:\.\d+)?\.log$/.exec(name)?.[1];
     return day !== undefined && day < limit;
   });
   await Promise.all(names.map((name) => unlink(join(dir, name))));
   return names;
 }
 
+type FileStream = ReturnType<typeof pino.destination>;
+
+/**
+ * Moves an existing `<path>.log` to the next free `<path>.<n>.log` (`.1` the oldest), so that each
+ * run of the app gets a file of its own. A failure only means appending to the old file.
+ */
+function moveAside(path: string, name: string): void {
+  if (!existsSync(`${path}.log`)) return;
+  let n = 1;
+  while (existsSync(`${path}.${n}.log`)) n++;
+  try {
+    renameSync(`${path}.log`, `${path}.${n}.log`);
+  } catch (err) {
+    process.stderr.write(`Log file ${name}: ${(err as Error).message}\n`);
+  }
+}
+
 /**
  * A stream writing to `<dir>/<name>.<date>.log`, the date being that of the line in the log time
  * zone. A file is opened when its first line comes, so a quiet day (most days of `error`) leaves
- * none, and the file of the day before is closed then.
+ * none, and the file of the day before is closed then. A file of the same day left by an earlier
+ * run is renamed first (`moveAside`).
  */
-type FileStream = ReturnType<typeof pino.destination>;
-
 function dailyFile(dir: string, name: string) {
   let file: FileStream | null = null;
   let until = 0; // the next midnight
@@ -105,8 +121,10 @@ function dailyFile(dir: string, name: string) {
         const next = new Date(now);
         next.setHours(24, 0, 0, 0);
         until = next.getTime();
+        const path = join(dir, `${name}.${dayOf(now)}`);
+        moveAside(path, name);
         file = pino.destination({
-          dest: join(dir, `${name}.${dayOf(now)}.log`),
+          dest: `${path}.log`,
           mkdir: true,
           append: true,
           sync: false,
