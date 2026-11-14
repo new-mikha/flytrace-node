@@ -167,7 +167,7 @@ describe('throttle', () => {
 });
 
 describe('the log lines', () => {
-  it('are a WARN with the type, and a line in the email-logger file, addresses masked', () => {
+  it('are a WARN with the type, and a line in the email-logger file, addresses in full', () => {
     const { alerts, lines, fileLines } = setUp();
     alerts.sendNow('New account: pilot', 'pilot, pilot@example.test');
     alerts.throttle('smtp-failed', 'to pilot@example.test: refused');
@@ -176,17 +176,17 @@ describe('the log lines', () => {
       {
         level: 'warn',
         fields: { alert: 'send-now' },
-        message: 'Alert send-now, emailed now: New account: pilot: pilot, p***@example.test',
+        message: 'Alert send-now, emailed now: New account: pilot: pilot, pilot@example.test',
       },
       {
         level: 'warn',
         fields: { alert: 'smtp-failed' },
-        message: 'Alert smtp-failed, held for a summary: to p***@example.test: refused',
+        message: 'Alert smtp-failed, held for a summary: to pilot@example.test: refused',
       },
     ]);
     expect(fileLines.map((l) => l.message)).toEqual([
-      'send-now, emailed now: New account: pilot: pilot, p***@example.test',
-      'smtp-failed, held for a summary: to p***@example.test: refused',
+      'send-now, emailed now: New account: pilot: pilot, pilot@example.test',
+      'smtp-failed, held for a summary: to pilot@example.test: refused',
     ]);
   });
 

@@ -137,7 +137,12 @@ describe('what the app logs', () => {
     const everything = written.join('');
     expect(everything).not.toContain(password);
     expect(everything).not.toContain('brand-new-' + run);
-    expect(everything).not.toContain(email);
+    // The alerts are the one exception, by the owner's choice: they show addresses in full.
+    const notAlerts = everything
+      .split('\n')
+      .filter((line) => !line.includes('"alert":'))
+      .join('\n');
+    expect(notAlerts).not.toContain(email);
     expect(everything).not.toMatch(/token=/);
     const failed = events().find((l) => l.event === 'login.failed')!;
     expect(JSON.stringify(failed)).not.toContain(name);

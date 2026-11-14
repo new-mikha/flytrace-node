@@ -21,7 +21,6 @@
 // Emails to the site's owners (ALERT_EMAILS), apart from the log levels: `sendNow` for what they want
 // to hear of each time (a new account, an email sent to somebody), `throttle` for what may come by
 // the hundred (feed failures, crashes), as counted summaries. Everything is kept in memory.
-import { maskEmail } from '../audit.ts';
 import type { Mailer } from '../mail/mailer.ts';
 
 const MINUTE = 60_000;
@@ -58,9 +57,6 @@ export const noAlerts: Alerts = { sendNow: () => {}, throttle: () => {} };
 
 const timer = (ms: number, action: () => void) => setTimeout(action, ms).unref();
 
-/** Email addresses in a message, masked in the log lines as everywhere in the log. */
-const EMAIL = /[^\s,;:"'<>()]+@[^\s,;:"'<>()]+\.[^\s,;:"'<>()]+/g;
-
 const escapeHtml = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -73,7 +69,8 @@ function duration(ms: number): string {
 
 /**
  * Every call is also a WARN in the log (with an `alert` field) and a line in `email-logger.<date>.log`
- * (`file`, when LOG_DIR is set), email addresses masked there; the emails have them in full. Nothing is emailed without recipients or without SMTP. The emails go
+ * (`file`, when LOG_DIR is set), as is: email addresses in full, the only log lines that have them
+ * (owner's choice). Nothing is emailed without recipients or without SMTP. The emails go
  * to the mailer itself, never through `MailService`, whose every email calls `sendNow`. Never put a
  * password in a message, nor the text of an email to somebody (its links are as good as one).
  */
@@ -146,9 +143,8 @@ export class EmailLogger {
   }
 
   private note(type: string, message: string, what: string): void {
-    const masked = message.replace(EMAIL, maskEmail);
-    this.log.warn({ alert: type }, `Alert ${type}, ${what}: ${masked}`);
-    this.file?.warn({}, `${type}, ${what}: ${masked}`);
+    this.log.warn({ alert: type }, `Alert ${type}, ${what}: ${message}`);
+    this.file?.warn({}, `${type}, ${what}: ${message}`);
   }
 
   private openWindow(type: string, state: Throttled): void {
