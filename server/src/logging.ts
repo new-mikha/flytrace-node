@@ -86,7 +86,9 @@ export async function pruneLogFiles(dir: string, now = new Date()): Promise<stri
   oldest.setDate(oldest.getDate() - (KEEP_DAYS - 1));
   const limit = dayOf(oldest);
   const names = (await readdir(dir)).filter((name) => {
-    const day = /^(?:info|warn|error)\.(\d{4}-\d\d-\d\d)(?:\.\d+)?\.log$/.exec(name)?.[1];
+    const day = /^(?:info|warn|error|email-logger)\.(\d{4}-\d\d-\d\d)(?:\.\d+)?\.log$/.exec(
+      name,
+    )?.[1];
     return day !== undefined && day < limit;
   });
   await Promise.all(names.map((name) => unlink(join(dir, name))));
@@ -159,13 +161,14 @@ function dailyFile(dir: string, name: string) {
  * A logger writing to `stdout` and to the files in `dir`, one readable line each
  * (`formatFileLine`):
  * `info.<date>.log` gets every line, `warn.<date>.log` WARN and up, `error.<date>.log` ERROR and
- * up (`dailyFile`). The files older than `KEEP_DAYS` days are deleted at startup and a minute
- * after each midnight. `close` writes out what is still buffered.
+ * up (`dailyFile`). `emailLog` writes to `email-logger.<date>.log` alone (`EmailLogger`). The
+ * files older than `KEEP_DAYS` days are deleted at startup and a minute after each midnight. `close`
+ * writes out what is still buffered.
  */
 export async function fileLogger(
   dir: string,
   stdout: DestinationStream,
-): Promise<{ logger: Logger; close: () => Promise<void> }> {
+): Promise<{ logger: Logger; emailLog: Logger; close: () => Promise<void> }> {
   await mkdir(dir, { recursive: true });
   const files = Object.entries(FILES).map(([name, level]) => ({
     level,
@@ -176,6 +179,8 @@ export async function fileLogger(
     { level: 'info', timestamp: localIsoTime },
     pino.multistream([{ level: 'info', stream: stdout }, ...files]),
   );
+  const emailFile = dailyFile(dir, 'email-logger');
+  const emailLog = pino({ level: 'info', timestamp: localIsoTime }, emailFile);
 
   const prune = () =>
     pruneLogFiles(dir).catch((err: Error) =>
@@ -196,8 +201,8 @@ export async function fileLogger(
 
   const close = async () => {
     clearTimeout(pruneTimer);
-    await Promise.all(files.map(({ stream }) => stream.close()));
+    await Promise.all([...files.map(({ stream }) => stream.close()), emailFile.close()]);
   };
 
-  return { logger, close };
+  return { logger, emailLog, close };
 }

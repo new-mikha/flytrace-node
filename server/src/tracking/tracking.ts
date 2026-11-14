@@ -21,6 +21,7 @@
 // The feeds being watched: the map of `Tracker`s, shared by all sources. A feed gets a `Tracker` when
 // a map first asks for it.
 import type { FastifyBaseLogger } from 'fastify';
+import { type Alerts, noAlerts } from '../alerts/emailLogger.ts';
 import type { Pool } from '../db.ts';
 import { Pipeline } from './pipeline.ts';
 import { sources } from './sources/index.ts';
@@ -43,12 +44,17 @@ export class Tracking {
   constructor(
     private readonly pool: Pool,
     private readonly log: FastifyBaseLogger,
+    alerts: Alerts = noAlerts,
   ) {
     for (const source of Object.values(sources))
       this.pipelines.set(
         source.type,
-        new Pipeline(source, log, this.shutdownController.signal, (tracker, now) =>
-          this.remember(source, tracker, now),
+        new Pipeline(
+          source,
+          log,
+          this.shutdownController.signal,
+          (tracker, now) => this.remember(source, tracker, now),
+          alerts,
         ),
       );
   }

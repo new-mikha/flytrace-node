@@ -21,6 +21,7 @@
 // One source's timeline: its queue, its loop at the source's start gap, its calls in flight. Sources
 // run side by side and know nothing of each other.
 import type { FastifyBaseLogger } from 'fastify';
+import { type Alerts, noAlerts } from '../alerts/emailLogger.ts';
 import type { TrackerSource } from './sources/types.ts';
 import type { Tracker } from './tracker.ts';
 
@@ -39,6 +40,7 @@ export class Pipeline {
     private readonly shutdownSignal: AbortSignal,
     /** Called as a call starts, with the time to remember for the feed. */
     private readonly onCallStart: (tracker: Tracker, now: number) => void,
+    private readonly alerts: Alerts = noAlerts,
   ) {
     // Every call must be over before its feed is due again, or it would be hit twice at once.
     // `onIntervalOver` still copes if that ever happens, but it should not:
@@ -121,6 +123,17 @@ export class Pipeline {
           { kind, status, headers, retryAfterMs },
           `${this.source.name} poll of ${tracker.key} failed: ${kind}${detail ? `, ${detail}` : ''}, ${took}`,
         );
+        // The service answered for these two: the feed is wrong or empty, not the service.
+        if (kind !== 'bad-feed-id' && kind !== 'no-data')
+          this.alerts.throttle(
+            `poll:${this.source.name}:${status ?? kind}`,
+            [
+              `${this.source.name} poll of ${tracker.key} failed: ${kind}${detail ? `, ${detail}` : ''}, ${took}`,
+              ...(status ? [`HTTP ${status}`] : []),
+              ...(retryAfterMs !== undefined ? [`Retry after ${retryAfterMs} ms`] : []),
+              ...Object.entries(headers ?? {}).map(([name, value]) => `${name}: ${value}`),
+            ].join('\n'),
+          );
       } else {
         this.log.info(
           `${this.source.name} poll of ${tracker.key}: ${result.points.length} points, ${took}`,
@@ -144,6 +157,10 @@ export class Pipeline {
     if (this.threw) this.log.warn(err, message);
     else this.log.error(err, `${message}; any more this run are WARNs`);
     this.threw = true;
+    this.alerts.throttle(
+      `poll:${this.source.name}:threw`,
+      `${message}: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}`,
+    );
   }
 
   /** The feed may be hit again. Normally its call ended long ago. */

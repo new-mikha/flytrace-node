@@ -26,6 +26,7 @@ import Fastify, { type FastifyBaseLogger, type FastifyInstance, LogController } 
 import { join, resolve } from 'node:path';
 import { pino, type DestinationStream } from 'pino';
 import pretty from 'pino-pretty';
+import { EmailLogger } from './alerts/emailLogger.ts';
 import { registerSession } from './auth/session.ts';
 import type { Config } from './config.ts';
 import type { Pool } from './db.ts';
@@ -142,11 +143,14 @@ export async function buildApp(
   await app.register(fastifyRateLimit, { global: false });
   await registerSession(app, config, pool);
   registerErrorPages(app);
-  const mail = new MailService(config, pool, mailer ?? createMailer(config, app.log), app.log);
+  const theMailer = mailer ?? createMailer(config, app.log);
+  const alerts = new EmailLogger(config.ALERT_EMAILS, theMailer, app.log, files?.emailLog ?? null);
+  app.decorate('alerts', alerts);
+  const mail = new MailService(config, pool, theMailer, app.log, alerts);
   app.decorate('mail', mail);
   await identityRoutes(app, pool, config, mail);
   await accountRoutes(app, pool, config, mail);
-  const tracking = new Tracking(pool, app.log);
+  const tracking = new Tracking(pool, app.log, alerts);
   app.decorate('tracking', tracking);
   await adminRoutes(app, pool, mail, tracking);
   await settingsRoutes(app, pool);
@@ -162,6 +166,7 @@ export async function buildApp(
   app.addHook('onClose', async () => {
     tracking.stop();
     await mail.flush();
+    await alerts.flush();
     await pool.end();
     await files?.close();
   });
@@ -171,6 +176,7 @@ export async function buildApp(
 declare module 'fastify' {
   interface FastifyInstance {
     mail: MailService;
+    alerts: EmailLogger;
     tracking: Tracking;
   }
 }

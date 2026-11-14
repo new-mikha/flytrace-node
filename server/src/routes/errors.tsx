@@ -81,6 +81,11 @@ export function registerErrorPages(app: FastifyInstance): void {
 
     // The details are for the log only: they may show how things work inside.
     request.log.error({ err }, err.message);
+    // A database outage gives one of these per request: the alert comes as a summary.
+    request.server.alerts.throttle(
+      'server-error',
+      `${request.method} ${request.url.split('?')[0]} ${status}: ${err.stack ?? err.message}`,
+    );
     return sendError(
       request,
       reply,

@@ -137,6 +137,19 @@ describe('the log files', () => {
     ]);
   });
 
+  it('keeps the email logger in a file of its own', async () => {
+    const { logger, emailLog, close } = await fileLogger(dir, stdout().stream);
+    logger.info('a page');
+    emailLog.warn('server-error, held for a summary: GET / 500');
+    await close();
+
+    const today = day(new Date());
+    expect(await messages(`email-logger.${today}.log`)).toEqual([
+      'server-error, held for a summary: GET / 500',
+    ]);
+    expect(await messages(`info.${today}.log`)).toEqual(['a page']);
+  });
+
   it('makes a file only when a line comes for it', async () => {
     const { logger, close } = await fileLogger(dir, stdout().stream);
     logger.info('nothing wrong');
@@ -169,7 +182,7 @@ describe('the files kept', () => {
     for (let i = 1; i <= 101; i++) {
       const old = new Date(now);
       old.setDate(now.getDate() - i);
-      for (const name of ['info', 'warn', 'error'])
+      for (const name of ['info', 'warn', 'error', 'email-logger'])
         await writeFile(join(dir, `${name}.${day(old)}.log`), '');
     }
     await writeFile(join(dir, 'notes.txt'), '');
@@ -197,6 +210,7 @@ describe('the files kept', () => {
     expect(info.slice(0, 2)).toEqual(['2026-08-13', '2026-08-13']);
     expect(info.at(-1)).toBe('2026-11-10');
     expect(await days('error')).toEqual(info.slice(1, -1));
+    expect(await days('email-logger')).toEqual(info.slice(1, -1));
     expect(await readdir(dir)).toContain('notes.txt');
   });
 

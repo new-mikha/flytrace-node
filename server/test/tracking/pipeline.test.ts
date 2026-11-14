@@ -49,9 +49,10 @@ function setUp(rules: Partial<TrackerSource['rules']> = {}) {
   const { lines, log } = fakeLog();
   const shutdown = new AbortController();
   const onCallStart = vi.fn();
-  const pipeline = new Pipeline(source, log, shutdown.signal, onCallStart);
+  const alerts = { sendNow: vi.fn(), throttle: vi.fn() };
+  const pipeline = new Pipeline(source, log, shutdown.signal, onCallStart, alerts);
   pipeline.start();
-  return { poll, lines, shutdown, onCallStart, pipeline };
+  return { poll, lines, shutdown, onCallStart, pipeline, alerts };
 }
 
 const polled = (poll: ReturnType<typeof setUp>['poll']) => poll.mock.calls.map((call) => call[0]);
@@ -483,6 +484,56 @@ describe('the log', () => {
     call.reject(new DOMException('stop', 'AbortError'));
     await pass(0);
     expect(lines).toEqual([]);
+  });
+});
+
+describe('the alerts', () => {
+  const failure = (kind: 'throttled' | 'timeout' | 'bad-feed-id' | 'no-data', status?: number) =>
+    ({
+      ...DONE,
+      error: { kind, userMessage: 'x', status, headers: status ? { server: 'x' } : undefined },
+    }) as FeedResult;
+
+  it('are one type per source and HTTP status, with the headers', async () => {
+    const { poll, pipeline, alerts } = setUp();
+    poll.mockResolvedValueOnce(failure('throttled', 429));
+    pipeline.add([tracker('a')]);
+    await pass(2000);
+
+    expect(alerts.throttle).toHaveBeenCalledWith(
+      'poll:inReach:429',
+      'inReach poll of G:a failed: throttled, 1 request(s), 0 ms\nHTTP 429\nserver: x',
+    );
+  });
+
+  it('are named by the kind of failure when there is no status', async () => {
+    const { poll, pipeline, alerts } = setUp();
+    poll.mockResolvedValueOnce(failure('timeout'));
+    pipeline.add([tracker('a')]);
+    await pass(2000);
+    expect(alerts.throttle.mock.calls[0]![0]).toBe('poll:inReach:timeout');
+  });
+
+  it('leave out a feed that is wrong or empty: the service answered', async () => {
+    const { poll, pipeline, alerts } = setUp();
+    poll.mockResolvedValueOnce(failure('bad-feed-id', 200));
+    poll.mockResolvedValueOnce(failure('no-data'));
+    pipeline.add([tracker('a'), tracker('b')]);
+    await pass(4000);
+    expect(alerts.throttle).not.toHaveBeenCalled();
+  });
+
+  it('come for every poll that throws', async () => {
+    const { poll, pipeline, alerts } = setUp();
+    poll.mockRejectedValue(new Error('bug'));
+    pipeline.add([tracker('a'), tracker('b')]);
+    await pass(4000);
+
+    expect(alerts.throttle.mock.calls.map(([type]) => type)).toEqual([
+      'poll:inReach:threw',
+      'poll:inReach:threw',
+    ]);
+    expect(alerts.throttle.mock.calls[0]![1]).toMatch(/^inReach poll of G:a threw: Error: bug\n/);
   });
 });
 

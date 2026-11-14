@@ -93,6 +93,18 @@ const schema = z.object({
     (v) => (v === '' ? undefined : v),
     z.email().default('info@flytrace.com'),
   ),
+  // Where the alerts go (`EmailLogger`): comma-separated addresses, not shown to anybody. Empty: the
+  // alerts are only logged.
+  ALERT_EMAILS: z
+    .string()
+    .default('')
+    .transform((v) =>
+      v
+        .split(',')
+        .map((a) => a.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.email())),
 
   // The map page (Google Maps JavaScript API): a browser key limited to this site's addresses, and the
   // Map ID that the map's advanced markers need. Both are needed in production. While developing the map

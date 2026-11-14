@@ -22,6 +22,7 @@ import { maskEmail } from '../audit.ts';
 import { createToken } from '../auth/tokens.ts';
 import { baseUrl, type Config } from '../config.ts';
 import type { Pool } from '../db.ts';
+import type { Alerts } from '../alerts/emailLogger.ts';
 import type { Mailer } from './mailer.ts';
 import * as templates from './templates.ts';
 
@@ -49,6 +50,8 @@ export class MailService {
     private readonly pool: Pool,
     readonly mailer: Mailer,
     private readonly log: Log,
+    /** Every email sent here is an alert too: many of them in a row would mean a bot. */
+    private readonly alerts: Alerts,
   ) {
     this.ctx = {
       siteName: 'Flytrace',
@@ -84,11 +87,15 @@ export class MailService {
     return `${this.ctx.siteUrl}${path}?token=${encodeURIComponent(token)}`;
   }
 
-  /** Sends and reports. `error` carries the transport's message, for the test-email page. */
+  /**
+   * Sends and reports. `error` carries the transport's message, for the test-email page.
+   * `newAccount`: the confirmation email of a registration, whose alert says so.
+   */
   private async deliver(
     to: string,
     username: string,
     message: Omit<Parameters<Mailer['send']>[0], 'to'>,
+    newAccount = false,
   ): Promise<{ ok: boolean; error?: string }> {
     const masked = maskEmail(to);
     try {
@@ -96,6 +103,12 @@ export class MailService {
       this.log.info(
         { event: 'email.sent', user: username, to: masked, subject: message.subject },
         `Email "${message.subject}" sent to ${masked}`,
+      );
+      // The alert names the address in full and never holds the text, whose links are secrets:
+      const sent = this.canDeliver ? 'sent' : 'written to the log (SMTP is not configured)';
+      this.alerts.sendNow(
+        newAccount ? `New account: ${username}` : `Email to ${username}: ${message.subject}`,
+        `${username}, ${to}: "${message.subject}" ${sent}.`,
       );
       return { ok: true };
     } catch (err) {
@@ -111,16 +124,23 @@ export class MailService {
         },
         `Sending email "${message.subject}" to ${masked} failed`,
       );
-      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+      const reason = err instanceof Error ? err.message : String(err);
+      this.alerts.throttle(
+        'smtp-failed',
+        `"${message.subject}" to ${username}, ${to}${newAccount ? ' (new account)' : ''}: ${reason}`,
+      );
+      return { ok: false, error: reason };
     }
   }
 
-  async sendConfirmEmail(to: Recipient) {
+  /** `newAccount`: sent by the registration (its alert says so). */
+  async sendConfirmEmail(to: Recipient, newAccount = false) {
     const token = await createToken(this.pool, to.id, 'confirm_email');
     return this.deliver(
       to.email,
       to.username,
       templates.confirmEmailMessage(this.ctx, to.username, this.link('/confirm-email', token)),
+      newAccount,
     );
   }
 

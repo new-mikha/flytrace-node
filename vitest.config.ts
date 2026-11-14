@@ -23,7 +23,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['server/test/**/*.test.{ts,tsx}'],
-    env: { NODE_ENV: 'test' },
+    // dotenv leaves variables that are set alone, so the owner's .env cannot add alert emails to the
+    // ones the tests count (a test that wants them sets them in its config):
+    env: { NODE_ENV: 'test', ALERT_EMAILS: '' },
     fileParallelism: false, // tests share one dev database
   },
 });

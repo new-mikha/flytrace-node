@@ -302,7 +302,7 @@ export async function identityRoutes(
       user: username,
       userId: result.userId,
     });
-    mail.queue(() => mail.sendConfirmEmail({ id: result.userId, username, email }));
+    mail.queue(() => mail.sendConfirmEmail({ id: result.userId, username, email }, true));
 
     if (config.REQUIRE_CONFIRMED_EMAIL)
       return sendHtml(
