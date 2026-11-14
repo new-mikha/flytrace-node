@@ -25,6 +25,7 @@ import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyBaseLogger, type FastifyInstance, LogController } from 'fastify';
 import { join, resolve } from 'node:path';
 import { pino, type DestinationStream } from 'pino';
+import pretty from 'pino-pretty';
 import { registerSession } from './auth/session.ts';
 import type { Config } from './config.ts';
 import type { Pool } from './db.ts';
@@ -50,8 +51,6 @@ import { Tracking } from './tracking/tracking.ts';
 /** Where the lines for stdout go next to the files: JSON in production, readable otherwise. */
 async function stdoutStream(config: Config): Promise<DestinationStream> {
   if (config.NODE_ENV === 'production') return pino.destination(1);
-  // pino-pretty is a development package, so it is loaded only here:
-  const { default: pretty } = await import('pino-pretty');
   return pretty(PRETTY_OPTIONS);
 }
 

@@ -22,6 +22,7 @@ import { existsSync, renameSync } from 'node:fs';
 import { mkdir, readdir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { pino, type DestinationStream, type Level, type Logger } from 'pino';
+import { prettyFactory } from 'pino-pretty';
 
 /**
  * Production log times: ISO 8601 in the process's time zone with its offset (pino's default is
@@ -51,6 +52,18 @@ export const PRETTY_OPTIONS = {
   ignore: 'pid,hostname,reqId,event,user,userId,to,subject,action,ip',
   messageFormat: '{msg}{if user} [{user}]{end}',
 };
+
+/**
+ * The readable lines of the log files: full date and time with the offset, the level, the message,
+ * the other fields as JSON on the same line (an error's stack below it).
+ */
+const formatFileLine = prettyFactory({
+  colorize: false,
+  translateTime: 'SYS:yyyy-mm-dd HH:MM:ss.l o',
+  ignore: 'pid,hostname,reqId,user',
+  singleLine: true,
+  messageFormat: '{msg}{if user} [{user}]{end}',
+});
 
 /** The log files and the lowest level each one takes. */
 const FILES: Record<string, Level> = { info: 'info', warn: 'warn', error: 'error' };
@@ -135,7 +148,7 @@ function dailyFile(dir: string, name: string) {
           process.stderr.write(`Log file ${name}: ${err.message}\n`),
         );
       }
-      file.write(line);
+      file.write(formatFileLine(line));
     },
     /** Writes out what is still buffered. */
     close: () => Promise.all([...closing, ...(file ? [end(file)] : [])]).then(() => undefined),
@@ -143,7 +156,8 @@ function dailyFile(dir: string, name: string) {
 }
 
 /**
- * A logger writing to `stdout` and to the files in `dir`, one JSON line each:
+ * A logger writing to `stdout` and to the files in `dir`, one readable line each
+ * (`formatFileLine`):
  * `info.<date>.log` gets every line, `warn.<date>.log` WARN and up, `error.<date>.log` ERROR and
  * up (`dailyFile`). The files older than `KEEP_DAYS` days are deleted at startup and a minute
  * after each midnight. `close` writes out what is still buffered.

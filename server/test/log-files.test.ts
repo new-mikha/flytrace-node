@@ -58,7 +58,7 @@ async function messages(file: string): Promise<string[]> {
     .trim()
     .split('\n')
     .filter(Boolean)
-    .map((line) => (JSON.parse(line) as { msg: string }).msg);
+    .map((line) => line.replace(/^\[[^\]]*\] [A-Z]+: /, ''));
 }
 
 describe('the log files', () => {
@@ -88,13 +88,25 @@ describe('the log files', () => {
     expect(out.lines).toHaveLength(4);
   });
 
-  it('writes local ISO times with the offset', async () => {
+  it('writes readable lines: time, level, message, the other fields', async () => {
+    vi.useFakeTimers({ now: new Date(2026, 10, 14, 9, 5, 7, 42), toFake: ['Date'] });
     const { logger, close } = await fileLogger(dir, stdout().stream);
-    logger.info('timed');
+    logger.info({ user: 'pilot', reqId: 'req-1' }, 'GET / 200 19ms');
+    logger.warn({ event: 'auth.login-failed', ip: '192.0.2.1' }, 'Login failed');
+    logger.error({ err: new Error('database down') }, 'Crash');
     await close();
 
-    const [line] = (await readFile(join(dir, `info.${day(new Date())}.log`), 'utf8')).split('\n');
-    expect(JSON.parse(line!).time).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}[+-]\d\d:\d\d$/);
+    const [info, warn, error, ...stack] = (
+      await readFile(join(dir, 'info.2026-11-14.log'), 'utf8')
+    ).split('\n');
+    expect(info).toMatch(
+      /^\[2026-11-14 09:05:07\.042 [+-]\d{4}\] INFO: GET \/ 200 19ms \[pilot\]$/,
+    );
+    expect(warn).toMatch(
+      /\] WARN: Login failed \{"event":"auth\.login-failed","ip":"192\.0\.2\.1"\}$/,
+    );
+    expect(error).toMatch(/\] ERROR: Crash/);
+    expect(stack.join('\n')).toContain('Error: database down');
   });
 
   it('numbers the files of earlier runs of the day, the oldest .1', async () => {

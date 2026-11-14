@@ -32,10 +32,8 @@ const host = config.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
 await app.listen({ port: config.PORT, host });
 // Here and not in `buildApp`, so that tests get an app that never polls the feeds:
 await app.tracking.start();
-app.log.info(
-  `Started: process id ${process.pid}, ${config.NODE_ENV}, time zone
-    ${Intl.DateTimeFormat().resolvedOptions().timeZone}`,
-);
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+app.log.info(`Started: process id ${process.pid}, ${config.NODE_ENV}, time zone ${timeZone}`);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const)
   process.on(signal, () => {
