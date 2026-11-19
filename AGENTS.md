@@ -320,6 +320,44 @@ wait on feeds.
   `Combinations.xml` and `InReach/*.kml`), the only feed-level samples that exist: `legacy-xml-samples/` holds responses from *our* endpoints, not
   from theirs. They are slimmed and anonymised, with positions and timestamps real so the tests stay meaningful. Do the same to any new one.
 
+## Hosting (decided 19 Nov 2026; the server exists, the app is not on it yet)
+
+Production is moving from the home Raspberry Pi to Oracle Cloud Infrastructure (Always Free), region Germany Central (Frankfurt), one
+`VM.Standard.A1.Flex` machine (Ampere, arm64, 2 OCPU / 12 GB, 100 GB boot volume), Ubuntu 26.04 Minimal aarch64, Docker from Docker's own apt
+repository, in a VCN made by Oracle's wizard (public subnet, internet gateway). The public IP is a **reserved** one. Its address does not go
+into the repository.
+
+- **Plan, not started: everything runs in containers**, the app and Postgres, from one folder on the server (`compose.yml`, `.env` with mode
+  `600`, `tls/`, `pgdata/`, `logs/` for `LOG_DIR`, `backups/`; `import/` only while the legacy dump is imported, then deleted). The machine itself
+  stays plain: Docker, the compose file and that folder. The image is built and tested by a GitHub Actions workflow (Postgres as a service
+  container; native ARM runner) and pushed to GitHub Container Registry as a **public** image, so **nothing secret may ever be in it**:
+  `.dockerignore` keeps out `.env*`, `db/legacy/dump/` and anything else personal. The server only pulls (`docker compose pull && docker compose up -d`),
+  by hand, never automatically. Still exactly **one** app container. The app serves HTTPS itself (the third-party proxy in front talks to
+  a self-signed certificate): it makes the key and certificate into `tls/` on first start when they are absent, and with no usable `.env` it
+  answers a generic 503 page (details in the container log only, never on the page). Compose gets `POSTGRES_PASSWORD` from the same `.env`
+  (`${POSTGRES_PASSWORD:?...}`, made with `openssl rand -hex 24`; it counts only when Postgres first creates its data), the app's `DATABASE_URL`
+  has the host `db`, and no database port is published. `restart: unless-stopped` on both services. To check when it is built: whether Fastify
+  has `trustProxy` set (rate limiter and audit lines need the visitor's address, not the proxy's). `deploy/` and `scripts/deploy.sh` /
+  `setup-service.sh` are the Pi's way and stay until the move is done.
+- **Network:** only TCP 443 is open (Oracle's security list, and the machine's own iptables: Oracle's Ubuntu images reject everything else, so a
+  rule is inserted above the final REJECT and saved with `netfilter-persistent`), plus 22 for SSH. No port 80. The proxy's address may be put
+  into the 443 rule once it is known.
+- **SSH is not restricted to an address** (owner's decision, 19 Nov 2026: the owner connects from anywhere). So it must stay key-only (Oracle's
+  default) with a passphrase-protected key (`ssh-keygen -a 100`); do not propose an IP allow-list.
+- **Requirements for the hosting** (a machine that does not meet them is not ready for production):
+  - **Automatic security updates** on: `unattended-upgrades` enabled (the package's defaults install security updates only); if a kernel update
+    needs a reboot it is done by hand, and the containers must come back by themselves (Docker enabled at boot, restart policies).
+  - **Backups:** regular `pg_dump` into `backups/`, **encrypted** (for example with `age`) before a copy leaves the machine, with at least one
+    copy off it. The dumps hold emails and password hashes. A restore is tried before the first real use. The privacy policy already speaks of
+    "copies in backups until those backups are replaced": keep that true.
+  - **Logs limited to 90 days** (see Logging): the app's own files do it themselves; Docker's `json-file` driver is capped by size only
+    (`/etc/docker/daemon.json`: `max-size` 10m, `max-file` 5), which is what the machine has.
+  - `.env` readable by its owner only; no secret in the image, in git, or in a log.
+  - The disk is encrypted at rest by Oracle (keys held by Oracle) and in transit; this is not protection against Oracle itself, and the privacy
+    policy must not claim it is.
+- **The third-party proxy sees all traffic in plain text**, passwords at login included, and keeps its own logs. The privacy policy says so; keep
+  it saying so while it is true.
+
 ## Planned (not started)
 
 - At deployment, once the production import has been checked: destroy the old dumps (`db/legacy/dump/` and any copy of them), which hold the legacy SHA-1 password hashes (owner's decision, 7 Nov 2026). Confirm with the owner before deleting.

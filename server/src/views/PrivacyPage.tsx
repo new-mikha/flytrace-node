@@ -38,7 +38,7 @@ export function PrivacyPage({
   return (
     <Layout title="Privacy policy" user={user} path={path} card="medium">
       <h1 class="h4">Privacy policy</h1>
-      <p class="text-body-secondary">Last updated on 7 November 2026.</p>
+      <p class="text-body-secondary">Last updated on 19 November 2026.</p>
 
       <p>
         Flytrace shows the positions of GPS trackers on a map. This page says what we keep, why, for
@@ -118,7 +118,17 @@ export function PrivacyPage({
           to run the site and to help when something goes wrong.
         </li>
         <li>
-          <strong>The services that run the site:</strong> the hosting, and the delivery of email.
+          <strong>Oracle Cloud Infrastructure</strong> hosts the server, in Frankfurt, Germany. The
+          data is on its disks, encrypted by Oracle, which also holds the keys. See{' '}
+          <a href="https://www.oracle.com/legal/privacy/">Oracle's privacy policy</a>.
+        </li>
+        <li>
+          <strong>A web server run by a third party</strong> sits in front of the site. It passes
+          your requests on, so it sees them as you send them, including what you type when you log
+          in, and it keeps its own logs with IP addresses.
+        </li>
+        <li>
+          <strong>The delivery of email</strong>, when the site sends you a message.
         </li>
       </ul>
       <p>
